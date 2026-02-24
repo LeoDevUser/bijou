@@ -43,7 +43,7 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private Status status;
     @ManyToOne
-    @JoinColumn(name = "client_id")
+    @JoinColumn(name = "client_id", nullable = false)
     private Client client;
     @OneToMany(mappedBy = "order")
     private List<OrderItem> orderItems;

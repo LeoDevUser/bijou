@@ -29,9 +29,9 @@ public class OrderItem {
     @Column(nullable = false)
     private BigDecimal unitPrice;
     @ManyToOne
-    @JoinColumn(name = "item_id")
+    @JoinColumn(name = "item_id", nullable = false)
     private Item item;
     @ManyToOne
-    @JoinColumn(name = "order_id")
+    @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 }
