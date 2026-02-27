@@ -3,20 +3,24 @@ package com.bijou.backend.auth;
 import java.util.Optional;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.bijou.backend.entities.Client;
 import com.bijou.backend.entities.Role;
 import com.bijou.backend.repositories.ClientRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
     private final ClientRepository clientRepository;
     private final PasswordEncoder passwordEncoder;
@@ -41,29 +45,29 @@ public class AuthService {
 
     private boolean validAddress(String addy) {
         //TODO
-        return true;
+        return !addy.isBlank();
     }
 
     public AuthResponse register(RegisterRequest req) {
+        log.info("registration attempt for email {}", req.email());
         String email = req.email();
         String pswd = req.password();
         Optional<String> res = Optional.empty();
         try {
-            //TODO CHANGE LATER
-            //to throw better excpetions
-            //or maybe not even throw them since client
-            //would know sine we return an empty response
             if (clientRepository.findByEmail(email).isPresent()) {
-                throw new RuntimeException();
+                log.warn("email {} already registered", req.email());
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "email already in use");
             }
             if (!isValidPassword(pswd)) {
-                throw new RuntimeException();
+                log.warn("invalid password, need a password between 8 and 30 characters with one uppercase, one lowercase, one digit, one special character");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid password");
             }
             if (!validAddress(req.address())) {
-                throw new RuntimeException();
+                log.warn("invalid address", req.email());
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid address");
             }
         } catch (RuntimeException e) {
-            e.printStackTrace();
+            log.warn("failed registration for email: {}", req.email());
             return new AuthResponse(res);
         }
 
@@ -85,13 +89,14 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest req) {
-        Optional<String> res = Optional.empty();
         Authentication auth;
         try {
             auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(req.email(), req.password()));
+            log.info("login successful for email: {}", req.email());
         } catch (BadCredentialsException e) {
+            log.warn("login unsuccessful for email: {}", req.email());
             e.printStackTrace();
-            return new AuthResponse(res);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials");
         }
         Client client = (Client)auth.getPrincipal();
         //auth succeeded
