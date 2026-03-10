@@ -53,22 +53,17 @@ public class AuthService {
         String email = req.email();
         String pswd = req.password();
         Optional<String> res = Optional.empty();
-        try {
-            if (clientRepository.findByEmail(email).isPresent()) {
-                log.warn("email {} already registered", req.email());
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "email already in use");
-            }
-            if (!isValidPassword(pswd)) {
-                log.warn("invalid password, need a password between 8 and 30 characters with one uppercase, one lowercase, one digit, one special character");
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid password");
-            }
-            if (!validAddress(req.address())) {
-                log.warn("invalid address", req.email());
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid address");
-            }
-        } catch (RuntimeException e) {
-            log.warn("failed registration for email: {}", req.email());
-            return new AuthResponse(res);
+        if (clientRepository.findByEmail(email).isPresent()) {
+            log.warn("email {} already registered", req.email());
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "email already in use");
+        }
+        if (!isValidPassword(pswd)) {
+            log.warn("invalid password, need a password between 8 and 30 characters with one uppercase, one lowercase, one digit, one special character");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid password");
+        }
+        if (!validAddress(req.address())) {
+            log.warn("invalid address", req.email());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid address");
         }
 
         String encoded = passwordEncoder.encode(pswd);
