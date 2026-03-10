@@ -1,7 +1,5 @@
 package com.bijou.backend.auth;
 
-import java.util.Optional;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -44,15 +42,14 @@ public class AuthService {
     }
 
     private boolean validAddress(String addy) {
-        //TODO
+        //may change this later
         return !addy.isBlank();
     }
 
-    public AuthResponse register(RegisterRequest req) {
+    public String register(RegisterRequest req) {
         log.info("registration attempt for email {}", req.email());
         String email = req.email();
         String pswd = req.password();
-        Optional<String> res = Optional.empty();
         if (clientRepository.findByEmail(email).isPresent()) {
             log.warn("email {} already registered", req.email());
             throw new ResponseStatusException(HttpStatus.CONFLICT, "email already in use");
@@ -62,7 +59,7 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid password");
         }
         if (!validAddress(req.address())) {
-            log.warn("invalid address", req.email());
+            log.warn("invalid address");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid address");
         }
 
@@ -79,23 +76,21 @@ public class AuthService {
         clientRepository.save(client);
 
         String token = jwtService.generateToken(client);
-        res = Optional.of(token);
-        return new AuthResponse(res);
+        return token;
     }
 
-    public AuthResponse login(LoginRequest req) {
+    public String login(LoginRequest req) {
         Authentication auth;
         try {
             auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(req.email(), req.password()));
             log.info("login successful for email: {}", req.email());
         } catch (BadCredentialsException e) {
             log.warn("login unsuccessful for email: {}", req.email());
-            e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials");
         }
         Client client = (Client)auth.getPrincipal();
         //auth succeeded
         String token = jwtService.generateToken(client);
-        return new AuthResponse(Optional.of(token));
+        return token;
     }
 }
