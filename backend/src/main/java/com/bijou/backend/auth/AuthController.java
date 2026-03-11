@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -16,13 +17,13 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register (@RequestBody RegisterRequest req) {
+    public ResponseEntity<String> register (@Valid @RequestBody RegisterRequest req) {
         String token = authService.register(req);
         return ResponseEntity.status(HttpStatus.CREATED).body(token);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login (@RequestBody LoginRequest req) {
+    public ResponseEntity<String> login (@Valid @RequestBody LoginRequest req) {
         String token = authService.login(req);
         return ResponseEntity.ok(token);
     }
