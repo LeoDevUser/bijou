@@ -46,6 +46,25 @@ public class JwtService {
 
         return jwt;
     }
+    
+    public String generateToken(UserDetails userDetails, Date expiration) {
+        Date now = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant());
+        String userName  = userDetails.getUsername();
+        String role = userDetails.getAuthorities()
+            .stream()
+            .findFirst()
+            .map(GrantedAuthority::getAuthority)
+            .orElse(null);
+        String jwt = Jwts.builder()
+            .expiration(expiration)
+            .issuedAt(now)
+            .subject(userName)
+            .claim("role", role)
+            .signWith(getSigningKey())
+            .compact();
+
+        return jwt;
+    }
 
     public String extractEmail(String token) {
         return Jwts.parser()

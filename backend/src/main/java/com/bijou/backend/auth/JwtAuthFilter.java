@@ -46,6 +46,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                if (opUserDetails.isPresent()) {
                    Client client = opUserDetails.get();
                    if(jwtService.isTokenValid(token, client)) {
+                       //notice the 3 arg constructor is used here
+                       //as opposed to the 2 arg constructor, the 3 arg constructor
+                       //creates an authenticathed token
                        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(client, null, client.getAuthorities());
                        auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
                        SecurityContextHolder.getContext().setAuthentication(auth);

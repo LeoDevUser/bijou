@@ -34,7 +34,7 @@ public class Item {
     private Integer stock;
     @Column(nullable=false)
     private BigDecimal price;
-    @Column(nullable=false)
+    @Column(nullable=false, unique = true)
     private String name;
     @ElementCollection
     @CollectionTable(name = "item_labels", joinColumns = @JoinColumn(name = "item_id"))
