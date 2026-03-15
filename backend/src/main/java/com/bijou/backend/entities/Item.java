@@ -42,4 +42,5 @@ public class Item {
     @Enumerated(EnumType.STRING)
     @Column(nullable=false)
     private Category category;
+    private String imageUrl;
 }
