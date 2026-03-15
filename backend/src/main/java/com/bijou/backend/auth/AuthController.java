@@ -27,4 +27,5 @@ public class AuthController {
         String token = authService.login(req);
         return ResponseEntity.ok(token);
     }
+
 }

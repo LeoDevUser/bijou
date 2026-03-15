@@ -93,4 +93,24 @@ public class AuthService {
         String token = jwtService.generateToken(client);
         return token;
     }
+
+    public void changePassword(Client client, ChangePasswordRequest req) {
+        if (!isValidPassword(req.newPassword())) {
+            log.warn("invalid password, need a password between 8 and 30 characters with one uppercase, one lowercase, one digit, one special character");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid password");
+        }
+        String email = client.getEmail();
+        Authentication auth;
+        try {
+            auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, req.oldPassword()));
+            log.info("old password verified for email: {}", email);
+        } catch (BadCredentialsException e) {
+            log.warn("old password verification unsuccessful for email: {}", email);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials");
+        }
+        client = (Client)auth.getPrincipal();
+        String encoded = passwordEncoder.encode(req.newPassword());
+        client.setPassword(encoded);
+        clientRepository.save(client);
+    }
 }
