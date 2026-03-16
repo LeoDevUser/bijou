@@ -51,7 +51,9 @@ public class ItemService {
 
     public void deleteItem(Long id) {
         Item item = findItemOrThrow(id);
-        itemRepository.deleteById(id);
+        item.setActive(false);
+        itemRepository.save(item);
+        //itemRepository.deleteById(id);
         log.info("deleted {} from the databse", item.getName());
     }
 
@@ -61,15 +63,15 @@ public class ItemService {
     }
 
     public List<Item> getItemsByCategory(Category category) {
-        return itemRepository.findByCategory(category);
+        return itemRepository.findByCategoryAndActiveTrue(category);
     }
 
     public List<Item> getAllItems() {
-        return itemRepository.findAll();
+        return itemRepository.findByActiveTrue();
     }
 
     private Item findItemOrThrow(Long id) {
-    return itemRepository.findById(id)
+    return itemRepository.findByIdAndActiveTrue(id)
         .orElseThrow(() -> {
             log.warn("item with id {} does not exist", id);
             return new ResponseStatusException(HttpStatus.NOT_FOUND, "item not found");

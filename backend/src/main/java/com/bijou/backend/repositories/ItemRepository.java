@@ -13,4 +13,7 @@ import com.bijou.backend.entities.Item;
 public interface ItemRepository extends JpaRepository<Item, Long>{
     Optional<Item> findByNameIgnoreCase(String name);
     List<Item> findByCategory(Category category);
+    List<Item> findByCategoryAndActiveTrue(Category category);
+    List<Item> findByActiveTrue();
+    Optional<Item> findByIdAndActiveTrue(Long id);
 }

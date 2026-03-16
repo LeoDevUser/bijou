@@ -43,4 +43,7 @@ public class Item {
     @Column(nullable=false)
     private Category category;
     private String imageUrl;
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean active = true;
 }
