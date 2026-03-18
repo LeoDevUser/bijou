@@ -31,7 +31,7 @@ public class OrderService {
     private final ItemRepository itemRepository;
 
     @Transactional
-    public void create(Client client, OrderRequest req) {
+    public OrderView create(Client client, OrderRequest req) {
         List<Long> itemIds = req.items().stream()
             .map(OrderItemRequest::itemId)
             .distinct()
@@ -80,6 +80,7 @@ public class OrderService {
             .build();
         order.getOrderItems().forEach(oi -> oi.setOrder(order));
         orderRepository.save(order);
+        return toOrderView(order);
     }
 
     @Transactional
@@ -118,22 +119,59 @@ public class OrderService {
         orderRepository.save(order);
     }
 
-    public List<OrderView> getOrders(Client client) {
-        List<Order> orders = orderRepository.findByClient(client);
-        return orders.stream()
-            .map(order -> new OrderView(order.getAddress(), order.getOrderItems().stream()
+
+    private OrderView toOrderView(Order order) {
+        return new OrderView(order.getAddress(), order.getOrderItems().stream()
                 .map(orderItem -> 
                     new OrderItemView(
-                            orderItem.getItem().getId(),
-                            orderItem.getUnitPrice(),
-                            orderItem.getQuantity())
+                        orderItem.getItem().getId(),
+                        orderItem.getUnitPrice(),
+                        orderItem.getQuantity()
                     )
-                .toList(),
+                ).toList(),
                 order.getTrackingNumber(),
                 order.getTotalPrice(),
                 order.getCreatedAt(),
                 order.getStatus(),
-                order.getId()))
+                order.getId());
+    }
+
+    public List<OrderView> getOrders(Client client) {
+        List<Order> orders = orderRepository.findByClient(client);
+        return orders.stream()
+            .map(order -> toOrderView(order))
+            .toList();
+    }
+
+
+    // TODO: for admin methods below, role check redundant if filter chain covers /${ADMIN_PAGE}/** - verify in Postman
+    public OrderView getOrder(Client client, Long id) {
+        Order order = orderRepository.findById(id).orElseThrow( () ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "order not found")
+                );
+        if (client.getRole() != Role.ADMIN) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "only admin may retrieve this way");
+        } 
+        return toOrderView(order);
+    }
+
+    public List<OrderView> getAllOrders(Client client) {
+        if (client.getRole() != Role.ADMIN) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "only admin may retrieve this way");
+        } 
+        return orderRepository.findAll()
+            .stream()
+            .map(order -> toOrderView(order))
+            .toList();
+    }
+
+    public List<OrderView> getOrdersByStatus(Client client, Status status) {
+        if (client.getRole() != Role.ADMIN) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "only admin may retrieve this way");
+        } 
+        return orderRepository.findByStatus(status)
+            .stream()
+            .map(order -> toOrderView(order))
             .toList();
     }
 }

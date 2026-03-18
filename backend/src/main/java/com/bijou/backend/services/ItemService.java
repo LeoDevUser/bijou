@@ -24,29 +24,35 @@ public class ItemService {
      *Admin Functions
      * */
 
-    public void createItem(int stock, float price, String name, List<String> labels, Category category) {
-        if (itemRepository.findByNameIgnoreCase(name).isPresent()) {
-            log.warn("item with name {} already exists", name);
+    private ItemView toItemView(Item item) {
+        return new ItemView(item.getId(), item.getStock(), item.getName(), item.getPrice(), item.getLabels(), item.getCategory(), item.getImageUrl());
+    }
+    
+    public ItemView createItem(ItemRequest req) {
+        if (itemRepository.findByNameIgnoreCase(req.name()).isPresent()) {
+            log.warn("item with name {} already exists", req.name());
             throw new ResponseStatusException(HttpStatus.CONFLICT, "item with this name already exists");
         }
         Item item = Item.builder()
-            .stock(stock)
-            .price(BigDecimal.valueOf(price))
-            .name(name)
-            .labels(labels)
-            .category(category)
+            .stock(req.stock())
+            .price(BigDecimal.valueOf(req.price()))
+            .name(req.name())
+            .labels(req.labels())
+            .category(req.category())
             .build();
         itemRepository.save(item);
+        return toItemView(item);
     }
 
-    public void updateItem(Long id ,int stock, float price, String name, List<String> labels, Category category) {
+    public ItemView updateItem(Long id, ItemRequest req) {
         Item item = findItemOrThrow(id);
-        item.setName(name);
-        item.setStock(stock);
-        item.setPrice(BigDecimal.valueOf(price));
-        item.setLabels(labels);
-        item.setCategory(category);
+        item.setName(req.name());
+        item.setStock(req.stock());
+        item.setPrice(BigDecimal.valueOf(req.price()));
+        item.setLabels(req.labels());
+        item.setCategory(req.category());
         itemRepository.save(item);
+        return toItemView(item);
     }
 
     public void deleteItem(Long id) {
@@ -58,16 +64,22 @@ public class ItemService {
     }
 
     //public facing Functions
-    public Item getItem(Long id) {
-        return findItemOrThrow(id);
+
+    public ItemView getItem(Long id) {
+        return toItemView(findItemOrThrow(id));
     }
 
-    public List<Item> getItemsByCategory(Category category) {
-        return itemRepository.findByCategoryAndActiveTrue(category);
+    public List<ItemView> getItemsByCategory(Category category) {
+        return itemRepository.findByCategoryAndActiveTrue(category)
+            .stream()
+            .map(item -> toItemView(item))
+            .toList();
     }
 
-    public List<Item> getAllItems() {
-        return itemRepository.findByActiveTrue();
+    public List<ItemView> getAllItems() {
+        return itemRepository.findByActiveTrue().stream()
+            .map(item -> toItemView(item))
+            .toList();
     }
 
     private Item findItemOrThrow(Long id) {

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import com.bijou.backend.entities.Client;
 import com.bijou.backend.entities.Order;
+import com.bijou.backend.entities.Status;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
@@ -16,4 +17,5 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByClient(Client client);
     List<Order> findByClientAndCreatedAtBetween(Client client,LocalDateTime start, LocalDateTime end);
     List<Order> findByClient_EmailAndCreatedAtBetween(String email, LocalDateTime start, LocalDateTime end);
+    List<Order> findByStatus(Status status);
 }
