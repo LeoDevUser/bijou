@@ -1,10 +1,6 @@
 package com.bijou.backend.auth;
 
-import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -13,17 +9,24 @@ import com.bijou.backend.entities.Client;
 import com.bijou.backend.entities.Role;
 import com.bijou.backend.repositories.ClientRepository;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class AuthService {
     private final ClientRepository clientRepository;
     private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+
+    public AuthService(
+        ClientRepository clientRepository,
+        PasswordEncoder passwordEncoder,
+        JwtService jwtService
+    ) {
+        this.clientRepository = clientRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
+    }
 
     private boolean checkChars(String str) {
         //returns true if meets the char requirements
@@ -80,37 +83,33 @@ public class AuthService {
     }
 
     public String login(LoginRequest req) {
-        Authentication auth;
-        try {
-            auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(req.email(), req.password()));
-            log.info("login successful for email: {}", req.email());
-        } catch (BadCredentialsException e) {
+        Client client = clientRepository.findByEmail(req.email()).orElseThrow(() -> {
+            log.warn("login unsuccessful for email: {}", req.email());
+            return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials");
+        });
+
+        if (!passwordEncoder.matches(req.password(), client.getPassword())){
             log.warn("login unsuccessful for email: {}", req.email());
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials");
         }
-        Client client = (Client)auth.getPrincipal();
-        //auth succeeded
-        String token = jwtService.generateToken(client);
-        return token;
+
+        log.info("login successful for email: {}", req.email());
+        return jwtService.generateToken(client);
     }
 
     public void changePassword(Client client, ChangePasswordRequest req) {
         if (!isValidPassword(req.newPassword())) {
-            log.warn("invalid password, need a password between 8 and 30 characters with one uppercase, one lowercase, one digit, one special character");
+            log.warn("invalid password ...");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid password");
         }
-        String email = client.getEmail();
-        Authentication auth;
-        try {
-            auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, req.oldPassword()));
-            log.info("old password verified for email: {}", email);
-        } catch (BadCredentialsException e) {
-            log.warn("old password verification unsuccessful for email: {}", email);
+
+        if (!passwordEncoder.matches(req.oldPassword(), client.getPassword())) {
+            log.warn("old password verification unsuccessful for email: {}", client.getEmail());
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials");
         }
-        client = (Client)auth.getPrincipal();
-        String encoded = passwordEncoder.encode(req.newPassword());
-        client.setPassword(encoded);
+
+        log.info("old password verified for email: {}", client.getEmail());
+        client.setPassword(passwordEncoder.encode(req.newPassword()));
         clientRepository.save(client);
     }
 }
