@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.bijou.backend.entities.Client;
+import com.bijou.backend.entities.Role;
 import com.bijou.backend.repositories.ClientRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -46,5 +47,11 @@ public class ClientService {
         clientRepository.save(client);
         log.info("updated address of {}", client.getEmail());
     }
-    
+
+    public void promote(Long id) {
+        Client client = clientRepository.findById(id).orElseThrow(() -> {
+            return new ResponseStatusException(HttpStatus.NOT_FOUND, "client id not found for promotion");
+        });
+        client.setRole(Role.ADMIN);
+    }
 }
