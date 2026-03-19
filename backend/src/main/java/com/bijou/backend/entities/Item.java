@@ -3,6 +3,7 @@ package com.bijou.backend.entities;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Column;
@@ -36,7 +37,7 @@ public class Item {
     private BigDecimal price;
     @Column(nullable=false, unique = true)
     private String name;
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "item_labels", joinColumns = @JoinColumn(name = "item_id"))
     private List<String> labels;
     @Enumerated(EnumType.STRING)

@@ -136,6 +136,7 @@ public class OrderService {
                 order.getId());
     }
 
+    @Transactional
     public List<OrderView> getOrders(Client client) {
         List<Order> orders = orderRepository.findByClient(client);
         return orders.stream()
@@ -145,6 +146,7 @@ public class OrderService {
 
 
     // TODO: for admin methods below, role check redundant if filter chain covers /${ADMIN_PAGE}/** - verify in Postman
+    @Transactional
     public OrderView getOrder(Client client, Long id) {
         Order order = orderRepository.findById(id).orElseThrow( () ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "order not found")
@@ -155,6 +157,7 @@ public class OrderService {
         return toOrderView(order);
     }
 
+    @Transactional
     public List<OrderView> getAllOrders(Client client) {
         if (client.getRole() != Role.ADMIN) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "only admin may retrieve this way");
@@ -165,6 +168,7 @@ public class OrderService {
             .toList();
     }
 
+    @Transactional
     public List<OrderView> getOrdersByStatus(Client client, Status status) {
         if (client.getRole() != Role.ADMIN) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "only admin may retrieve this way");

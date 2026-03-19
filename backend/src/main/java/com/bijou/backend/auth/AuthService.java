@@ -94,6 +94,7 @@ public class AuthService {
         }
 
         log.info("login successful for email: {}", req.email());
+        if (client.getRole() == Role.ADMIN) log.info("ADMIN logged in!");
         return jwtService.generateToken(client);
     }
 
