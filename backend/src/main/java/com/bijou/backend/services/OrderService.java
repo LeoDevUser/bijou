@@ -37,7 +37,7 @@ public class OrderService {
             .distinct()
             .toList();
 
-        Map<Long, Item> itemMap = itemRepository.findAllById(itemIds)
+        Map<Long, Item> itemMap = itemRepository.findAllByIdWithLock(itemIds)
             .stream()
             .collect(Collectors.toMap(Item::getId, item -> item));
 
@@ -103,7 +103,7 @@ public class OrderService {
             .map(orderItem -> orderItem.getItem().getId())
             .distinct()
             .toList();
-        Map<Long, Item> itemMap = itemRepository.findAllById(itemIds).stream()
+        Map<Long, Item> itemMap = itemRepository.findAllByIdWithLock(itemIds).stream()
             .collect(Collectors.toMap(Item::getId, item -> item));
 
         orderItems.forEach(orderItem -> {
@@ -150,7 +150,6 @@ public class OrderService {
     }
 
 
-    // TODO: for admin methods below, role check redundant if filter chain covers /${ADMIN_PAGE}/** - verify in Postman
     @Transactional
     public OrderView getOrder(Client client, Long id) {
         Order order = orderRepository.findById(id).orElseThrow( () ->

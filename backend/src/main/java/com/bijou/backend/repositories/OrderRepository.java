@@ -18,4 +18,5 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByClientAndCreatedAtBetween(Client client,LocalDateTime start, LocalDateTime end);
     List<Order> findByClient_EmailAndCreatedAtBetween(String email, LocalDateTime start, LocalDateTime end);
     List<Order> findByStatus(Status status);
+    List<Order> findByStatusAndCreatedAtBefore(Status status, LocalDateTime time);
 }

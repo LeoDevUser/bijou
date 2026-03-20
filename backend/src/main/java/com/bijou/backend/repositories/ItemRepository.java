@@ -4,10 +4,15 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.bijou.backend.entities.Category;
 import com.bijou.backend.entities.Item;
+
+import jakarta.persistence.LockModeType;
 
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Long>{
@@ -17,4 +22,10 @@ public interface ItemRepository extends JpaRepository<Item, Long>{
     List<Item> findByActiveTrue();
     List<Item> findByActiveFalse();
     Optional<Item> findByIdAndActiveTrue(Long id);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT i FROM Item WHERE i.id = :id")
+    Optional<Item> findByIdWithLock(Long id);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT i FROM Item WHERE i.id IN :ids")
+    List<Item> findAllByIdWithLock(@Param("ids") List<Long> ids);
 }
