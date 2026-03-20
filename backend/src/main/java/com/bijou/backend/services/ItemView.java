@@ -13,5 +13,6 @@ public record ItemView(
         List<String> labels,
         Category category,
         String description,
-        String imageUrl
+        String imageUrl,
+        String imageId
 ) {}

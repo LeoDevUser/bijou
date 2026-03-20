@@ -48,4 +48,5 @@ public class Item {
     @Builder.Default
     private boolean active = true;
     private String description;
+    private String imageId;
 }

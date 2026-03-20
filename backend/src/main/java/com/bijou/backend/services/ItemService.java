@@ -25,7 +25,11 @@ public class ItemService {
      * */
 
     private ItemView toItemView(Item item) {
-        return new ItemView(item.getId(), item.getStock(), item.getName(), item.getPrice(), item.getLabels(), item.getCategory(), item.getDescription(), item.getImageUrl());
+        return new ItemView(
+                item.getId(), item.getStock(), item.getName(),
+                item.getPrice(), item.getLabels(), item.getCategory(),
+                item.getDescription(), item.getImageUrl(), item.getImageId()
+            );
     }
     
     public ItemView createItem(ItemRequest req) {
@@ -52,6 +56,14 @@ public class ItemService {
         item.setPrice(BigDecimal.valueOf(req.price()));
         item.setLabels(req.labels());
         item.setCategory(req.category());
+        itemRepository.save(item);
+        return toItemView(item);
+    }
+
+    public ItemView updateItemImage(Long id, String url, String imageId) {
+        Item item = findItemOrThrow(id);
+        item.setImageUrl(url);
+        item.setImageId(imageId);
         itemRepository.save(item);
         return toItemView(item);
     }
