@@ -38,6 +38,7 @@ public class CloudinaryService {
 
         try {
             Map<?,?> res = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+            log.info("uploaded new item image");
             return new CloudinaryResponse(
                 (String) res.get("public_id"),
                 (String) res.get("secure_url"),
@@ -54,6 +55,7 @@ public class CloudinaryService {
     public void delete(String imageId) {
         try {
             cloudinary.uploader().destroy(imageId, ObjectUtils.emptyMap());
+            log.info("deleted item image");
         } catch (IOException e){
             log.error("error deleting image: {}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_CONTENT, "error uploading image");
