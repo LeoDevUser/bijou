@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ItemService {
 
+    private final CloudinaryService cloudinaryService;
     private final ItemRepository itemRepository;
     /*
      *Admin Functions
@@ -60,10 +61,24 @@ public class ItemService {
         return toItemView(item);
     }
 
-    public ItemView updateItemImage(Long id, String url, String imageId) {
+    public ItemView updateItemImage(Long id, CloudinaryResponse res) {
         Item item = findItemOrThrow(id);
-        item.setImageUrl(url);
-        item.setImageId(imageId);
+        if (!item.getImageId().isEmpty()) {
+            cloudinaryService.delete(item.getImageId());
+        }
+        item.setImageUrl(res.url());
+        item.setImageId(res.imageId());
+        itemRepository.save(item);
+        return toItemView(item);
+    }
+
+    public ItemView deleteImage(Long id) {
+        Item item = findItemOrThrow(id);
+        if (!item.getImageId().isEmpty()) {
+            cloudinaryService.delete(item.getImageId());
+        }
+        item.setImageUrl("");
+        item.setImageId("");
         itemRepository.save(item);
         return toItemView(item);
     }

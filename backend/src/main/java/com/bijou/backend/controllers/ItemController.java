@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.bijou.backend.entities.Category;
+import com.bijou.backend.services.CloudinaryService;
 import com.bijou.backend.services.ItemRequest;
 import com.bijou.backend.services.ItemService;
 import com.bijou.backend.services.ItemView;
@@ -25,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class ItemController {
 
     private final ItemService itemService;
+    private final CloudinaryService cloudinaryService;
 
     @GetMapping("/public/items")
     public ResponseEntity<List<ItemView>> getItems() {
@@ -49,6 +52,19 @@ public class ItemController {
     @PatchMapping("/${ADMIN_PAGE}/items/{id}")
     public ResponseEntity<ItemView> updateItem(@PathVariable Long id,@Valid @RequestBody ItemRequest req) {
         return ResponseEntity.ok(itemService.updateItem(id,req));
+    }
+
+    @PatchMapping("/${ADMIN_PAGE}/items/image/{id}")
+    public ResponseEntity<ItemView> uploadImage(@PathVariable Long itemId, @RequestBody MultipartFile file) {
+        //maybe take a compressed file idk
+        ItemView view = itemService.updateItemImage(itemId,cloudinaryService.upload(file));
+        return ResponseEntity.status(HttpStatus.CREATED).body(view);
+    }
+
+    @PatchMapping("/${ADMIN_PAGE}/items/deleteimage/{id}")
+    public ResponseEntity<ItemView> deleteImage(@PathVariable Long itemId) {
+        ItemView view = itemService.deleteImage(itemId);
+        return ResponseEntity.status(HttpStatus.OK).body(view);
     }
 
     @DeleteMapping("/${ADMIN_PAGE}/items/{id}")
