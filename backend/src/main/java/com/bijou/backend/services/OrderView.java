@@ -8,6 +8,9 @@ import com.bijou.backend.entities.Status;
 
 public record OrderView(
     String address,
+    String email,
+    String firstName,
+    String lastName,
     List<OrderItemView> items,
     String tracking,
     BigDecimal total,

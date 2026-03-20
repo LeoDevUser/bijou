@@ -25,7 +25,7 @@ public class ItemService {
      * */
 
     private ItemView toItemView(Item item) {
-        return new ItemView(item.getId(), item.getStock(), item.getName(), item.getPrice(), item.getLabels(), item.getCategory(), item.getImageUrl());
+        return new ItemView(item.getId(), item.getStock(), item.getName(), item.getPrice(), item.getLabels(), item.getCategory(), item.getDescription(), item.getImageUrl());
     }
     
     public ItemView createItem(ItemRequest req) {
@@ -39,6 +39,7 @@ public class ItemService {
             .name(req.name())
             .labels(req.labels())
             .category(req.category())
+            .description(req.description())
             .build();
         itemRepository.save(item);
         return toItemView(item);
@@ -55,11 +56,23 @@ public class ItemService {
         return toItemView(item);
     }
 
-    public void deleteItem(Long id) {
-        Item item = findItemOrThrow(id);
+    public void deactivate(Long id) {
+        Item item = findAnyItemOrThrow(id);
         item.setActive(false);
         itemRepository.save(item);
-        //itemRepository.deleteById(id);
+        log.info("deactivated {} from the databse", item.getName());
+    }
+
+    public void activate(Long id) {
+        Item item = findAnyItemOrThrow(id);
+        item.setActive(true);
+        itemRepository.save(item);
+        log.info("activated {} from the databse", item.getName());
+    }
+
+    public void delete(Long id) {
+        Item item = findAnyItemOrThrow(id);
+        itemRepository.deleteById(id);
         log.info("deleted {} from the databse", item.getName());
     }
 
@@ -84,6 +97,14 @@ public class ItemService {
 
     private Item findItemOrThrow(Long id) {
     return itemRepository.findByIdAndActiveTrue(id)
+        .orElseThrow(() -> {
+            log.warn("item with id {} does not exist", id);
+            return new ResponseStatusException(HttpStatus.NOT_FOUND, "item not found");
+        });
+    }
+
+    private Item findAnyItemOrThrow(Long id) {
+    return itemRepository.findById(id)
         .orElseThrow(() -> {
             log.warn("item with id {} does not exist", id);
             return new ResponseStatusException(HttpStatus.NOT_FOUND, "item not found");

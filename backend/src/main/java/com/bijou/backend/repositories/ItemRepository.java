@@ -15,5 +15,6 @@ public interface ItemRepository extends JpaRepository<Item, Long>{
     List<Item> findByCategory(Category category);
     List<Item> findByCategoryAndActiveTrue(Category category);
     List<Item> findByActiveTrue();
+    List<Item> findByActiveFalse();
     Optional<Item> findByIdAndActiveTrue(Long id);
 }

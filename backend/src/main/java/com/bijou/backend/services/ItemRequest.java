@@ -9,5 +9,6 @@ public record ItemRequest(
     float price,
     String name,
     List<String> labels,
-    Category category
+    Category category,
+    String description
 ) {}

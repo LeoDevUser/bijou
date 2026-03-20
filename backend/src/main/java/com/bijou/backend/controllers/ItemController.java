@@ -53,7 +53,18 @@ public class ItemController {
 
     @DeleteMapping("/${ADMIN_PAGE}/items/{id}")
     public ResponseEntity<Void> deleteItem(@PathVariable Long id) {
-        itemService.deleteItem(id);
+        itemService.delete(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/${ADMIN_PAGE}/items/deactivate/{id}")
+    public ResponseEntity<Void> deactivate(@PathVariable Long id) {
+        itemService.deactivate(id);
+        return ResponseEntity.ok().build();
+    }
+    @PatchMapping("/${ADMIN_PAGE}/items/activate/{id}")
+    public ResponseEntity<Void> activate(@PathVariable Long id) {
+        itemService.activate(id);
         return ResponseEntity.ok().build();
     }
 

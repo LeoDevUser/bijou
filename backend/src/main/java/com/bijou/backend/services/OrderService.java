@@ -121,7 +121,12 @@ public class OrderService {
 
 
     private OrderView toOrderView(Order order) {
-        return new OrderView(order.getAddress(), order.getOrderItems().stream()
+        Client client = order.getClient();
+        return new OrderView(order.getAddress(),
+                client.getEmail(),
+                client.getFirstName(),
+                client.getLastName(),
+                order.getOrderItems().stream()
                 .map(orderItem -> 
                     new OrderItemView(
                         orderItem.getItem().getId(),

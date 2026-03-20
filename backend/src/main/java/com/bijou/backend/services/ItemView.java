@@ -12,5 +12,6 @@ public record ItemView(
         BigDecimal price,
         List<String> labels,
         Category category,
+        String description,
         String imageUrl
 ) {}
