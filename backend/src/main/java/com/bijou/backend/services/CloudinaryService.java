@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CloudinaryService {
 
     private final Cloudinary cloudinary;
-    private Set<String> allowedImageTypes = new HashSet<>(List.of("png", "jpeg","webp"));
+    private Set<String> allowedImageTypes = new HashSet<>(List.of("image/png", "image/jpeg","image/webp"));
 
     public CloudinaryResponse upload(MultipartFile file) {
         if (file.isEmpty()) {

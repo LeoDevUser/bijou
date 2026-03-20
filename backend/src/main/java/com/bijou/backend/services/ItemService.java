@@ -63,7 +63,7 @@ public class ItemService {
 
     public ItemView updateItemImage(Long id, CloudinaryResponse res) {
         Item item = findItemOrThrow(id);
-        if (!item.getImageId().isEmpty()) {
+        if (item.getImageId() != null && !item.getImageId().isEmpty()) {
             cloudinaryService.delete(item.getImageId());
         }
         item.setImageUrl(res.url());
@@ -74,7 +74,7 @@ public class ItemService {
 
     public ItemView deleteImage(Long id) {
         Item item = findItemOrThrow(id);
-        if (!item.getImageId().isEmpty()) {
+        if (item.getImageId() != null && !item.getImageId().isEmpty()) {
             cloudinaryService.delete(item.getImageId());
         }
         item.setImageUrl("");
@@ -99,6 +99,7 @@ public class ItemService {
 
     public void delete(Long id) {
         Item item = findAnyItemOrThrow(id);
+        if (item.getImageId() != null && !item.getImageId().isEmpty()) deleteImage(id);
         itemRepository.deleteById(id);
         log.info("deleted {} from the databse", item.getName());
     }

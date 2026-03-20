@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -54,14 +55,14 @@ public class ItemController {
         return ResponseEntity.ok(itemService.updateItem(id,req));
     }
 
-    @PatchMapping("/${ADMIN_PAGE}/items/image/{id}")
-    public ResponseEntity<ItemView> uploadImage(@PathVariable Long itemId, @RequestBody MultipartFile file) {
+    @PatchMapping("/${ADMIN_PAGE}/items/image/{itemId}")
+    public ResponseEntity<ItemView> uploadImage(@PathVariable Long itemId, @RequestPart MultipartFile file) {
         //maybe take a compressed file idk
         ItemView view = itemService.updateItemImage(itemId,cloudinaryService.upload(file));
         return ResponseEntity.status(HttpStatus.CREATED).body(view);
     }
 
-    @PatchMapping("/${ADMIN_PAGE}/items/deleteimage/{id}")
+    @PatchMapping("/${ADMIN_PAGE}/items/deleteimage/{itemId}")
     public ResponseEntity<ItemView> deleteImage(@PathVariable Long itemId) {
         ItemView view = itemService.deleteImage(itemId);
         return ResponseEntity.status(HttpStatus.OK).body(view);
