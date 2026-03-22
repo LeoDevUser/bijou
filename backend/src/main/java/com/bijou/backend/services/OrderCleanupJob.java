@@ -32,7 +32,7 @@ public class OrderCleanupJob {
         for (Order order : staleOrders) {
             try {
                 String intentId = orderService.cancel(order.getClient(), order.getId());
-                paymentService.cancelIntent(intentId);
+                if(intentId != null) paymentService.cancelIntent(intentId);
             } catch (ResponseStatusException er) {
                 log.warn("failed to cancel intent on stale order, may already have been canceled");
             } catch (Exception e) {
