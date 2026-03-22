@@ -142,7 +142,6 @@ public class PaymentService {
             intent.cancel();
         } catch (StripeException e) {
             log.warn("failed to cancel intent {}, check manually", intent.getId());
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "failed to cancel on stripe's end");
         }
         log.warn("order {} cancelled after payment failure", order.getId());
     }
