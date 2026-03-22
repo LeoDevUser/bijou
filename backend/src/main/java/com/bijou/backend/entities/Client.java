@@ -52,6 +52,8 @@ public class Client implements UserDetails {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Role role;
+    @Column(unique = true)
+    private String stripeCustomerId;
 
     @PrePersist
     protected void onCreate() {

@@ -2,11 +2,13 @@ package com.bijou.backend.repositories;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.bijou.backend.entities.Client;
+import com.bijou.backend.entities.Country;
 import com.bijou.backend.entities.Order;
 import com.bijou.backend.entities.Status;
 
@@ -19,4 +21,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByClient_EmailAndCreatedAtBetween(String email, LocalDateTime start, LocalDateTime end);
     List<Order> findByStatus(Status status);
     List<Order> findByStatusAndCreatedAtBefore(Status status, LocalDateTime time);
+    Optional<Order> findByStripePaymentIntentId(String id);
+    List<Order> findByCountry(Country country);
 }

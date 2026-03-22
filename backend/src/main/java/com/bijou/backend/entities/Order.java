@@ -48,6 +48,10 @@ public class Order {
     private Client client;
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> orderItems;
+    private String stripePaymentIntentId;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Country country;
 
     @PrePersist
     protected void onCreate(){

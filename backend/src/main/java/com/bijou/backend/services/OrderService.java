@@ -6,11 +6,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.bijou.backend.entities.Client;
+import com.bijou.backend.entities.Country;
 import com.bijou.backend.entities.Item;
 import com.bijou.backend.entities.Order;
 import com.bijou.backend.entities.OrderItem;
@@ -31,7 +34,7 @@ public class OrderService {
     private final ItemRepository itemRepository;
 
     @Transactional
-    public OrderView create(Client client, OrderRequest req) {
+    public Order create(Client client, OrderRequest req) {
         List<Long> itemIds = req.items().stream()
             .map(OrderItemRequest::itemId)
             .distinct()
@@ -77,14 +80,15 @@ public class OrderService {
             .orderItems(orderItems)
             .totalPrice(total)
             .client(client)
+            .country(req.country())
             .build();
         order.getOrderItems().forEach(oi -> oi.setOrder(order));
         orderRepository.save(order);
-        return toOrderView(order);
+        return order;
     }
 
     @Transactional
-    public void cancel(Client client, Long orderid) {
+    public String cancel(Client client, Long orderid) {
         Order order = orderRepository.findById(orderid).orElseThrow( () ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "order not found")
                 );
@@ -117,10 +121,11 @@ public class OrderService {
 
         order.setStatus(Status.CANCELLED);
         orderRepository.save(order);
+        return order.getStripePaymentIntentId();
     }
 
 
-    private OrderView toOrderView(Order order) {
+    public OrderView toOrderView(Order order) {
         Client client = order.getClient();
         return new OrderView(order.getAddress(),
                 client.getEmail(),
@@ -138,7 +143,8 @@ public class OrderService {
                 order.getTotalPrice(),
                 order.getCreatedAt(),
                 order.getStatus(),
-                order.getId());
+                order.getId(),
+                order.getCountry());
     }
 
     @Transactional
@@ -181,5 +187,24 @@ public class OrderService {
             .stream()
             .map(order -> toOrderView(order))
             .toList();
+    }
+
+    @Transactional
+    public List<OrderView> getOrdersByCountry(Country country) {
+        return orderRepository.findByCountry(country)
+            .stream()
+            .map(order -> toOrderView(order))
+            .toList();
+    }
+
+    @Async("webhookTaskExecutor")
+    @EventListener
+    public void onPaymentFail(PaymentFailedEvent event) {
+        try {
+            log.info("Starting background cancel for order {}", event.orderId());
+            cancel(event.client(), event.orderId());
+        } catch (Exception e) {
+            log.error("CRITICAL: Failed to restock order {}. Manual check required!", event.orderId(), e);
+        }
     }
 }

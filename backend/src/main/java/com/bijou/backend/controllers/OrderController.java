@@ -11,25 +11,44 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.bijou.backend.entities.Client;
+import com.bijou.backend.entities.Order;
+import com.bijou.backend.entities.Country;
 import com.bijou.backend.entities.Status;
 import com.bijou.backend.services.OrderRequest;
 import com.bijou.backend.services.OrderService;
 import com.bijou.backend.services.OrderView;
+import com.bijou.backend.services.PaymentService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class OrderController {
 
     private final OrderService orderService;
+    private final PaymentService paymentService;
 
     @PostMapping("/api/orders")
-    public ResponseEntity<OrderView> createOrder(@AuthenticationPrincipal Client client ,@Valid @RequestBody OrderRequest req) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.create(client, req));
+    public ResponseEntity<OrderCreateResponse> createOrder(@AuthenticationPrincipal Client client ,@Valid @RequestBody OrderRequest req) {
+        try {
+            Order order = orderService.create(client, req);
+            String clientSecret = paymentService.createPaymentIntent(client, order, req.currency());
+            return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new OrderCreateResponse(orderService.toOrderView(order), clientSecret));
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            //order may exist without a payment intent
+            //cleanup job will handle it, but log clearly
+            log.error("payment intent creation failed after order saved: {}", e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "order created but payment initialization failed, please contact support");
+        }
     }
 
     @GetMapping("/api/orders")
@@ -39,7 +58,7 @@ public class OrderController {
 
     @PatchMapping("/api/orders/{id}/cancel")
     public ResponseEntity<Void> cancelOrder(@AuthenticationPrincipal Client client, @PathVariable Long id) {
-        orderService.cancel(client, id);
+        paymentService.cancelIntent(orderService.cancel(client, id));
         return ResponseEntity.ok().build();
     }
 
@@ -56,6 +75,11 @@ public class OrderController {
     @GetMapping("/${ADMIN_PAGE}/orders")
     public ResponseEntity<List<OrderView>> getAllOrders(@AuthenticationPrincipal Client client) {
         return ResponseEntity.ok(orderService.getAllOrders(client));
+    }
+
+    @GetMapping("/${ADMIN_PAGE}/orders/country/{c}")
+    public ResponseEntity<List<OrderView>> getAllOrdersByCountry(@PathVariable Country c){
+        return ResponseEntity.ok(orderService.getOrdersByCountry(c));
     }
 
 }
