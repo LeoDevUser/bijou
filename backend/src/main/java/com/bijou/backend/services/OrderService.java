@@ -6,9 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -197,14 +195,4 @@ public class OrderService {
             .toList();
     }
 
-    @Async("webhookTaskExecutor")
-    @EventListener
-    public void onPaymentFail(PaymentFailedEvent event) {
-        try {
-            log.info("Starting background cancel for order {}", event.orderId());
-            cancel(event.client(), event.orderId());
-        } catch (Exception e) {
-            log.error("CRITICAL: Failed to restock order {}. Manual check required!", event.orderId(), e);
-        }
-    }
 }

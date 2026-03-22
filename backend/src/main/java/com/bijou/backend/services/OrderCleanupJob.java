@@ -3,6 +3,8 @@ package com.bijou.backend.services;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
@@ -36,6 +38,17 @@ public class OrderCleanupJob {
             } catch (Exception e) {
                 log.error("failed to cancel stale order {}: {}", order.getId(), e.getMessage());
             }
+        }
+    }
+
+    @Async("webhookTaskExecutor")
+    @EventListener
+    public void onPaymentFail(PaymentFailedEvent event) {
+        try {
+            log.info("Starting background cancel for order {}", event.orderId());
+            orderService.cancel(event.client(), event.orderId());
+        } catch (Exception e) {
+            log.error("CRITICAL: Failed to restock order {}. Manual check required!", event.orderId(), e);
         }
     }
 }
