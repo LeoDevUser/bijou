@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.bijou.backend.entities.Client;
+import com.bijou.backend.exception.AppException;
 import com.bijou.backend.entities.Order;
 import com.bijou.backend.entities.Country;
 import com.bijou.backend.entities.Status;
@@ -47,7 +48,7 @@ public class OrderController {
             //order may exist without a payment intent
             //cleanup job will handle it, but log clearly
             log.error("payment intent creation failed after order saved: {}", e.getMessage());
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "order created but payment initialization failed, please contact support");
+            throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "ORDER_PAYMENT_INIT_FAILED");
         }
     }
 

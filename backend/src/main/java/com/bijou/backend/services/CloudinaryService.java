@@ -9,8 +9,8 @@ import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
+import com.bijou.backend.exception.AppException;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 
@@ -28,12 +28,12 @@ public class CloudinaryService {
     public CloudinaryResponse upload(MultipartFile file) {
         if (file.isEmpty()) {
             log.warn("attempted to upload an empty file");
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "attempted to upload an empty file");
+            throw new AppException(HttpStatus.BAD_REQUEST, "FILE_EMPTY");
         }
 
         if(!allowedImageTypes.contains(file.getContentType())) {
             log.warn("formats accepted 'png', 'jpeg', 'webp'");
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "wrong image format");
+            throw new AppException(HttpStatus.BAD_REQUEST, "IMAGE_FORMAT_INVALID");
         }
 
         try {
@@ -48,7 +48,7 @@ public class CloudinaryService {
 
         } catch (IOException e){
             log.error("error uploading the item image: {}", e.getMessage());
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_CONTENT, "error uploading image");
+            throw new AppException(HttpStatus.UNPROCESSABLE_CONTENT, "IMAGE_UPLOAD_FAILED");
         }
     }
 
@@ -58,7 +58,7 @@ public class CloudinaryService {
             log.info("deleted item image");
         } catch (IOException e){
             log.error("error deleting image: {}", e.getMessage());
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_CONTENT, "error uploading image");
+            throw new AppException(HttpStatus.UNPROCESSABLE_CONTENT, "IMAGE_DELETE_FAILED");
         }
     }
 }

@@ -5,9 +5,9 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.bijou.backend.entities.Category;
+import com.bijou.backend.exception.AppException;
 import com.bijou.backend.entities.Item;
 import com.bijou.backend.repositories.ItemRepository;
 
@@ -36,7 +36,7 @@ public class ItemService {
     public ItemView createItem(ItemRequest req) {
         if (itemRepository.findByNameIgnoreCase(req.name()).isPresent()) {
             log.warn("item with name {} already exists", req.name());
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "item with this name already exists");
+            throw new AppException(HttpStatus.CONFLICT, "ITEM_NAME_CONFLICT", req.name());
         }
         Item item = Item.builder()
             .stock(req.stock())
@@ -127,7 +127,7 @@ public class ItemService {
     return itemRepository.findByIdAndActiveTrue(id)
         .orElseThrow(() -> {
             log.warn("item with id {} does not exist", id);
-            return new ResponseStatusException(HttpStatus.NOT_FOUND, "item not found");
+            return new AppException(HttpStatus.NOT_FOUND, "ITEM_NOT_FOUND");
         });
     }
 
@@ -135,7 +135,7 @@ public class ItemService {
     return itemRepository.findById(id)
         .orElseThrow(() -> {
             log.warn("item with id {} does not exist", id);
-            return new ResponseStatusException(HttpStatus.NOT_FOUND, "item not found");
+            return new AppException(HttpStatus.NOT_FOUND, "ITEM_NOT_FOUND");
         });
     }
 }

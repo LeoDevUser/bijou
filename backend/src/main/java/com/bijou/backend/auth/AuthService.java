@@ -3,9 +3,9 @@ package com.bijou.backend.auth;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.bijou.backend.entities.Client;
+import com.bijou.backend.exception.AppException;
 import com.bijou.backend.entities.Role;
 import com.bijou.backend.repositories.ClientRepository;
 
@@ -55,15 +55,15 @@ public class AuthService {
         String pswd = req.password();
         if (clientRepository.findByEmail(email).isPresent()) {
             log.warn("email {} already registered", req.email());
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "email already in use");
+            throw new AppException(HttpStatus.CONFLICT, "EMAIL_CONFLICT");
         }
         if (!isValidPassword(pswd)) {
             log.warn("invalid password, need a password between 8 and 30 characters with one uppercase, one lowercase, one digit, one special character");
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid password");
+            throw new AppException(HttpStatus.BAD_REQUEST, "PASSWORD_INVALID");
         }
         if (!validAddress(req.address())) {
             log.warn("invalid address");
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid address");
+            throw new AppException(HttpStatus.BAD_REQUEST, "ADDRESS_INVALID");
         }
 
         String encoded = passwordEncoder.encode(pswd);
@@ -85,12 +85,12 @@ public class AuthService {
     public String login(LoginRequest req) {
         Client client = clientRepository.findByEmail(req.email()).orElseThrow(() -> {
             log.warn("login unsuccessful for email: {}", req.email());
-            return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials");
+            return new AppException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS");
         });
 
         if (!passwordEncoder.matches(req.password(), client.getPassword())){
             log.warn("login unsuccessful for email: {}", req.email());
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials");
+            throw new AppException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS");
         }
 
         log.info("login successful for email: {}", req.email());
@@ -101,12 +101,12 @@ public class AuthService {
     public void changePassword(Client client, ChangePasswordRequest req) {
         if (!isValidPassword(req.newPassword())) {
             log.warn("invalid password ...");
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid password");
+            throw new AppException(HttpStatus.BAD_REQUEST, "PASSWORD_INVALID");
         }
 
         if (!passwordEncoder.matches(req.oldPassword(), client.getPassword())) {
             log.warn("old password verification unsuccessful for email: {}", client.getEmail());
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials");
+            throw new AppException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS");
         }
 
         log.info("old password verified for email: {}", client.getEmail());

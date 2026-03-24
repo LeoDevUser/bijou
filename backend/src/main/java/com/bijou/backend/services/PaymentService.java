@@ -6,9 +6,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.bijou.backend.entities.Client;
+import com.bijou.backend.exception.AppException;
 import com.bijou.backend.entities.Order;
 import com.bijou.backend.entities.Status;
 import com.bijou.backend.repositories.ClientRepository;
@@ -61,7 +61,7 @@ public class PaymentService {
 
         } catch (StripeException e) {
             log.error("stripe error creating payment intent for order {}: {}", order.getId(), e.getMessage());
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "payment initialization failed");
+            throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "PAYMENT_INIT_FAILED");
         }
 
     }
@@ -91,14 +91,14 @@ public class PaymentService {
             event = Webhook.constructEvent(payload, sigHeader, webSecret);
         } catch (SignatureVerificationException e) {
             log.warn("invalid stripe webhook signature");
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid signature");
+            throw new AppException(HttpStatus.BAD_REQUEST, "WEBHOOK_SIGNATURE_INVALID");
         }
 
         StripeObject stripeObject = event.getDataObjectDeserializer()
             .getObject()
             .orElseThrow(() -> {
                 log.error("could not deserialize stripe event");
-                return new ResponseStatusException(HttpStatus.BAD_REQUEST, "could not deserialize event");
+                return new AppException(HttpStatus.BAD_REQUEST, "WEBHOOK_DESERIALIZE_FAILED");
             });
 
 
@@ -120,7 +120,7 @@ public class PaymentService {
             PaymentIntent.retrieve(intentId).cancel();
         } catch (StripeException e) {
             log.warn("failed to cancel intent {}, check manually", intentId);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "failed to cancel on stripe's end");
+            throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "PAYMENT_CANCEL_FAILED");
         }
     }
 

@@ -8,9 +8,9 @@ import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.bijou.backend.entities.Client;
+import com.bijou.backend.exception.AppException;
 import com.bijou.backend.entities.Country;
 import com.bijou.backend.entities.Item;
 import com.bijou.backend.entities.Order;
@@ -44,15 +44,14 @@ public class OrderService {
 
         // then check all items were found
         if (itemMap.size() != itemIds.size()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "one or more items not found");
+            throw new AppException(HttpStatus.NOT_FOUND, "ITEMS_NOT_FOUND");
         }
         //check if we have sufficient stock
         for (OrderItemRequest orderItem : req.items()) {
             Item item = itemMap.get(orderItem.itemId());
             if (item.getStock() < orderItem.quantity()) {
                 log.warn("item {} has insufficient stock", item.getName());
-                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_CONTENT,
-                    "insufficient stock for item: " + item.getName());
+                throw new AppException(HttpStatus.UNPROCESSABLE_CONTENT, "INSUFFICIENT_STOCK", item.getName());
             }
         }
         
@@ -88,16 +87,16 @@ public class OrderService {
     @Transactional
     public String cancel(Client client, Long orderid) {
         Order order = orderRepository.findById(orderid).orElseThrow( () ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "order not found")
+                new AppException(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND")
                 );
         if (!order.getClient().getId().equals(client.getId()) && client.getRole() != Role.ADMIN) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "client does not own order");
-        } 
+            throw new AppException(HttpStatus.FORBIDDEN, "ORDER_ACCESS_DENIED");
+        }
 
         if (order.getStatus() == Status.CANCELLED ||
             order.getStatus() == Status.SHIPPED ||
             order.getStatus() == Status.DELIVERED)
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_CONTENT, "order cannot be cancelled, current status: " + order.getStatus());
+            throw new AppException(HttpStatus.UNPROCESSABLE_CONTENT, "ORDER_CANCEL_NOT_ALLOWED", order.getStatus().toString());
 
         //we can go ahead and cancel the order
         List<OrderItem> orderItems = order.getOrderItems();
@@ -157,10 +156,10 @@ public class OrderService {
     @Transactional
     public OrderView getOrder(Client client, Long id) {
         Order order = orderRepository.findById(id).orElseThrow( () ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "order not found")
+                new AppException(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND")
                 );
         if (client.getRole() != Role.ADMIN) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "only admin may retrieve this way");
+            throw new AppException(HttpStatus.FORBIDDEN, "ADMIN_ONLY");
         } 
         return toOrderView(order);
     }
@@ -168,8 +167,8 @@ public class OrderService {
     @Transactional
     public List<OrderView> getAllOrders(Client client) {
         if (client.getRole() != Role.ADMIN) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "only admin may retrieve this way");
-        } 
+            throw new AppException(HttpStatus.FORBIDDEN, "ADMIN_ONLY");
+        }
         return orderRepository.findAll()
             .stream()
             .map(order -> toOrderView(order))
@@ -179,8 +178,8 @@ public class OrderService {
     @Transactional
     public List<OrderView> getOrdersByStatus(Client client, Status status) {
         if (client.getRole() != Role.ADMIN) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "only admin may retrieve this way");
-        } 
+            throw new AppException(HttpStatus.FORBIDDEN, "ADMIN_ONLY");
+        }
         return orderRepository.findByStatus(status)
             .stream()
             .map(order -> toOrderView(order))
