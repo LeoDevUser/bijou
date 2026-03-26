@@ -177,10 +177,19 @@ function ItemModal({ item, onClose, onSaved }: ItemModalProps) {
         category: form.category,
         labels: form.labels.split(',').map(l => l.trim()).filter(Boolean),
       };
-      const saved = item
-        ? await api.admin.items.update(item.id, payload)
-        : await api.admin.items.create(payload);
-      if (imageFile) await api.admin.items.uploadImage(saved.id, imageFile);
+      if (imageFile) {
+        if (item) {
+          await api.admin.items.updateWithImage(item.id, payload, imageFile);
+        } else {
+          await api.admin.items.createWithImage(payload, imageFile);
+        }
+      } else {
+        if (item) {
+          await api.admin.items.update(item.id, payload);
+        } else {
+          await api.admin.items.create(payload);
+        }
+      }
       onSaved();
     } catch {
       setError('Failed to save. Please try again.');

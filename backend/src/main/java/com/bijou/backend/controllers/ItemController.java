@@ -3,6 +3,7 @@ package com.bijou.backend.controllers;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,15 +51,37 @@ public class ItemController {
         return ResponseEntity.status(HttpStatus.CREATED).body(itemService.createItem(req));
     }
 
+    @PostMapping(value = "/${ADMIN_PAGE}/items", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ItemView> createItemWithImage(
+            @RequestPart("item") @Valid ItemRequest req,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
+        ItemView view = itemService.createItem(req);
+        if (file != null && !file.isEmpty()) {
+            view = itemService.updateItemImage(view.id(), cloudinaryService.upload(file));
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(view);
+    }
+
     @PatchMapping("/${ADMIN_PAGE}/items/{id}")
-    public ResponseEntity<ItemView> updateItem(@PathVariable Long id,@Valid @RequestBody ItemRequest req) {
-        return ResponseEntity.ok(itemService.updateItem(id,req));
+    public ResponseEntity<ItemView> updateItem(@PathVariable Long id, @Valid @RequestBody ItemRequest req) {
+        return ResponseEntity.ok(itemService.updateItem(id, req));
+    }
+
+    @PatchMapping(value = "/${ADMIN_PAGE}/items/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ItemView> updateItemWithImage(
+            @PathVariable Long id,
+            @RequestPart("item") @Valid ItemRequest req,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
+        ItemView view = itemService.updateItem(id, req);
+        if (file != null && !file.isEmpty()) {
+            view = itemService.updateItemImage(view.id(), cloudinaryService.upload(file));
+        }
+        return ResponseEntity.ok(view);
     }
 
     @PatchMapping("/${ADMIN_PAGE}/items/image/{itemId}")
-    public ResponseEntity<ItemView> uploadImage(@PathVariable Long itemId, @RequestPart MultipartFile file) {
-        //maybe take a compressed file idk
-        ItemView view = itemService.updateItemImage(itemId,cloudinaryService.upload(file));
+    public ResponseEntity<ItemView> uploadImage(@PathVariable Long itemId, @RequestPart("file") MultipartFile file) {
+        ItemView view = itemService.updateItemImage(itemId, cloudinaryService.upload(file));
         return ResponseEntity.status(HttpStatus.CREATED).body(view);
     }
 

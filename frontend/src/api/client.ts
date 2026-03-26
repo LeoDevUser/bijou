@@ -83,8 +83,32 @@ export const api = {
         request<ItemView>(`/${ADMIN}/items/deleteimage/${id}`, { method: 'PATCH' }),
       uploadImage: async (itemId: number, file: File): Promise<ItemView> => {
         const form = new FormData();
-        form.append('image', file);
+        form.append('file', file);
         const res = await fetch(`${BASE_URL}/${ADMIN}/items/image/${itemId}`, {
+          method: 'PATCH',
+          headers: authHeaders(),
+          body: form,
+        });
+        if (!res.ok) { const body = await res.json().catch(() => ({})); throw { status: res.status, ...body }; }
+        return res.json();
+      },
+      createWithImage: async (data: ItemRequest, file: File): Promise<ItemView> => {
+        const form = new FormData();
+        form.append('item', new Blob([JSON.stringify(data)], { type: 'application/json' }));
+        form.append('file', file);
+        const res = await fetch(`${BASE_URL}/${ADMIN}/items`, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: form,
+        });
+        if (!res.ok) { const body = await res.json().catch(() => ({})); throw { status: res.status, ...body }; }
+        return res.json();
+      },
+      updateWithImage: async (id: number, data: ItemRequest, file: File): Promise<ItemView> => {
+        const form = new FormData();
+        form.append('item', new Blob([JSON.stringify(data)], { type: 'application/json' }));
+        form.append('file', file);
+        const res = await fetch(`${BASE_URL}/${ADMIN}/items/${id}`, {
           method: 'PATCH',
           headers: authHeaders(),
           body: form,
