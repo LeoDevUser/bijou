@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
@@ -21,31 +21,55 @@ const CURRENCIES: { value: Currency; label: string }[] = [
 export default function Checkout() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { items, total, clear } = useCart();
+  const { items, total } = useCart();
   const { isAuthenticated } = useAuth();
 
   const [address, setAddress] = useState('');
+  const [savedAddress, setSavedAddress] = useState<string | null>(null);
+  const [useSaved, setUseSaved] = useState(false);
   const [country, setCountry] = useState<Country>('CANADA');
   const [currency, setCurrency] = useState<Currency>('CAD');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (!isAuthenticated) { navigate('/login'); return null; }
-  if (items.length === 0) { navigate('/cart'); return null; }
+  useEffect(() => {
+    if (!isAuthenticated) navigate('/login');
+    else if (items.length === 0) navigate('/cart');
+  }, [isAuthenticated, items.length, navigate]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    api.account.getProfile()
+      .then(profile => {
+        if (profile.address) {
+          setSavedAddress(profile.address);
+          setUseSaved(true);
+          setAddress(profile.address);
+        }
+      })
+      .catch(() => {});
+  }, [isAuthenticated]);
+
+  function handleUseSavedToggle(use: boolean) {
+    setUseSaved(use);
+    if (use && savedAddress) setAddress(savedAddress);
+    else setAddress('');
+  }
+
+  if (!isAuthenticated || items.length === 0) return null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
     try {
-      await api.orders.create({
+      const { order, clientSecret } = await api.orders.create({
         items: items.map(i => ({ itemId: i.id, quantity: i.quantity })),
         address,
         country,
         currency,
       });
-      clear();
-      navigate('/orders');
+      navigate('/payment', { state: { clientSecret, total: order.total } });
     } catch (err) {
       const e = err as { code?: string };
       setError(e.code ?? t('checkout.error'));
@@ -65,12 +89,33 @@ export default function Checkout() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className={labelClass}>{t('checkout.address')}</label>
+
+            {savedAddress && (
+              <div className="flex gap-4 mb-3">
+                <button
+                  type="button"
+                  onClick={() => handleUseSavedToggle(true)}
+                  className={`text-xs uppercase tracking-widest px-4 py-2 border transition-colors cursor-pointer ${useSaved ? 'bg-dark text-white border-dark' : 'border-border hover:border-dark'}`}
+                >
+                  {t('checkout.useSavedAddress')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleUseSavedToggle(false)}
+                  className={`text-xs uppercase tracking-widest px-4 py-2 border transition-colors cursor-pointer ${!useSaved ? 'bg-dark text-white border-dark' : 'border-border hover:border-dark'}`}
+                >
+                  {t('checkout.enterNewAddress')}
+                </button>
+              </div>
+            )}
+
             <input
               type="text"
               value={address}
               onChange={e => setAddress(e.target.value)}
               required
-              className={inputClass}
+              readOnly={useSaved && !!savedAddress}
+              className={`${inputClass} ${useSaved && savedAddress ? 'opacity-60 cursor-default' : ''}`}
             />
           </div>
           <div>

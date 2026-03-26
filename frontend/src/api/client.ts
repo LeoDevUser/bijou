@@ -59,6 +59,13 @@ export const api = {
       }),
     cancel: (id: number) =>
       request<void>(`/api/orders/${id}/cancel`, { method: 'PATCH' }),
+    getClientSecret: (id: number) =>
+      request<{ clientSecret: string }>(`/api/orders/${id}/client-secret`)
+        .then(r => r.clientSecret),
+  },
+  account: {
+    getProfile: () =>
+      request<{ firstName: string; lastName: string; email: string; address: string }>('/account/profile'),
   },
   admin: {
     items: {

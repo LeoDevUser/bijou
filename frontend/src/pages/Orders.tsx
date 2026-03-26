@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import type { OrderView } from '../types';
+
 
 const STATUS_COLOR: Record<string, string> = {
   AWAITING_PAYMENT: 'text-amber-600',
@@ -17,9 +18,11 @@ export default function Orders() {
   const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [orders, setOrders] = useState<OrderView[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState<number | null>(null);
+  const [payingId, setPayingId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) { navigate('/login'); return; }
@@ -27,7 +30,27 @@ export default function Orders() {
       .then(setOrders)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [isAuthenticated, navigate]);
+
+    const justPaid = (location.state as { justPaid?: boolean } | null)?.justPaid;
+    if (justPaid) {
+      const id = setTimeout(() => {
+        api.orders.list().then(setOrders).catch(console.error);
+      }, 1000);
+      return () => clearTimeout(id);
+    }
+  }, [isAuthenticated, navigate, location.state]);
+
+  async function handlePay(order: OrderView) {
+    setPayingId(order.id);
+    try {
+      const clientSecret = await api.orders.getClientSecret(order.id);
+      navigate('/payment', { state: { clientSecret, total: order.total } });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setPayingId(null);
+    }
+  }
 
   async function handleCancel(id: number) {
     setCancelling(id);
@@ -82,13 +105,22 @@ export default function Orders() {
               )}
 
               {order.status === 'AWAITING_PAYMENT' && (
-                <button
-                  onClick={() => handleCancel(order.id)}
-                  disabled={cancelling === order.id}
-                  className="mt-5 text-xs uppercase tracking-wider border border-border px-5 py-2 hover:border-dark transition-colors disabled:opacity-50 cursor-pointer"
-                >
-                  {cancelling === order.id ? '...' : t('orders.cancel')}
-                </button>
+                <div className="mt-5 flex gap-3">
+                  <button
+                    onClick={() => handlePay(order)}
+                    disabled={payingId === order.id}
+                    className="text-xs uppercase tracking-wider bg-dark text-white px-5 py-2 hover:bg-gold transition-colors disabled:opacity-50 cursor-pointer"
+                  >
+                    {payingId === order.id ? '...' : t('orders.pay')}
+                  </button>
+                  <button
+                    onClick={() => handleCancel(order.id)}
+                    disabled={cancelling === order.id}
+                    className="text-xs uppercase tracking-wider border border-border px-5 py-2 hover:border-dark transition-colors disabled:opacity-50 cursor-pointer"
+                  >
+                    {cancelling === order.id ? '...' : t('orders.cancel')}
+                  </button>
+                </div>
               )}
             </div>
           ))}

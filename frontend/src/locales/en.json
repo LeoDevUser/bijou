@@ -69,12 +69,21 @@
   "checkout": {
     "title": "Checkout",
     "address": "Shipping Address",
+    "useSavedAddress": "Use Saved Address",
+    "enterNewAddress": "Enter Different Address",
     "country": "Country",
     "currency": "Currency",
     "placeOrder": "Place Order",
     "processing": "Processing...",
     "orderSummary": "Order Summary",
     "error": "Something went wrong. Please try again."
+  },
+  "payment": {
+    "title": "Payment",
+    "orderTotal": "Order Total",
+    "pay": "Pay Now",
+    "processing": "Processing...",
+    "error": "Payment failed. Please try again."
   },
   "auth": {
     "login": "Sign In",
@@ -99,6 +108,7 @@
     "order": "Order",
     "items": "items",
     "tracking": "Tracking",
+    "pay": "Pay Now",
     "cancel": "Cancel Order",
     "status": {
       "AWAITING_PAYMENT": "Awaiting Payment",

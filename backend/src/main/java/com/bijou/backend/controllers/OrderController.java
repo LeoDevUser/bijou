@@ -63,6 +63,11 @@ public class OrderController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/api/orders/{id}/client-secret")
+    public ResponseEntity<ClientSecretResponse> getClientSecret(@AuthenticationPrincipal Client client, @PathVariable Long id) {
+        return ResponseEntity.ok(new ClientSecretResponse(paymentService.getClientSecret(client, id)));
+    }
+
     @GetMapping("/${ADMIN_PAGE}/orders/{id}")
     public ResponseEntity<OrderView> getOrder(@AuthenticationPrincipal Client client, @PathVariable Long id) {
         return ResponseEntity.ok(orderService.getOrder(client, id));

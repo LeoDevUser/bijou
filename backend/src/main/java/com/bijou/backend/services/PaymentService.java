@@ -116,6 +116,23 @@ public class PaymentService {
     }
     
 
+    public String getClientSecret(Client client, Long orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() ->
+            new AppException(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND"));
+        if (!order.getClient().getId().equals(client.getId())) {
+            throw new AppException(HttpStatus.FORBIDDEN, "ORDER_ACCESS_DENIED");
+        }
+        if (order.getStatus() != Status.AWAITING_PAYMENT) {
+            throw new AppException(HttpStatus.UNPROCESSABLE_CONTENT, "ORDER_NOT_AWAITING_PAYMENT");
+        }
+        try {
+            return PaymentIntent.retrieve(order.getStripePaymentIntentId()).getClientSecret();
+        } catch (StripeException e) {
+            log.error("failed to retrieve payment intent for order {}: {}", orderId, e.getMessage());
+            throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "PAYMENT_RETRIEVE_FAILED");
+        }
+    }
+
     public void cancelIntent(String intentId) {
         try {
             PaymentIntent.retrieve(intentId).cancel();

@@ -11,6 +11,7 @@ import Checkout from './pages/Checkout'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Orders from './pages/Orders'
+import Payment from './pages/Payment'
 import Admin from './pages/Admin'
 
 const ADMIN_URL = import.meta.env.VITE_ADMIN_PAGE ?? '';
@@ -37,6 +38,7 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/orders" element={<Orders />} />
+                <Route path="/payment" element={<Payment />} />
                 <Route path={`/${ADMIN_URL}`} element={<AdminRoute />} />
               </Routes>
             </main>

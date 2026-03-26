@@ -69,12 +69,21 @@
   "checkout": {
     "title": "Finalizar Compra",
     "address": "Dirección de Envío",
+    "useSavedAddress": "Usar dirección guardada",
+    "enterNewAddress": "Ingresar otra dirección",
     "country": "País",
     "currency": "Moneda",
     "placeOrder": "Realizar Pedido",
     "processing": "Procesando...",
     "orderSummary": "Resumen del Pedido",
     "error": "Algo salió mal. Por favor, intenta de nuevo."
+  },
+  "payment": {
+    "title": "Pago",
+    "orderTotal": "Total del Pedido",
+    "pay": "Pagar Ahora",
+    "processing": "Procesando...",
+    "error": "El pago falló. Por favor, intenta de nuevo."
   },
   "auth": {
     "login": "Iniciar Sesión",
@@ -99,6 +108,7 @@
     "order": "Pedido",
     "items": "artículos",
     "tracking": "Seguimiento",
+    "pay": "Pagar Ahora",
     "cancel": "Cancelar Pedido",
     "status": {
       "AWAITING_PAYMENT": "Esperando Pago",

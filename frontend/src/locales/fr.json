@@ -69,12 +69,21 @@
   "checkout": {
     "title": "Commander",
     "address": "Adresse de Livraison",
+    "useSavedAddress": "Utiliser l'adresse enregistrée",
+    "enterNewAddress": "Saisir une autre adresse",
     "country": "Pays",
     "currency": "Devise",
     "placeOrder": "Confirmer la Commande",
     "processing": "Traitement en cours...",
     "orderSummary": "Résumé de la Commande",
     "error": "Une erreur est survenue. Veuillez réessayer."
+  },
+  "payment": {
+    "title": "Paiement",
+    "orderTotal": "Total de la Commande",
+    "pay": "Payer Maintenant",
+    "processing": "Traitement en cours...",
+    "error": "Le paiement a échoué. Veuillez réessayer."
   },
   "auth": {
     "login": "Se Connecter",
@@ -99,6 +108,7 @@
     "order": "Commande",
     "items": "articles",
     "tracking": "Suivi",
+    "pay": "Payer Maintenant",
     "cancel": "Annuler la Commande",
     "status": {
       "AWAITING_PAYMENT": "En attente de paiement",
