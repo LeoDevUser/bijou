@@ -131,9 +131,10 @@ export const api = {
     },
     users: {
       listVerbose: () => request<VerboseClient[]>(`/account/${ADMIN}/clients/verbose`),
+      listAdmins: () => request<VerboseClient[]>(`/account/${ADMIN}/admins`),
       getProfile: (id: number) => request<VerboseClient>(`/account/${ADMIN}/profile/${id}`),
-      promote: (id: number) =>
-        request<void>(`/account/${ADMIN}/promote/${id}`, { method: 'POST' }),
+      promote: (id: number, adminPassword: string) =>
+        request<void>(`/account/${ADMIN}/promote`, { method: 'POST', body: JSON.stringify({ id, adminPassword }) }),
     },
   },
 };

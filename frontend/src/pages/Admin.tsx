@@ -348,12 +348,77 @@ function AdminProducts() {
 
 type UserSort = 'default' | 'money' | 'orders';
 
+function VerboseRow({
+  u,
+  expanded,
+  onToggle,
+  children,
+}: {
+  u: VerboseClient;
+  expanded: boolean;
+  onToggle: () => void;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className="border border-border">
+      <button
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[#F7F5F0] transition-colors"
+        onClick={onToggle}
+      >
+        <div className="flex items-center gap-8">
+          <span className="text-xs text-muted w-10">#{u.id}</span>
+          <span className="text-sm">{u.firstName} {u.lastName}</span>
+          <span className="text-sm text-muted hidden md:block">{u.email}</span>
+        </div>
+        <div className="flex items-center gap-6 text-sm text-muted">
+          <span>${Number(u.moneySpent).toFixed(2)}</span>
+          <span>{u.nbSuccessfulOrders} orders</span>
+          <span className="text-xs">{expanded ? '▲' : '▼'}</span>
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="px-5 pb-5 border-t border-border">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4 text-sm">
+            <div>
+              <p className="text-xs uppercase tracking-widest text-muted mb-1">Address</p>
+              <p>{u.address}</p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-widest text-muted mb-1">Joined</p>
+              <p>{new Date(u.createdOn).toLocaleDateString()}</p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-widest text-muted mb-1">Successful Orders</p>
+              <p>{u.nbSuccessfulOrders}</p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-widest text-muted mb-1">Money Spent</p>
+              <p>${Number(u.moneySpent).toFixed(2)}</p>
+            </div>
+            {u.stripeCustomerId && (
+              <div>
+                <p className="text-xs uppercase tracking-widest text-muted mb-1">Stripe ID</p>
+                <p className="text-xs font-mono truncate">{u.stripeCustomerId}</p>
+              </div>
+            )}
+          </div>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AdminUsers() {
   const [users, setUsers] = useState<VerboseClient[]>([]);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState<UserSort>('default');
   const [expanded, setExpanded] = useState<number | null>(null);
-  const [promoting, setPromoting] = useState<number | null>(null);
+  const [promoteTarget, setPromoteTarget] = useState<number | null>(null);
+  const [adminPassword, setAdminPassword] = useState('');
+  const [promoting, setPromoting] = useState(false);
+  const [promoteError, setPromoteError] = useState<string | null>(null);
 
   useEffect(() => { load(); }, []);
 
@@ -362,14 +427,26 @@ function AdminUsers() {
     try { setUsers(await api.admin.users.listVerbose()); } finally { setLoading(false); }
   }
 
-  async function handlePromote(id: number) {
-    setPromoting(id);
+  function openPromote(id: number) {
+    setPromoteTarget(id);
+    setAdminPassword('');
+    setPromoteError(null);
+  }
+
+  async function handlePromote(e: React.FormEvent) {
+    e.preventDefault();
+    if (!promoteTarget) return;
+    setPromoting(true);
+    setPromoteError(null);
     try {
-      await api.admin.users.promote(id);
-      await load();
+      await api.admin.users.promote(promoteTarget, adminPassword);
+      setPromoteTarget(null);
       setExpanded(null);
+      await load();
+    } catch {
+      setPromoteError('Wrong password or user not found.');
     } finally {
-      setPromoting(null);
+      setPromoting(false);
     }
   }
 
@@ -406,70 +483,87 @@ function AdminUsers() {
       ) : (
         <div className="space-y-2">
           {sorted.map(u => (
-            <div key={u.id} className="border border-border">
-              <button
-                className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[#F7F5F0] transition-colors"
-                onClick={() => setExpanded(expanded === u.id ? null : u.id)}
-              >
-                <div className="flex items-center gap-8">
-                  <span className="text-xs text-muted w-10">#{u.id}</span>
-                  <span className="text-sm">{u.firstName} {u.lastName}</span>
-                  <span className="text-sm text-muted hidden md:block">{u.email}</span>
-                  {u.role === 'ROLE_ADMIN' && (
-                    <span className="text-[10px] uppercase tracking-widest border border-gold text-gold px-2 py-0.5">Admin</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-6 text-sm text-muted">
-                  <span>${Number(u.moneySpent).toFixed(2)}</span>
-                  <span>{u.nbSuccessfulOrders} orders</span>
-                  <span className="text-xs">{expanded === u.id ? '▲' : '▼'}</span>
-                </div>
-              </button>
+            <VerboseRow
+              key={u.id}
+              u={u}
+              expanded={expanded === u.id}
+              onToggle={() => { setExpanded(expanded === u.id ? null : u.id); setPromoteTarget(null); }}
+            >
+              <div className="mt-4">
+                {promoteTarget === u.id ? (
+                  <form onSubmit={handlePromote} className="flex items-center gap-3">
+                    <input
+                      type="password"
+                      value={adminPassword}
+                      onChange={e => setAdminPassword(e.target.value)}
+                      placeholder="Your admin password"
+                      required
+                      autoFocus
+                      className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors"
+                    />
+                    <button
+                      type="submit"
+                      disabled={promoting}
+                      className="text-xs uppercase tracking-widest border border-dark bg-dark text-white px-4 py-2 hover:bg-gold transition-colors disabled:opacity-50"
+                    >
+                      {promoting ? '...' : 'Confirm'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPromoteTarget(null)}
+                      className="text-xs uppercase tracking-widest border border-border px-4 py-2 hover:border-dark transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    {promoteError && <p className="text-red-500 text-sm">{promoteError}</p>}
+                  </form>
+                ) : (
+                  <button
+                    onClick={() => openPromote(u.id)}
+                    className="text-xs uppercase tracking-widest border border-border px-4 py-2 hover:border-dark transition-colors"
+                  >
+                    Promote to Admin
+                  </button>
+                )}
+              </div>
+            </VerboseRow>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
-              {expanded === u.id && (
-                <div className="px-5 pb-5 border-t border-border">
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4 text-sm">
-                    <div>
-                      <p className="text-xs uppercase tracking-widest text-muted mb-1">Address</p>
-                      <p>{u.address}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-widest text-muted mb-1">Joined</p>
-                      <p>{new Date(u.createdOn).toLocaleDateString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-widest text-muted mb-1">Role</p>
-                      <p>{u.role}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-widest text-muted mb-1">Money Spent</p>
-                      <p>${Number(u.moneySpent).toFixed(2)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-widest text-muted mb-1">Successful Orders</p>
-                      <p>{u.nbSuccessfulOrders}</p>
-                    </div>
-                    {u.stripeCustomerId && (
-                      <div>
-                        <p className="text-xs uppercase tracking-widest text-muted mb-1">Stripe ID</p>
-                        <p className="text-xs font-mono truncate">{u.stripeCustomerId}</p>
-                      </div>
-                    )}
-                  </div>
-                  {u.role !== 'ROLE_ADMIN' && (
-                    <div className="mt-4">
-                      <button
-                        onClick={() => handlePromote(u.id)}
-                        disabled={promoting === u.id}
-                        className="text-xs uppercase tracking-widest border border-border px-4 py-2 hover:border-dark transition-colors disabled:opacity-50"
-                      >
-                        {promoting === u.id ? '...' : 'Promote to Admin'}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+// ── Admins ────────────────────────────────────────────────────────────────────
+
+function AdminAdmins() {
+  const [admins, setAdmins] = useState<VerboseClient[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState<number | null>(null);
+
+  useEffect(() => {
+    api.admin.users.listAdmins()
+      .then(setAdmins)
+      .finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <div>
+      {loading ? (
+        <div className="space-y-2">
+          {[...Array(3)].map((_, i) => <div key={i} className="h-12 bg-[#F0EDE8] animate-pulse" />)}
+        </div>
+      ) : admins.length === 0 ? (
+        <p className="text-muted text-center py-16">No admins found.</p>
+      ) : (
+        <div className="space-y-2">
+          {admins.map(u => (
+            <VerboseRow
+              key={u.id}
+              u={u}
+              expanded={expanded === u.id}
+              onToggle={() => setExpanded(expanded === u.id ? null : u.id)}
+            />
           ))}
         </div>
       )}
@@ -479,11 +573,12 @@ function AdminUsers() {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-type Tab = 'orders' | 'products' | 'users';
+type Tab = 'orders' | 'products' | 'users' | 'admins';
 const TABS: { key: Tab; label: string }[] = [
   { key: 'orders', label: 'Orders' },
   { key: 'products', label: 'Products' },
   { key: 'users', label: 'Users' },
+  { key: 'admins', label: 'Admins' },
 ];
 
 export default function Admin() {
@@ -511,6 +606,7 @@ export default function Admin() {
       {tab === 'orders' && <AdminOrders />}
       {tab === 'products' && <AdminProducts />}
       {tab === 'users' && <AdminUsers />}
+      {tab === 'admins' && <AdminAdmins />}
     </div>
   );
 }

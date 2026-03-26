@@ -17,6 +17,7 @@ import com.bijou.backend.auth.AuthService;
 import com.bijou.backend.auth.ChangePasswordRequest;
 import com.bijou.backend.entities.Client;
 import com.bijou.backend.services.ChangeEmailRequest;
+import com.bijou.backend.services.PromoteRequest;
 import com.bijou.backend.services.ClientProfileResponse;
 import com.bijou.backend.services.ClientService;
 import com.bijou.backend.services.ShortClientProfileResponse;
@@ -55,9 +56,9 @@ public class AccountController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/${ADMIN_PAGE}/promote/{id}")
-    public ResponseEntity<Void> promote(@PathVariable Long id) {
-        clientService.promote(id);
+    @PostMapping("/${ADMIN_PAGE}/promote")
+    public ResponseEntity<Void> promote(@AuthenticationPrincipal Client admin, @Valid @RequestBody PromoteRequest req) {
+        clientService.promote(admin, req);
         return ResponseEntity.ok().build();
     }
 
@@ -69,6 +70,11 @@ public class AccountController {
     @GetMapping("/${ADMIN_PAGE}/clients")
     public ResponseEntity<List<ShortClientProfileResponse>> getClients() {
         return ResponseEntity.ok(clientService.getClients());
+    } 
+
+    @GetMapping("/${ADMIN_PAGE}/admins")
+    public ResponseEntity<List<VerboseClientProfileResponse>> getAdmins() {
+        return ResponseEntity.ok(clientService.getAdmins());
     } 
 
     @GetMapping("/${ADMIN_PAGE}/clients/verbose")

@@ -31,6 +31,7 @@ public class ClientService {
             log.warn("email {} already registered", client.getEmail());
             throw new AppException(HttpStatus.CONFLICT, "EMAIL_CONFLICT");
         }
+        log.info("email change successful");
         client.setEmail(req.newEmail());
         clientRepository.save(client);
     }
@@ -72,14 +73,20 @@ public class ClientService {
     }
 
     public List<ShortClientProfileResponse> getClients() {
-        return clientRepository.findAll().stream()
+        return clientRepository.findAllByRole(Role.CLIENT).stream()
             .map(client -> toShortProfile(client))
             .toList();
     }
 
     public List<VerboseClientProfileResponse> getClientsVerbose() {
-        return clientRepository.findAll().stream()
+        return clientRepository.findAllByRole(Role.CLIENT).stream()
             .map(client -> toVerbose(client))
+            .toList();
+    }
+
+    public List<VerboseClientProfileResponse> getAdmins() {
+        return clientRepository.findAllByRole(Role.ADMIN).stream()
+            .map(admin -> toVerbose(admin))
             .toList();
     }
 
@@ -89,10 +96,15 @@ public class ClientService {
         log.info("updated address of {}", client.getEmail());
     }
 
-    public void promote(Long id) {
-        Client client = clientRepository.findById(id).orElseThrow(() -> {
+    public void promote(Client admin, PromoteRequest req) {
+        if (!passwordEncoder.matches(req.adminPassword(), admin.getPassword())) {
+            log.warn("wrong password");
+            throw new AppException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS");
+        }
+        Client client = clientRepository.findById(req.id()).orElseThrow(() -> {
             return new AppException(HttpStatus.NOT_FOUND, "CLIENT_NOT_FOUND");
         });
         client.setRole(Role.ADMIN);
+        log.info("promoted {} to admin by admin {}", client.getEmail(), admin.getEmail());
     }
 }
