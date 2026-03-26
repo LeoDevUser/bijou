@@ -1,5 +1,7 @@
 package com.bijou.backend.services;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -40,6 +42,45 @@ public class ClientService {
                 client.getLastName(),
                 client.getEmail(),
                 client.getAddress());
+    }
+
+    public VerboseClientProfileResponse getVerboseProfile(Long id) {
+        Client client = clientRepository.findById(id).orElseThrow(() -> {
+            return new AppException(HttpStatus.NOT_FOUND, "CLIENT_NOT_FOUND");
+        });
+        log.info("retrieved profile of {}", client.getEmail());
+        return toVerbose(client);
+    }
+
+    private VerboseClientProfileResponse toVerbose(Client client) {
+        return new VerboseClientProfileResponse(
+                client.getId(),
+                client.getFirstName(),
+                client.getLastName(),
+                client.getEmail(),
+                client.getAddress(),
+                client.getCreatedOn(),
+                client.getRole(),
+                client.getStripeCustomerId(),
+                client.getNbSuccessfulOrders(),
+                client.getMoneySpent()
+            );
+    }
+
+    private ShortClientProfileResponse toShortProfile(Client client) {
+        return new ShortClientProfileResponse(client.getFirstName(), client.getLastName(), client.getId(), client.getEmail());
+    }
+
+    public List<ShortClientProfileResponse> getClients() {
+        return clientRepository.findAll().stream()
+            .map(client -> toShortProfile(client))
+            .toList();
+    }
+
+    public List<VerboseClientProfileResponse> getClientsVerbose() {
+        return clientRepository.findAll().stream()
+            .map(client -> toVerbose(client))
+            .toList();
     }
 
     public void updateAddress(Client client, String newAddress) {

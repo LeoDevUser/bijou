@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { api } from '../api/client';
-import type { ItemView, ItemRequest, OrderView, Category } from '../types';
+import type { ItemView, ItemRequest, OrderView, Category, VerboseClient } from '../types';
 
 const CATEGORIES: Category[] = ['NECKLACE', 'RING', 'EARRING', 'MISC'];
 
@@ -346,52 +346,133 @@ function AdminProducts() {
 
 // ── Users ─────────────────────────────────────────────────────────────────────
 
-function AdminUsers() {
-  const [id, setId] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+type UserSort = 'default' | 'money' | 'orders';
 
-  async function handlePromote(e: React.FormEvent) {
-    e.preventDefault();
+function AdminUsers() {
+  const [users, setUsers] = useState<VerboseClient[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [sort, setSort] = useState<UserSort>('default');
+  const [expanded, setExpanded] = useState<number | null>(null);
+  const [promoting, setPromoting] = useState<number | null>(null);
+
+  useEffect(() => { load(); }, []);
+
+  async function load() {
     setLoading(true);
-    setMsg(null);
+    try { setUsers(await api.admin.users.listVerbose()); } finally { setLoading(false); }
+  }
+
+  async function handlePromote(id: number) {
+    setPromoting(id);
     try {
-      await api.admin.users.promote(parseInt(id));
-      setMsg({ type: 'success', text: `User #${id} promoted to admin.` });
-      setId('');
-    } catch {
-      setMsg({ type: 'error', text: 'Failed to promote user. Check the ID.' });
+      await api.admin.users.promote(id);
+      await load();
+      setExpanded(null);
     } finally {
-      setLoading(false);
+      setPromoting(null);
     }
   }
 
+  const sorted = [...users].sort((a, b) => {
+    if (sort === 'money') return b.moneySpent - a.moneySpent;
+    if (sort === 'orders') return b.nbSuccessfulOrders - a.nbSuccessfulOrders;
+    return 0;
+  });
+
+  const sortBtn = (label: string, value: UserSort) => (
+    <button
+      onClick={() => setSort(s => s === value ? 'default' : value)}
+      className={`text-xs uppercase tracking-widest px-4 py-2 border transition-colors ${
+        sort === value ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'
+      }`}
+    >
+      {label}
+    </button>
+  );
+
   return (
-    <div className="max-w-sm">
-      <p className="text-sm text-muted mb-6">Promote a user to admin by their account ID.</p>
-      <form onSubmit={handlePromote} className="space-y-4">
-        <div>
-          <label className="block text-xs uppercase tracking-widest mb-2">User ID</label>
-          <input
-            type="number"
-            min="1"
-            value={id}
-            onChange={e => setId(e.target.value)}
-            required
-            className="w-full border border-border bg-cream px-4 py-3 text-sm outline-none focus:border-dark transition-colors"
-          />
+    <div>
+      <div className="flex gap-2 mb-6">
+        {sortBtn('By Money Spent', 'money')}
+        {sortBtn('By Orders', 'orders')}
+      </div>
+
+      {loading ? (
+        <div className="space-y-2">
+          {[...Array(5)].map((_, i) => <div key={i} className="h-12 bg-[#F0EDE8] animate-pulse" />)}
         </div>
-        {msg && (
-          <p className={msg.type === 'success' ? 'text-green-600 text-sm' : 'text-red-500 text-sm'}>{msg.text}</p>
-        )}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-dark text-white text-xs uppercase tracking-widest py-3 hover:bg-gold transition-colors disabled:opacity-50"
-        >
-          {loading ? '...' : 'Promote to Admin'}
-        </button>
-      </form>
+      ) : sorted.length === 0 ? (
+        <p className="text-muted text-center py-16">No users found.</p>
+      ) : (
+        <div className="space-y-2">
+          {sorted.map(u => (
+            <div key={u.id} className="border border-border">
+              <button
+                className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[#F7F5F0] transition-colors"
+                onClick={() => setExpanded(expanded === u.id ? null : u.id)}
+              >
+                <div className="flex items-center gap-8">
+                  <span className="text-xs text-muted w-10">#{u.id}</span>
+                  <span className="text-sm">{u.firstName} {u.lastName}</span>
+                  <span className="text-sm text-muted hidden md:block">{u.email}</span>
+                  {u.role === 'ROLE_ADMIN' && (
+                    <span className="text-[10px] uppercase tracking-widest border border-gold text-gold px-2 py-0.5">Admin</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-6 text-sm text-muted">
+                  <span>${Number(u.moneySpent).toFixed(2)}</span>
+                  <span>{u.nbSuccessfulOrders} orders</span>
+                  <span className="text-xs">{expanded === u.id ? '▲' : '▼'}</span>
+                </div>
+              </button>
+
+              {expanded === u.id && (
+                <div className="px-5 pb-5 border-t border-border">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4 text-sm">
+                    <div>
+                      <p className="text-xs uppercase tracking-widest text-muted mb-1">Address</p>
+                      <p>{u.address}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-widest text-muted mb-1">Joined</p>
+                      <p>{new Date(u.createdOn).toLocaleDateString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-widest text-muted mb-1">Role</p>
+                      <p>{u.role}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-widest text-muted mb-1">Money Spent</p>
+                      <p>${Number(u.moneySpent).toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-widest text-muted mb-1">Successful Orders</p>
+                      <p>{u.nbSuccessfulOrders}</p>
+                    </div>
+                    {u.stripeCustomerId && (
+                      <div>
+                        <p className="text-xs uppercase tracking-widest text-muted mb-1">Stripe ID</p>
+                        <p className="text-xs font-mono truncate">{u.stripeCustomerId}</p>
+                      </div>
+                    )}
+                  </div>
+                  {u.role !== 'ROLE_ADMIN' && (
+                    <div className="mt-4">
+                      <button
+                        onClick={() => handlePromote(u.id)}
+                        disabled={promoting === u.id}
+                        className="text-xs uppercase tracking-widest border border-border px-4 py-2 hover:border-dark transition-colors disabled:opacity-50"
+                      >
+                        {promoting === u.id ? '...' : 'Promote to Admin'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

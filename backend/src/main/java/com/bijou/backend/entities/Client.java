@@ -1,5 +1,6 @@
 package com.bijou.backend.entities;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -54,10 +55,16 @@ public class Client implements UserDetails {
     private Role role;
     @Column(unique = true)
     private String stripeCustomerId;
+    @Column(nullable = false)
+    private int nbSuccessfulOrders;
+    @Column(nullable = false)
+    private BigDecimal moneySpent;
 
     @PrePersist
     protected void onCreate() {
         this.createdOn = LocalDateTime.now();
+        this.nbSuccessfulOrders = 0;
+        this.moneySpent = BigDecimal.ZERO;
     }
 
     @Override

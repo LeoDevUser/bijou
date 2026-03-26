@@ -1,5 +1,7 @@
 package com.bijou.backend.controllers;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +19,8 @@ import com.bijou.backend.entities.Client;
 import com.bijou.backend.services.ChangeEmailRequest;
 import com.bijou.backend.services.ClientProfileResponse;
 import com.bijou.backend.services.ClientService;
+import com.bijou.backend.services.ShortClientProfileResponse;
+import com.bijou.backend.services.VerboseClientProfileResponse;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -56,4 +60,19 @@ public class AccountController {
         clientService.promote(id);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/${ADMIN_PAGE}/profile/{id}")
+    public ResponseEntity<VerboseClientProfileResponse> getProfile(@PathVariable Long id) {
+        return ResponseEntity.ok(clientService.getVerboseProfile(id));
+    } 
+
+    @GetMapping("/${ADMIN_PAGE}/clients")
+    public ResponseEntity<List<ShortClientProfileResponse>> getClients() {
+        return ResponseEntity.ok(clientService.getClients());
+    } 
+
+    @GetMapping("/${ADMIN_PAGE}/clients/verbose")
+    public ResponseEntity<List<VerboseClientProfileResponse>> getClientsVerbose() {
+        return ResponseEntity.ok(clientService.getClientsVerbose());
+    } 
 }

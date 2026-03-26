@@ -51,6 +51,19 @@ export interface ItemRequest {
   labels: string[];
 }
 
+export interface VerboseClient {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  address: string;
+  createdOn: string;
+  role: string;
+  stripeCustomerId: string | null;
+  nbSuccessfulOrders: number;
+  moneySpent: number;
+}
+
 export interface CartItem {
   id: number;
   name: string;

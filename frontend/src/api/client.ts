@@ -1,4 +1,4 @@
-import type { ItemView, ItemRequest, OrderView } from '../types';
+import type { ItemView, ItemRequest, OrderView, VerboseClient } from '../types';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? '';
 const ADMIN = import.meta.env.VITE_ADMIN_PAGE ?? '';
@@ -130,8 +130,10 @@ export const api = {
       byCountry: (country: string) => request<OrderView[]>(`/${ADMIN}/orders/country/${country}`),
     },
     users: {
+      listVerbose: () => request<VerboseClient[]>(`/account/${ADMIN}/clients/verbose`),
+      getProfile: (id: number) => request<VerboseClient>(`/account/${ADMIN}/profile/${id}`),
       promote: (id: number) =>
-        request<void>(`/${ADMIN}/promote/${id}`, { method: 'POST' }),
+        request<void>(`/account/${ADMIN}/promote/${id}`, { method: 'POST' }),
     },
   },
 };

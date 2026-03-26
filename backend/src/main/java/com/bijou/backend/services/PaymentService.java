@@ -149,6 +149,12 @@ public class PaymentService {
         order.setStatus(Status.PROCESSING);
         orderRepository.save(order);
         log.info("order {} moved to PROCESSING after successful payment", order.getId());
+        Client client = clientRepository.findById(order.getClient().getId())
+            .orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "CLIENT NOT FOUND"));
+        client.setNbSuccessfulOrders(client.getNbSuccessfulOrders() + 1);
+        client.setMoneySpent(client.getMoneySpent().add(order.getTotalPrice()));
+        clientRepository.save(client);
+        log.info("updated info of client {} after successful payment", client.getId());
     }
 
     private void handleFailure(PaymentIntent intent) {
