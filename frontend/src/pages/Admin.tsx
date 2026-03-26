@@ -442,7 +442,7 @@ function AdminUsers() {
       await api.admin.users.promote(promoteTarget, adminPassword);
       setPromoteTarget(null);
       setExpanded(null);
-      await load();
+      setTimeout(load, 500);
     } catch {
       setPromoteError('Wrong password or user not found.');
     } finally {

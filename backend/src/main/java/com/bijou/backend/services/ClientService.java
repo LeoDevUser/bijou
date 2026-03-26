@@ -105,6 +105,7 @@ public class ClientService {
             return new AppException(HttpStatus.NOT_FOUND, "CLIENT_NOT_FOUND");
         });
         client.setRole(Role.ADMIN);
+        clientRepository.save(client);
         log.info("promoted {} to admin by admin {}", client.getEmail(), admin.getEmail());
     }
 }

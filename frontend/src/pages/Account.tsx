@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+
+const ADMIN_URL = import.meta.env.VITE_ADMIN_PAGE ?? '';
 
 interface Profile {
   firstName: string;
@@ -30,6 +34,7 @@ function StatusMsg({ msg }: { msg: { type: 'success' | 'error'; text: string } |
 
 export default function Account() {
   const { t } = useTranslation();
+  const { isAdmin } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
 
   const [pwForm, setPwForm] = useState({ oldPassword: '', newPassword: '', confirm: '' });
@@ -103,14 +108,24 @@ export default function Account() {
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-12">
-      <h1 className="font-serif text-4xl font-light mb-2">{t('account.title')}</h1>
+      <div className="flex items-start justify-between mb-2">
+        <h1 className="font-serif text-4xl font-light">{t('account.title')}</h1>
+        {isAdmin && (
+          <Link
+            to={`/${ADMIN_URL}`}
+            className="text-xs uppercase tracking-widest border border-border px-4 py-2 hover:border-dark transition-colors"
+          >
+            Admin Dashboard
+          </Link>
+        )}
+      </div>
       {profile && (
         <p className="text-muted text-sm mb-10">{profile.firstName} {profile.lastName} · {profile.email}</p>
       )}
 
       <div className="space-y-6">
         <Section title={t('account.address.title')}>
-          <form onSubmit={handleAddress} className="space-y-4">
+          <form onSubmit={handleAddress} autoComplete="off" className="space-y-4">
             <input
               value={address}
               onChange={e => setAddress(e.target.value)}
@@ -128,7 +143,7 @@ export default function Account() {
         </Section>
 
         <Section title={t('account.email.title')}>
-          <form onSubmit={handleEmail} className="space-y-4">
+          <form onSubmit={handleEmail} autoComplete="off" className="space-y-4">
             <div>
               <label className="block text-xs uppercase tracking-widest mb-2">{t('account.email.newEmail')}</label>
               <input
@@ -159,7 +174,7 @@ export default function Account() {
         </Section>
 
         <Section title={t('account.password.title')}>
-          <form onSubmit={handlePassword} className="space-y-4">
+          <form onSubmit={handlePassword} autoComplete="off" className="space-y-4">
             <div>
               <label className="block text-xs uppercase tracking-widest mb-2">{t('account.password.current')}</label>
               <input
