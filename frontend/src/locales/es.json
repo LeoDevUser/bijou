@@ -118,6 +118,35 @@
       "CANCELLED": "Cancelado"
     }
   },
+  "account": {
+    "title": "Mi Cuenta",
+    "subtitle": "Gestiona tu perfil y configuración de seguridad",
+    "address": {
+      "title": "Dirección de Envío",
+      "placeholder": "Dirección postal",
+      "save": "Guardar Dirección",
+      "success": "Dirección actualizada.",
+      "error": "Error al actualizar la dirección."
+    },
+    "email": {
+      "title": "Cambiar Correo",
+      "newEmail": "Nuevo Correo",
+      "currentPassword": "Contraseña Actual",
+      "save": "Actualizar Correo",
+      "success": "Correo actualizado.",
+      "error": "Error. Verifica tu contraseña e intenta de nuevo."
+    },
+    "password": {
+      "title": "Cambiar Contraseña",
+      "current": "Contraseña Actual",
+      "new": "Nueva Contraseña",
+      "confirm": "Confirmar Nueva Contraseña",
+      "save": "Actualizar Contraseña",
+      "success": "Contraseña actualizada.",
+      "mismatch": "Las nuevas contraseñas no coinciden.",
+      "error": "Error. Verifica tu contraseña actual e intenta de nuevo."
+    }
+  },
   "footer": {
     "help": "Ayuda",
     "faq": "Preguntas Frecuentes",

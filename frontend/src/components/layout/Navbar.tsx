@@ -71,6 +71,12 @@ export default function Navbar() {
             {isAuthenticated ? (
               <>
                 <Link
+                  to="/account"
+                  className="hidden md:block text-xs uppercase tracking-wider text-dark hover:text-gold transition-colors"
+                >
+                  {t('nav.account')}
+                </Link>
+                <Link
                   to="/orders"
                   className="hidden md:block text-xs uppercase tracking-wider text-dark hover:text-gold transition-colors"
                 >

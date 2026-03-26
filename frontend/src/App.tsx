@@ -13,12 +13,18 @@ import Register from './pages/Register'
 import Orders from './pages/Orders'
 import Payment from './pages/Payment'
 import Admin from './pages/Admin'
+import Account from './pages/Account'
 
 const ADMIN_URL = import.meta.env.VITE_ADMIN_PAGE ?? '';
 
 function AdminRoute() {
   const { isAdmin } = useAuth();
   return isAdmin ? <Admin /> : <Navigate to="/" replace />;
+}
+
+function AuthRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
 function App() {
@@ -39,6 +45,7 @@ function App() {
                 <Route path="/register" element={<Register />} />
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/payment" element={<Payment />} />
+                <Route path="/account" element={<AuthRoute><Account /></AuthRoute>} />
                 <Route path={`/${ADMIN_URL}`} element={<AdminRoute />} />
               </Routes>
             </main>

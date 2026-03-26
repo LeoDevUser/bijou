@@ -118,6 +118,35 @@
       "CANCELLED": "Annulée"
     }
   },
+  "account": {
+    "title": "Mon Compte",
+    "subtitle": "Gérez votre profil et vos paramètres de sécurité",
+    "address": {
+      "title": "Adresse de Livraison",
+      "placeholder": "Adresse postale",
+      "save": "Enregistrer l'Adresse",
+      "success": "Adresse mise à jour.",
+      "error": "Échec de la mise à jour de l'adresse."
+    },
+    "email": {
+      "title": "Changer l'E-mail",
+      "newEmail": "Nouvel E-mail",
+      "currentPassword": "Mot de Passe Actuel",
+      "save": "Mettre à Jour l'E-mail",
+      "success": "E-mail mis à jour.",
+      "error": "Échec. Vérifiez votre mot de passe et réessayez."
+    },
+    "password": {
+      "title": "Changer le Mot de Passe",
+      "current": "Mot de Passe Actuel",
+      "new": "Nouveau Mot de Passe",
+      "confirm": "Confirmer le Nouveau Mot de Passe",
+      "save": "Mettre à Jour le Mot de Passe",
+      "success": "Mot de passe mis à jour.",
+      "mismatch": "Les nouveaux mots de passe ne correspondent pas.",
+      "error": "Échec. Vérifiez votre mot de passe actuel et réessayez."
+    }
+  },
   "footer": {
     "help": "Aide",
     "faq": "FAQ",

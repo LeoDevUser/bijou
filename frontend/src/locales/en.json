@@ -118,6 +118,35 @@
       "CANCELLED": "Cancelled"
     }
   },
+  "account": {
+    "title": "My Account",
+    "subtitle": "Manage your profile and security settings",
+    "address": {
+      "title": "Shipping Address",
+      "placeholder": "Street address",
+      "save": "Save Address",
+      "success": "Address updated.",
+      "error": "Failed to update address."
+    },
+    "email": {
+      "title": "Change Email",
+      "newEmail": "New Email",
+      "currentPassword": "Current Password",
+      "save": "Update Email",
+      "success": "Email updated.",
+      "error": "Failed. Check your password and try again."
+    },
+    "password": {
+      "title": "Change Password",
+      "current": "Current Password",
+      "new": "New Password",
+      "confirm": "Confirm New Password",
+      "save": "Update Password",
+      "success": "Password updated.",
+      "mismatch": "New passwords do not match.",
+      "error": "Failed. Check your current password and try again."
+    }
+  },
   "footer": {
     "help": "Help",
     "faq": "FAQ",

@@ -66,6 +66,12 @@ export const api = {
   account: {
     getProfile: () =>
       request<{ firstName: string; lastName: string; email: string; address: string }>('/account/profile'),
+    changePassword: (oldPassword: string, newPassword: string) =>
+      request<void>('/account/password', { method: 'PATCH', body: JSON.stringify({ oldPassword, newPassword }) }),
+    changeEmail: (password: string, newEmail: string) =>
+      request<void>('/account/email', { method: 'PATCH', body: JSON.stringify({ password, newEmail }) }),
+    changeAddress: (newAddress: string) =>
+      request<void>(`/account/address?newAddress=${encodeURIComponent(newAddress)}`, { method: 'PATCH' }),
   },
   admin: {
     items: {
