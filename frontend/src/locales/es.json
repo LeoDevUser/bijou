@@ -1,0 +1,131 @@
+{
+  "nav": {
+    "allJewelry": "Todas las Joyas",
+    "newIn": "Novedades",
+    "collections": "Colecciones",
+    "gifts": "Regalos",
+    "account": "Cuenta",
+    "orders": "Mis Pedidos",
+    "logout": "Cerrar Sesión"
+  },
+  "announcement": {
+    "free_shipping": "Envío gratuito en pedidos superiores a $150",
+    "new_collection": "Nueva colección disponible",
+    "returns": "Devoluciones gratuitas en 30 días"
+  },
+  "home": {
+    "hero": {
+      "tagline": "Joyas para Vivir",
+      "cta": "Comprar Ahora",
+      "imagePlaceholder": "Imagen principal"
+    },
+    "categories": {
+      "title": "Comprar por Categoría",
+      "rings": "Anillos",
+      "necklaces": "Collares",
+      "earrings": "Aretes",
+      "bracelets": "Pulseras",
+      "anklets": "Tobilleras"
+    },
+    "trending": {
+      "title": "Tendencias",
+      "viewAll": "Ver Todo"
+    },
+    "editorial1": {
+      "label": "Novedades",
+      "tagline": "Al Ritmo de tu Día",
+      "cta": "Ver el Look"
+    },
+    "editorial2": {
+      "label": "Colecciones",
+      "tagline": "Toda la Noche",
+      "cta": "Explorar"
+    }
+  },
+  "shop": {
+    "title": "Todas las Joyas",
+    "items": "artículos",
+    "noProducts": "No se encontraron productos."
+  },
+  "product": {
+    "addToCart": "Añadir al Carrito",
+    "added": "Añadido",
+    "inStock": "en stock",
+    "outOfStock": "Sin Stock"
+  },
+  "cart": {
+    "title": "Tu Carrito",
+    "empty": "Tu carrito está vacío.",
+    "continueShopping": "Seguir Comprando",
+    "itemCount": "artículos",
+    "summary": "Resumen del Pedido",
+    "subtotal": "Subtotal",
+    "shipping": "Envío",
+    "shippingCalculated": "Calculado al finalizar",
+    "total": "Total",
+    "checkout": "Finalizar Compra",
+    "remove": "Eliminar"
+  },
+  "checkout": {
+    "title": "Finalizar Compra",
+    "address": "Dirección de Envío",
+    "country": "País",
+    "currency": "Moneda",
+    "placeOrder": "Realizar Pedido",
+    "processing": "Procesando...",
+    "orderSummary": "Resumen del Pedido",
+    "error": "Algo salió mal. Por favor, intenta de nuevo."
+  },
+  "auth": {
+    "login": "Iniciar Sesión",
+    "loginSubtitle": "Bienvenido de vuelta",
+    "register": "Crear Cuenta",
+    "registerSubtitle": "Únete a Bijou Monde",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "address": "Dirección",
+    "noAccount": "¿No tienes cuenta?",
+    "hasAccount": "¿Ya tienes cuenta?",
+    "signUp": "Créala",
+    "signIn": "Inicia sesión",
+    "createAccount": "Crear Cuenta",
+    "error": "Algo salió mal. Por favor, intenta de nuevo."
+  },
+  "orders": {
+    "title": "Mis Pedidos",
+    "empty": "Aún no tienes pedidos.",
+    "order": "Pedido",
+    "items": "artículos",
+    "tracking": "Seguimiento",
+    "cancel": "Cancelar Pedido",
+    "status": {
+      "AWAITING_PAYMENT": "Esperando Pago",
+      "PROCESSING": "En Proceso",
+      "SHIPPED": "Enviado",
+      "DELIVERED": "Entregado",
+      "CANCELLED": "Cancelado"
+    }
+  },
+  "footer": {
+    "help": "Ayuda",
+    "faq": "Preguntas Frecuentes",
+    "shipping": "Envíos",
+    "returns": "Devoluciones",
+    "about": "Acerca de Bijou Monde",
+    "sustainability": "Sostenibilidad",
+    "careers": "Empleo",
+    "rights": "Todos los derechos reservados.",
+    "newsletter": {
+      "title": "Mantente al día",
+      "subtitle": "Novedades, ofertas exclusivas y más.",
+      "placeholder": "Ingresa tu correo electrónico",
+      "subscribe": "Suscribirme"
+    },
+    "legal": {
+      "privacy": "Política de Privacidad",
+      "terms": "Términos de Servicio"
+    }
+  }
+}

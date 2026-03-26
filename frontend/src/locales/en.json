@@ -1,0 +1,131 @@
+{
+  "nav": {
+    "allJewelry": "All Jewelry",
+    "newIn": "New In",
+    "collections": "Collections",
+    "gifts": "Gifts",
+    "account": "Account",
+    "orders": "My Orders",
+    "logout": "Sign Out"
+  },
+  "announcement": {
+    "free_shipping": "Complimentary shipping on orders over $150",
+    "new_collection": "New collection just arrived",
+    "returns": "Free returns within 30 days"
+  },
+  "home": {
+    "hero": {
+      "tagline": "Jewelry You Can Live In",
+      "cta": "Shop Now",
+      "imagePlaceholder": "Hero image"
+    },
+    "categories": {
+      "title": "Shop by Category",
+      "rings": "Rings",
+      "necklaces": "Necklaces",
+      "earrings": "Earrings",
+      "bracelets": "Bracelets",
+      "anklets": "Anklets"
+    },
+    "trending": {
+      "title": "Trending Now",
+      "viewAll": "View All"
+    },
+    "editorial1": {
+      "label": "New In",
+      "tagline": "On the Go",
+      "cta": "Shop the Look"
+    },
+    "editorial2": {
+      "label": "Collections",
+      "tagline": "All Night Long",
+      "cta": "Explore Now"
+    }
+  },
+  "shop": {
+    "title": "All Jewelry",
+    "items": "items",
+    "noProducts": "No products found."
+  },
+  "product": {
+    "addToCart": "Add to Cart",
+    "added": "Added",
+    "inStock": "in stock",
+    "outOfStock": "Out of Stock"
+  },
+  "cart": {
+    "title": "Your Cart",
+    "empty": "Your cart is empty.",
+    "continueShopping": "Continue Shopping",
+    "itemCount": "items",
+    "summary": "Order Summary",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "shippingCalculated": "Calculated at checkout",
+    "total": "Total",
+    "checkout": "Proceed to Checkout",
+    "remove": "Remove"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "address": "Shipping Address",
+    "country": "Country",
+    "currency": "Currency",
+    "placeOrder": "Place Order",
+    "processing": "Processing...",
+    "orderSummary": "Order Summary",
+    "error": "Something went wrong. Please try again."
+  },
+  "auth": {
+    "login": "Sign In",
+    "loginSubtitle": "Welcome back",
+    "register": "Create Account",
+    "registerSubtitle": "Join Bijou Monde",
+    "email": "Email Address",
+    "password": "Password",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "address": "Address",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "signUp": "Create one",
+    "signIn": "Sign in",
+    "createAccount": "Create Account",
+    "error": "Something went wrong. Please try again."
+  },
+  "orders": {
+    "title": "My Orders",
+    "empty": "You have no orders yet.",
+    "order": "Order",
+    "items": "items",
+    "tracking": "Tracking",
+    "cancel": "Cancel Order",
+    "status": {
+      "AWAITING_PAYMENT": "Awaiting Payment",
+      "PROCESSING": "Processing",
+      "SHIPPED": "Shipped",
+      "DELIVERED": "Delivered",
+      "CANCELLED": "Cancelled"
+    }
+  },
+  "footer": {
+    "help": "Help",
+    "faq": "FAQ",
+    "shipping": "Shipping & Delivery",
+    "returns": "Returns",
+    "about": "About Bijou Monde",
+    "sustainability": "Sustainability",
+    "careers": "Careers",
+    "rights": "All rights reserved.",
+    "newsletter": {
+      "title": "Stay in the loop",
+      "subtitle": "New arrivals, exclusive offers, and more.",
+      "placeholder": "Enter your email address",
+      "subscribe": "Subscribe"
+    },
+    "legal": {
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
+    }
+  }
+}

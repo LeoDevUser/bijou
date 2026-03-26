@@ -1,0 +1,131 @@
+{
+  "nav": {
+    "allJewelry": "Tous les Bijoux",
+    "newIn": "Nouveautés",
+    "collections": "Collections",
+    "gifts": "Cadeaux",
+    "account": "Compte",
+    "orders": "Mes Commandes",
+    "logout": "Se Déconnecter"
+  },
+  "announcement": {
+    "free_shipping": "Livraison offerte pour les commandes de plus de 150 $",
+    "new_collection": "Nouvelle collection disponible",
+    "returns": "Retours gratuits sous 30 jours"
+  },
+  "home": {
+    "hero": {
+      "tagline": "Des Bijoux au Quotidien",
+      "cta": "Acheter Maintenant",
+      "imagePlaceholder": "Image héro"
+    },
+    "categories": {
+      "title": "Acheter par Catégorie",
+      "rings": "Bagues",
+      "necklaces": "Colliers",
+      "earrings": "Boucles d'oreilles",
+      "bracelets": "Bracelets",
+      "anklets": "Chevillères"
+    },
+    "trending": {
+      "title": "Tendances",
+      "viewAll": "Voir Tout"
+    },
+    "editorial1": {
+      "label": "Nouveautés",
+      "tagline": "En Mouvement",
+      "cta": "Voir le Look"
+    },
+    "editorial2": {
+      "label": "Collections",
+      "tagline": "Toute la Nuit",
+      "cta": "Explorer"
+    }
+  },
+  "shop": {
+    "title": "Tous les Bijoux",
+    "items": "articles",
+    "noProducts": "Aucun produit trouvé."
+  },
+  "product": {
+    "addToCart": "Ajouter au Panier",
+    "added": "Ajouté",
+    "inStock": "en stock",
+    "outOfStock": "Rupture de Stock"
+  },
+  "cart": {
+    "title": "Votre Panier",
+    "empty": "Votre panier est vide.",
+    "continueShopping": "Continuer vos Achats",
+    "itemCount": "articles",
+    "summary": "Résumé de la Commande",
+    "subtotal": "Sous-total",
+    "shipping": "Livraison",
+    "shippingCalculated": "Calculée à la commande",
+    "total": "Total",
+    "checkout": "Passer la Commande",
+    "remove": "Retirer"
+  },
+  "checkout": {
+    "title": "Commander",
+    "address": "Adresse de Livraison",
+    "country": "Pays",
+    "currency": "Devise",
+    "placeOrder": "Confirmer la Commande",
+    "processing": "Traitement en cours...",
+    "orderSummary": "Résumé de la Commande",
+    "error": "Une erreur est survenue. Veuillez réessayer."
+  },
+  "auth": {
+    "login": "Se Connecter",
+    "loginSubtitle": "Bienvenue",
+    "register": "Créer un Compte",
+    "registerSubtitle": "Rejoindre Bijou Monde",
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "address": "Addresse",
+    "noAccount": "Pas encore de compte ?",
+    "hasAccount": "Déjà un compte ?",
+    "signUp": "En créer un",
+    "signIn": "Se connecter",
+    "createAccount": "Créer un Compte",
+    "error": "Une erreur est survenue. Veuillez réessayer."
+  },
+  "orders": {
+    "title": "Mes Commandes",
+    "empty": "Vous n'avez pas encore de commandes.",
+    "order": "Commande",
+    "items": "articles",
+    "tracking": "Suivi",
+    "cancel": "Annuler la Commande",
+    "status": {
+      "AWAITING_PAYMENT": "En attente de paiement",
+      "PROCESSING": "En cours de traitement",
+      "SHIPPED": "Expédiée",
+      "DELIVERED": "Livrée",
+      "CANCELLED": "Annulée"
+    }
+  },
+  "footer": {
+    "help": "Aide",
+    "faq": "FAQ",
+    "shipping": "Livraison",
+    "returns": "Retours",
+    "about": "À Propos de Bijou Monde",
+    "sustainability": "Durabilité",
+    "careers": "Carrières",
+    "rights": "Tous droits réservés.",
+    "newsletter": {
+      "title": "Restez informé",
+      "subtitle": "Nouveautés, offres exclusives et plus encore.",
+      "placeholder": "Entrez votre adresse e-mail",
+      "subscribe": "S'abonner"
+    },
+    "legal": {
+      "privacy": "Politique de Confidentialité",
+      "terms": "Conditions d'Utilisation"
+    }
+  }
+}
