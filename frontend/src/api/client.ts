@@ -1,4 +1,4 @@
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, AnnouncementView } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, AnnouncementView, SiteAssetView } from '../types';
 
 interface LabelRequest { nameEn: string; nameFr: string; nameEs: string; }
 
@@ -53,6 +53,9 @@ export const api = {
   },
   announcements: {
     list: () => request<AnnouncementView[]>('/public/announcements'),
+  },
+  siteAssets: {
+    list: () => request<SiteAssetView[]>('/public/site-assets'),
   },
   orders: {
     list: () => request<OrderView[]>('/api/orders'),
@@ -151,6 +154,21 @@ export const api = {
         request<AnnouncementView[]>(`/${ADMIN}/announcements/${id}/up`, { method: 'PATCH' }),
       moveDown: (id: number) =>
         request<AnnouncementView[]>(`/${ADMIN}/announcements/${id}/down`, { method: 'PATCH' }),
+    },
+    siteAssets: {
+      uploadImage: async (slot: string, file: File): Promise<SiteAssetView> => {
+        const form = new FormData();
+        form.append('file', file);
+        const res = await fetch(`${BASE_URL}/${ADMIN}/site-assets/${slot}/image`, {
+          method: 'PATCH',
+          headers: authHeaders(),
+          body: form,
+        });
+        if (!res.ok) { const body = await res.json().catch(() => ({})); throw { status: res.status, ...body }; }
+        return res.json();
+      },
+      deleteImage: (slot: string) =>
+        request<SiteAssetView>(`/${ADMIN}/site-assets/${slot}/image`, { method: 'DELETE' }),
     },
     orders: {
       list: () => request<OrderView[]>(`/${ADMIN}/orders`),

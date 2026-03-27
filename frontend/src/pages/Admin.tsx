@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, Category, VerboseClient, LabelView, AnnouncementView } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, Category, VerboseClient, LabelView, AnnouncementView, SiteAssetView } from '../types';
 import { pickLocale, isItemIncomplete, isLabelIncomplete } from '../types';
 
 const CATEGORIES: Category[] = ['NECKLACE', 'RING', 'EARRING', 'MISC'];
@@ -846,6 +846,92 @@ function AdminAdmins() {
   );
 }
 
+// ── Site Assets ───────────────────────────────────────────────────────────────
+
+const SLOT_LABELS: Record<string, string> = {
+  hero: 'Hero',
+  ring: 'Rings Category',
+  necklace: 'Necklaces Category',
+  earring: 'Earrings Category',
+  bracelet: 'Bracelets Category',
+  anklet: 'Anklets Category',
+  editorial1: 'Editorial 1',
+  editorial2: 'Editorial 2',
+};
+
+function AdminSiteAssets() {
+  const [assets, setAssets] = useState<SiteAssetView[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState<string | null>(null);
+
+  useEffect(() => { loadAssets(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function loadAssets() {
+    setLoading(true);
+    try { setAssets(await api.siteAssets.list()); }
+    finally { setLoading(false); }
+  }
+
+  async function handleUpload(slot: string, file: File) {
+    setUploading(slot);
+    try {
+      const updated = await api.admin.siteAssets.uploadImage(slot, file);
+      setAssets(prev => prev.map(a => a.slot === slot ? updated : a));
+    } finally { setUploading(null); }
+  }
+
+  async function handleDelete(slot: string) {
+    setUploading(slot);
+    try {
+      const updated = await api.admin.siteAssets.deleteImage(slot);
+      setAssets(prev => prev.map(a => a.slot === slot ? updated : a));
+    } finally { setUploading(null); }
+  }
+
+  if (loading) {
+    return <div className="space-y-2">{[...Array(5)].map((_, i) => <div key={i} className="h-16 bg-[#F0EDE8] animate-pulse" />)}</div>;
+  }
+
+  return (
+    <div className="space-y-3 mb-10">
+      {assets.map(asset => (
+        <div key={asset.slot} className="border border-border p-4 flex items-center gap-4">
+          <div className="w-20 h-14 bg-[#F0EDE8] shrink-0 overflow-hidden flex items-center justify-center">
+            {asset.imageUrl
+              ? <img src={asset.imageUrl} alt={asset.slot} className="w-full h-full object-cover" />
+              : <span className="text-muted text-xs">—</span>
+            }
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium">{SLOT_LABELS[asset.slot] ?? asset.slot}</p>
+            <p className="text-xs text-muted truncate">{asset.imageUrl ?? 'No image'}</p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <label className={`text-xs uppercase tracking-widest border border-dark bg-dark text-white px-3 py-1.5 cursor-pointer hover:bg-gold transition-colors ${uploading === asset.slot ? 'opacity-50 pointer-events-none' : ''}`}>
+              {uploading === asset.slot ? '...' : 'Upload'}
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={e => { const f = e.target.files?.[0]; if (f) handleUpload(asset.slot, f); e.target.value = ''; }}
+              />
+            </label>
+            {asset.imageId && (
+              <button
+                onClick={() => handleDelete(asset.slot)}
+                disabled={uploading === asset.slot}
+                className="text-xs uppercase tracking-widest border border-red-300 text-red-500 px-3 py-1.5 hover:border-red-500 transition-colors disabled:opacity-50"
+              >
+                Remove
+              </button>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Site ──────────────────────────────────────────────────────────────────────
 
 function AdminSite() {
@@ -902,6 +988,9 @@ function AdminSite() {
 
   return (
     <div>
+      <h2 className="text-xs uppercase tracking-widest text-muted mb-6">Landing Page Assets</h2>
+      <AdminSiteAssets />
+
       <h2 className="text-xs uppercase tracking-widest text-muted mb-6">{t('admin.site.announcementsTitle')}</h2>
 
       {loading ? (

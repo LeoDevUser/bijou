@@ -102,6 +102,13 @@ export interface AnnouncementView {
   sortOrder: number;
 }
 
+export interface SiteAssetView {
+  id: number;
+  slot: string;
+  imageUrl: string | null;
+  imageId: string | null;
+}
+
 /** Pick the best available translation for the current locale, falling back to any non-null value. */
 export function pickLocale(
   en: string | null | undefined,
