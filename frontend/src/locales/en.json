@@ -118,6 +118,84 @@
       "CANCELLED": "Cancelled"
     }
   },
+  "admin": {
+    "title": "Admin",
+    "subtitle": "Bijou Monde management console",
+    "tabs": {
+      "orders": "Orders",
+      "products": "Products",
+      "users": "Users",
+      "admins": "Admins"
+    },
+    "search": {
+      "orderPlaceholder": "Search by order ID or email...",
+      "clientPlaceholder": "Search by client ID or email...",
+      "productPlaceholder": "Search by product ID or name..."
+    },
+    "orders": {
+      "allStatuses": "All Statuses",
+      "allCountries": "All Countries",
+      "empty": "No orders found.",
+      "changeStatus": "Change Status"
+    },
+    "detail": {
+      "address": "Address",
+      "country": "Country",
+      "tracking": "Tracking",
+      "items": "Items",
+      "itemLine": "Item #{{id}} × {{qty}}",
+      "joined": "Joined",
+      "successfulOrders": "Successful Orders",
+      "moneySpent": "Money Spent",
+      "stripeId": "Stripe ID"
+    },
+    "products": {
+      "sortBySold": "By Units Sold",
+      "sortBySales": "By Total Sales",
+      "addProduct": "+ Add Product",
+      "empty": "No products yet.",
+      "inStock": "in stock",
+      "sold": "sold",
+      "total": "total",
+      "inactive": "Inactive",
+      "edit": "Edit",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "delImage": "Del Image",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this product? This cannot be undone.",
+      "saveError": "Failed to save. Please try again."
+    },
+    "modal": {
+      "editTitle": "Edit Product",
+      "newTitle": "New Product",
+      "name": "Name",
+      "description": "Description",
+      "price": "Price",
+      "stock": "Stock",
+      "category": "Category",
+      "labels": "Labels",
+      "labelsHint": "(comma separated)",
+      "labelsPlaceholder": "gold, sterling silver",
+      "image": "Image",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "users": {
+      "sortByMoney": "By Money Spent",
+      "sortByOrders": "By Orders",
+      "ordersCount": "orders",
+      "empty": "No users found.",
+      "promoteBtn": "Promote to Admin",
+      "passwordPlaceholder": "Your admin password",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "promoteError": "Wrong password or user not found."
+    },
+    "admins": {
+      "empty": "No admins found."
+    }
+  },
   "account": {
     "title": "My Account",
     "subtitle": "Manage your profile and security settings",

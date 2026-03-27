@@ -88,4 +88,9 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrdersByCountry(c));
     }
 
+    @PatchMapping("/${ADMIN_PAGE}/orders/status")
+    public ResponseEntity<Void> changeStatus(@Valid @RequestBody StatusChangeRequest req) {
+        orderService.changeStatus(req.id(), req.status());
+        return ResponseEntity.ok().build();
+    }
 }

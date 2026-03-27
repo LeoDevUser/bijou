@@ -118,6 +118,84 @@
       "CANCELLED": "Annulée"
     }
   },
+  "admin": {
+    "title": "Admin",
+    "subtitle": "Console de gestion Bijou Monde",
+    "tabs": {
+      "orders": "Commandes",
+      "products": "Produits",
+      "users": "Utilisateurs",
+      "admins": "Admins"
+    },
+    "search": {
+      "orderPlaceholder": "Rechercher par ID de commande ou e-mail...",
+      "clientPlaceholder": "Rechercher par ID client ou e-mail...",
+      "productPlaceholder": "Rechercher par ID ou nom de produit..."
+    },
+    "orders": {
+      "allStatuses": "Tous les Statuts",
+      "allCountries": "Tous les Pays",
+      "empty": "Aucune commande trouvée.",
+      "changeStatus": "Changer le Statut"
+    },
+    "detail": {
+      "address": "Adresse",
+      "country": "Pays",
+      "tracking": "Suivi",
+      "items": "Articles",
+      "itemLine": "Article #{{id}} × {{qty}}",
+      "joined": "Inscrit le",
+      "successfulOrders": "Commandes réussies",
+      "moneySpent": "Montant dépensé",
+      "stripeId": "ID Stripe"
+    },
+    "products": {
+      "sortBySold": "Par Unités Vendues",
+      "sortBySales": "Par Ventes Totales",
+      "addProduct": "+ Ajouter un Produit",
+      "empty": "Aucun produit pour l'instant.",
+      "inStock": "en stock",
+      "sold": "vendus",
+      "total": "total",
+      "inactive": "Inactif",
+      "edit": "Modifier",
+      "activate": "Activer",
+      "deactivate": "Désactiver",
+      "delImage": "Suppr. Image",
+      "delete": "Supprimer",
+      "deleteConfirm": "Supprimer ce produit ? Cette action est irréversible.",
+      "saveError": "Échec de l'enregistrement. Veuillez réessayer."
+    },
+    "modal": {
+      "editTitle": "Modifier le Produit",
+      "newTitle": "Nouveau Produit",
+      "name": "Nom",
+      "description": "Description",
+      "price": "Prix",
+      "stock": "Stock",
+      "category": "Catégorie",
+      "labels": "Étiquettes",
+      "labelsHint": "(séparées par des virgules)",
+      "labelsPlaceholder": "or, argent sterling",
+      "image": "Image",
+      "save": "Enregistrer",
+      "cancel": "Annuler"
+    },
+    "users": {
+      "sortByMoney": "Par Montant Dépensé",
+      "sortByOrders": "Par Commandes",
+      "ordersCount": "commandes",
+      "empty": "Aucun utilisateur trouvé.",
+      "promoteBtn": "Promouvoir en Admin",
+      "passwordPlaceholder": "Votre mot de passe admin",
+      "confirm": "Confirmer",
+      "cancel": "Annuler",
+      "promoteError": "Mot de passe incorrect ou utilisateur introuvable."
+    },
+    "admins": {
+      "empty": "Aucun admin trouvé."
+    }
+  },
   "account": {
     "title": "Mon Compte",
     "subtitle": "Gérez votre profil et vos paramètres de sécurité",

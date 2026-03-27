@@ -118,6 +118,84 @@
       "CANCELLED": "Cancelado"
     }
   },
+  "admin": {
+    "title": "Admin",
+    "subtitle": "Consola de gestión de Bijou Monde",
+    "tabs": {
+      "orders": "Pedidos",
+      "products": "Productos",
+      "users": "Usuarios",
+      "admins": "Admins"
+    },
+    "search": {
+      "orderPlaceholder": "Buscar por ID de pedido o correo...",
+      "clientPlaceholder": "Buscar por ID de cliente o correo...",
+      "productPlaceholder": "Buscar por ID o nombre de producto..."
+    },
+    "orders": {
+      "allStatuses": "Todos los Estados",
+      "allCountries": "Todos los Países",
+      "empty": "No se encontraron pedidos.",
+      "changeStatus": "Cambiar Estado"
+    },
+    "detail": {
+      "address": "Dirección",
+      "country": "País",
+      "tracking": "Seguimiento",
+      "items": "Artículos",
+      "itemLine": "Artículo #{{id}} × {{qty}}",
+      "joined": "Registrado el",
+      "successfulOrders": "Pedidos Exitosos",
+      "moneySpent": "Dinero Gastado",
+      "stripeId": "ID de Stripe"
+    },
+    "products": {
+      "sortBySold": "Por Unidades Vendidas",
+      "sortBySales": "Por Ventas Totales",
+      "addProduct": "+ Agregar Producto",
+      "empty": "Aún no hay productos.",
+      "inStock": "en stock",
+      "sold": "vendidos",
+      "total": "total",
+      "inactive": "Inactivo",
+      "edit": "Editar",
+      "activate": "Activar",
+      "deactivate": "Desactivar",
+      "delImage": "Elim. Imagen",
+      "delete": "Eliminar",
+      "deleteConfirm": "¿Eliminar este producto? Esta acción no se puede deshacer.",
+      "saveError": "Error al guardar. Por favor, intenta de nuevo."
+    },
+    "modal": {
+      "editTitle": "Editar Producto",
+      "newTitle": "Nuevo Producto",
+      "name": "Nombre",
+      "description": "Descripción",
+      "price": "Precio",
+      "stock": "Stock",
+      "category": "Categoría",
+      "labels": "Etiquetas",
+      "labelsHint": "(separadas por comas)",
+      "labelsPlaceholder": "oro, plata esterlina",
+      "image": "Imagen",
+      "save": "Guardar",
+      "cancel": "Cancelar"
+    },
+    "users": {
+      "sortByMoney": "Por Dinero Gastado",
+      "sortByOrders": "Por Pedidos",
+      "ordersCount": "pedidos",
+      "empty": "No se encontraron usuarios.",
+      "promoteBtn": "Promover a Admin",
+      "passwordPlaceholder": "Tu contraseña de admin",
+      "confirm": "Confirmar",
+      "cancel": "Cancelar",
+      "promoteError": "Contraseña incorrecta o usuario no encontrado."
+    },
+    "admins": {
+      "empty": "No se encontraron admins."
+    }
+  },
   "account": {
     "title": "Mi Cuenta",
     "subtitle": "Gestiona tu perfil y configuración de seguridad",

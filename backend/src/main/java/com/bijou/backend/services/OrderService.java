@@ -191,7 +191,7 @@ public class OrderService {
     public OrderView getOrder(Client client, Long id) {
         Order order = orderRepository.findById(id).orElseThrow( () ->
                 new AppException(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND")
-                );
+            );
         if (client.getRole() != Role.ADMIN) {
             throw new AppException(HttpStatus.FORBIDDEN, "ADMIN_ONLY");
         } 
@@ -227,5 +227,20 @@ public class OrderService {
             .map(order -> toOrderView(order))
             .toList();
     }
-
+    
+    @Transactional
+    public void changeStatus(Long id, Status status) {
+        Order order = orderRepository.findById(id).orElseThrow( () ->
+                new AppException(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND")
+            );
+        if (status != Status.CANCELLED) {
+            Status oldStatus = order.getStatus();
+            order.setStatus(status);
+            orderRepository.save(order);
+            log.info("order {} changed status from {} to {}",order.getId(), oldStatus, order.getStatus());
+            return;
+        }
+        //defensive prog but the actual cancel endpoint for cancel should be used and not this one
+        cancel(order.getClient(), id);
+    }
 }
