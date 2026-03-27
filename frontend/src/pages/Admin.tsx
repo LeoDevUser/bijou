@@ -5,6 +5,14 @@ import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, Category, Verbo
 
 const CATEGORIES: Category[] = ['NECKLACE', 'RING', 'EARRING', 'MISC'];
 
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  AWAITING_PAYMENT: ['PROCESSING'],
+  PROCESSING:       ['SHIPPED', 'CANCELLED'],
+  SHIPPED:          ['DELIVERED', 'CANCELLED'],
+  DELIVERED:        [],
+  CANCELLED:        [],
+};
+
 const STATUS_COLOR: Record<string, string> = {
   AWAITING_PAYMENT: 'text-amber-600',
   PROCESSING: 'text-blue-600',
@@ -150,35 +158,38 @@ function AdminOrders() {
                       ))}
                     </div>
                   </div>
-                  <div className="mt-4 flex items-center gap-3">
-                    <p className="text-xs uppercase tracking-widest text-muted">{t('admin.orders.changeStatus')}</p>
-                    <select
-                      defaultValue={o.status}
-                      onChange={async e => {
-                        const next = e.target.value;
-                        if (next === o.status) return;
-                        setChangingStatus(o.id);
-                        try {
-                          if (next === 'CANCELLED') {
-                            await api.orders.cancel(o.id);
-                          } else {
-                            await api.admin.orders.changeStatus(o.id, next);
+                  {(VALID_TRANSITIONS[o.status]?.length ?? 0) > 0 && (
+                    <div className="mt-4 flex items-center gap-3">
+                      <p className="text-xs uppercase tracking-widest text-muted">{t('admin.orders.changeStatus')}</p>
+                      <select
+                        defaultValue=""
+                        onChange={async e => {
+                          const next = e.target.value;
+                          if (!next) return;
+                          setChangingStatus(o.id);
+                          try {
+                            if (next === 'CANCELLED') {
+                              await api.orders.cancel(o.id);
+                            } else {
+                              await api.admin.orders.changeStatus(o.id, next);
+                            }
+                            await load();
+                            setExpanded(null);
+                          } finally {
+                            setChangingStatus(null);
                           }
-                          await load();
-                          setExpanded(null);
-                        } finally {
-                          setChangingStatus(null);
-                        }
-                      }}
-                      disabled={changingStatus === o.id}
-                      className="border border-border bg-cream px-3 py-1.5 text-xs outline-none focus:border-dark transition-colors disabled:opacity-50"
-                    >
-                      {['AWAITING_PAYMENT', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'].map(s => (
-                        <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
-                      ))}
-                    </select>
-                    {changingStatus === o.id && <span className="text-xs text-muted">...</span>}
-                  </div>
+                        }}
+                        disabled={changingStatus === o.id}
+                        className="border border-border bg-cream px-3 py-1.5 text-xs outline-none focus:border-dark transition-colors disabled:opacity-50"
+                      >
+                        <option value="" disabled>—</option>
+                        {VALID_TRANSITIONS[o.status].map(s => (
+                          <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
+                        ))}
+                      </select>
+                      {changingStatus === o.id && <span className="text-xs text-muted">...</span>}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

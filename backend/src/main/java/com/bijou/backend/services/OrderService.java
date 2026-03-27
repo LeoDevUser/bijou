@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class OrderService {
+    private static final Map<Status, Set<Status>> VALID_TRANSITIONS = Map.of(
+        Status.AWAITING_PAYMENT, Set.of(Status.PROCESSING),
+        Status.PROCESSING,       Set.of(Status.SHIPPED, Status.CANCELLED),
+        Status.SHIPPED,          Set.of(Status.DELIVERED, Status.CANCELLED),
+        Status.DELIVERED,        Set.of(),
+        Status.CANCELLED,        Set.of()
+    );
+
     private final OrderRepository orderRepository;
     private final ItemRepository itemRepository;
 
@@ -233,14 +242,16 @@ public class OrderService {
         Order order = orderRepository.findById(id).orElseThrow( () ->
                 new AppException(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND")
             );
-        if (status != Status.CANCELLED) {
-            Status oldStatus = order.getStatus();
-            order.setStatus(status);
-            orderRepository.save(order);
-            log.info("order {} changed status from {} to {}",order.getId(), oldStatus, order.getStatus());
+        if (!VALID_TRANSITIONS.getOrDefault(order.getStatus(), Set.of()).contains(status)) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "INVALID_STATUS_TRANSITION");
+        }
+        if (status == Status.CANCELLED) {
+            cancel(order.getClient(), id);
             return;
         }
-        //defensive prog but the actual cancel endpoint for cancel should be used and not this one
-        cancel(order.getClient(), id);
+        Status oldStatus = order.getStatus();
+        order.setStatus(status);
+        orderRepository.save(order);
+        log.info("order {} changed status from {} to {}", order.getId(), oldStatus, order.getStatus());
     }
 }
