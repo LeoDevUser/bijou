@@ -121,6 +121,40 @@ public class OrderService {
         return order.getStripePaymentIntentId();
     }
 
+    @Transactional
+    public void updateSales(Client client, Long orderid) {
+        Order order = orderRepository.findById(orderid).orElseThrow( () ->
+                new AppException(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND")
+                );
+        if (order.getStatus() == Status.CANCELLED ||
+            order.getStatus() == Status.SHIPPED ||
+            order.getStatus() == Status.DELIVERED)
+            throw new AppException(HttpStatus.UNPROCESSABLE_CONTENT, "ORDER_CANCEL_NOT_ALLOWED", order.getStatus().toString());
+
+        //we can go ahead and update the items in the order
+        List<OrderItem> orderItems = order.getOrderItems();
+        List<Long> itemIds = orderItems.stream()
+            .map(orderItem -> orderItem.getItem().getId())
+            .distinct()
+            .toList();
+        Map<Long, Item> itemMap = itemRepository.findAllByIdWithLock(itemIds).stream()
+            .collect(Collectors.toMap(Item::getId, item -> item));
+
+        orderItems.forEach(orderItem -> {
+            Item item = itemMap.get(orderItem.getItem().getId());
+            if (item == null) {
+                log.warn("item {} no longer exists, skipping sales update", orderItem.getItem().getId());
+                return;
+            }
+            item.setNbSold(orderItem.getQuantity() + item.getNbSold());
+            BigDecimal totalSold = orderItem.getUnitPrice().multiply(BigDecimal.valueOf(orderItem.getQuantity()));
+            item.setTotalSales(totalSold.add(item.getTotalSales()));
+        });
+
+        order.setStatus(Status.PROCESSING);
+        orderRepository.save(order);
+        log.info("order {} moved to PROCESSING after successful payment", order.getId());
+    }
 
     public OrderView toOrderView(Order order) {
         Client client = order.getClient();

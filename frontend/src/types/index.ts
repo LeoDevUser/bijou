@@ -10,6 +10,12 @@ export interface ItemView {
   imageId: string | null;
 }
 
+export interface ItemViewVerbose extends ItemView {
+  nbSold: number;
+  totalSales: number;
+  active: boolean;
+}
+
 export interface OrderItemView {
   itemId: number;
   unitPrice: number;

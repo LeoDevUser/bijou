@@ -46,6 +46,10 @@ public class Item {
     private String imageUrl;
     @Column(nullable = false)
     @Builder.Default
+    private int nbSold = 0;
+    @Builder.Default
+    private BigDecimal totalSales = BigDecimal.ZERO;
+    @Builder.Default
     private boolean active = true;
     private String description;
     private String imageId;

@@ -21,15 +21,21 @@ public class ItemService {
 
     private final CloudinaryService cloudinaryService;
     private final ItemRepository itemRepository;
-    /*
-     *Admin Functions
-     * */
 
     private ItemView toItemView(Item item) {
         return new ItemView(
                 item.getId(), item.getStock(), item.getName(),
                 item.getPrice(), item.getLabels(), item.getCategory(),
                 item.getDescription(), item.getImageUrl(), item.getImageId()
+            );
+    }
+
+    private ItemViewVerbose toItemViewVerbose(Item item) {
+        return new ItemViewVerbose(
+                item.getId(), item.getStock(), item.getName(),
+                item.getPrice(), item.getLabels(), item.getCategory(),
+                item.getDescription(), item.getImageUrl(), item.getImageId(),
+                item.getNbSold(), item.getTotalSales(), item.isActive()
             );
     }
     
@@ -102,6 +108,12 @@ public class ItemService {
         if (item.getImageId() != null && !item.getImageId().isEmpty()) deleteImage(id);
         itemRepository.deleteById(id);
         log.info("deleted {} from the databse", item.getName());
+    }
+
+    public List<ItemViewVerbose> getItemsVerbose() {
+        return itemRepository.findAll().stream()
+            .map(item -> toItemViewVerbose(item))
+            .toList();
     }
 
     //public facing Functions

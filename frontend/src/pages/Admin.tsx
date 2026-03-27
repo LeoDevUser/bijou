@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { api } from '../api/client';
-import type { ItemView, ItemRequest, OrderView, Category, VerboseClient } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, Category, VerboseClient } from '../types';
 
 const CATEGORIES: Category[] = ['NECKLACE', 'RING', 'EARRING', 'MISC'];
 
@@ -257,16 +257,19 @@ function ItemModal({ item, onClose, onSaved }: ItemModalProps) {
 
 // ── Products ──────────────────────────────────────────────────────────────────
 
+type ProductSort = 'default' | 'sold' | 'sales';
+
 function AdminProducts() {
-  const [items, setItems] = useState<ItemView[]>([]);
+  const [items, setItems] = useState<ItemViewVerbose[]>([]);
   const [loading, setLoading] = useState(true);
-  const [modal, setModal] = useState<'new' | ItemView | null>(null);
+  const [sort, setSort] = useState<ProductSort>('default');
+  const [modal, setModal] = useState<'new' | ItemViewVerbose | null>(null);
 
   useEffect(() => { load(); }, []);
 
   async function load() {
     setLoading(true);
-    try { setItems(await api.items.list()); } finally { setLoading(false); }
+    try { setItems(await api.admin.items.listVerbose()); } finally { setLoading(false); }
   }
 
   async function handleDelete(id: number) {
@@ -280,9 +283,30 @@ function AdminProducts() {
     load();
   }
 
+  const sorted = [...items].sort((a, b) => {
+    if (sort === 'sold') return b.nbSold - a.nbSold;
+    if (sort === 'sales') return b.totalSales - a.totalSales;
+    return 0;
+  });
+
+  const sortBtn = (label: string, value: ProductSort) => (
+    <button
+      onClick={() => setSort(s => s === value ? 'default' : value)}
+      className={`text-xs uppercase tracking-widest px-4 py-2 border transition-colors ${
+        sort === value ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'
+      }`}
+    >
+      {label}
+    </button>
+  );
+
   return (
     <div>
-      <div className="flex justify-end mb-6">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex gap-2">
+          {sortBtn('By Units Sold', 'sold')}
+          {sortBtn('By Total Sales', 'sales')}
+        </div>
         <button
           onClick={() => setModal('new')}
           className="bg-dark text-white text-xs uppercase tracking-widest px-6 py-3 hover:bg-gold transition-colors"
@@ -295,30 +319,37 @@ function AdminProducts() {
         <div className="space-y-2">
           {[...Array(4)].map((_, i) => <div key={i} className="h-16 bg-[#F0EDE8] animate-pulse" />)}
         </div>
-      ) : items.length === 0 ? (
+      ) : sorted.length === 0 ? (
         <p className="text-muted text-center py-16">No products yet.</p>
       ) : (
         <div className="space-y-2">
-          {items.map(item => (
-            <div key={item.id} className="border border-border flex items-center gap-4 px-5 py-4">
+          {sorted.map(item => (
+            <div key={item.id} className={`border flex items-center gap-4 px-5 py-4 ${item.active ? 'border-border' : 'border-border opacity-60'}`}>
               {item.imageUrl
                 ? <img src={item.imageUrl} alt={item.name} className="w-12 h-12 object-cover flex-shrink-0" />
                 : <div className="w-12 h-12 bg-[#F0EDE8] flex-shrink-0" />
               }
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">{item.name}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium">{item.name}</p>
+                  {!item.active && <span className="text-[10px] uppercase tracking-widest border border-muted text-muted px-1.5 py-0.5">Inactive</span>}
+                </div>
                 <p className="text-xs text-muted">{item.category} · ${item.price.toFixed(2)} · {item.stock} in stock</p>
+                <p className="text-xs text-muted">{item.nbSold} sold · ${Number(item.totalSales).toFixed(2)} total</p>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
                 <button onClick={() => setModal(item)} className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors">
                   Edit
                 </button>
-                <button onClick={() => api.admin.items.activate(item.id).then(load)} className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors">
-                  Activate
-                </button>
-                <button onClick={() => api.admin.items.deactivate(item.id).then(load)} className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors">
-                  Deactivate
-                </button>
+                {item.active ? (
+                  <button onClick={() => api.admin.items.deactivate(item.id).then(load)} className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors">
+                    Deactivate
+                  </button>
+                ) : (
+                  <button onClick={() => api.admin.items.activate(item.id).then(load)} className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors">
+                    Activate
+                  </button>
+                )}
                 {item.imageUrl && (
                   <button onClick={() => handleDeleteImage(item.id)} className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors">
                     Del Image

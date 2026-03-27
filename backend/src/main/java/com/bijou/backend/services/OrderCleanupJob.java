@@ -51,4 +51,15 @@ public class OrderCleanupJob {
             log.error("CRITICAL: Failed to restock order {}. Manual check required!", event.orderId(), e);
         }
     }
+
+    @Async("webhookTaskExecutor")
+    @EventListener
+    public void onPaymentSuccess(PaymentSuccessEvent event) {
+        try {
+            log.info("Starting background cancel for order {}", event.orderId());
+            orderService.updateSales(event.client(), event.orderId());
+        } catch (Exception e) {
+            log.error("CRITICAL: Failed to update sales on order {}. Manual check required!", event.orderId(), e);
+        }
+    }
 }

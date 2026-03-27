@@ -146,9 +146,7 @@ public class PaymentService {
         Order order = findOrderOrLog(intent.getId());
         if (order == null) return;
         if (order.getStatus() != Status.AWAITING_PAYMENT) return;
-        order.setStatus(Status.PROCESSING);
-        orderRepository.save(order);
-        log.info("order {} moved to PROCESSING after successful payment", order.getId());
+        eventPublisher.publishEvent(new PaymentSuccessEvent(order.getClient(), order.getId()));
         Client client = clientRepository.findById(order.getClient().getId())
             .orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "CLIENT NOT FOUND"));
         client.setNbSuccessfulOrders(client.getNbSuccessfulOrders() + 1);

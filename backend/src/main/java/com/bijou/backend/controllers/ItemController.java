@@ -20,6 +20,7 @@ import com.bijou.backend.services.CloudinaryService;
 import com.bijou.backend.services.ItemRequest;
 import com.bijou.backend.services.ItemService;
 import com.bijou.backend.services.ItemView;
+import com.bijou.backend.services.ItemViewVerbose;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -102,10 +103,15 @@ public class ItemController {
         itemService.deactivate(id);
         return ResponseEntity.ok().build();
     }
+
     @PatchMapping("/${ADMIN_PAGE}/items/activate/{id}")
     public ResponseEntity<Void> activate(@PathVariable Long id) {
         itemService.activate(id);
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/${ADMIN_PAGE}/items")
+    public ResponseEntity<List<ItemViewVerbose>> getItemsVerbose() {
+        return ResponseEntity.ok(itemService.getItemsVerbose());
+    }
 }

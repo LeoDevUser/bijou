@@ -1,4 +1,4 @@
-import type { ItemView, ItemRequest, OrderView, VerboseClient } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient } from '../types';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? '';
 const ADMIN = import.meta.env.VITE_ADMIN_PAGE ?? '';
@@ -75,6 +75,7 @@ export const api = {
   },
   admin: {
     items: {
+      listVerbose: () => request<ItemViewVerbose[]>(`/${ADMIN}/items`),
       create: (data: ItemRequest) =>
         request<ItemView>(`/${ADMIN}/items`, { method: 'POST', body: JSON.stringify(data) }),
       update: (id: number, data: ItemRequest) =>
