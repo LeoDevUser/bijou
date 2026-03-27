@@ -27,7 +27,7 @@ public class ItemService {
 
     private List<LabelView> toLabelViews(List<Label> labels) {
         if (labels == null) return List.of();
-        return labels.stream().map(l -> new LabelView(l.getId(), l.getName())).toList();
+        return labels.stream().map(LabelService::toView).toList();
     }
 
     private List<Label> resolveLabels(List<Long> labelIds) {
@@ -35,35 +35,50 @@ public class ItemService {
         return labelRepository.findAllById(labelIds);
     }
 
+    private String displayName(Item item) {
+        if (item.getNameEn() != null) return item.getNameEn();
+        if (item.getNameFr() != null) return item.getNameFr();
+        return item.getNameEs() != null ? item.getNameEs() : String.valueOf(item.getId());
+    }
+
     private ItemView toItemView(Item item) {
         return new ItemView(
-                item.getId(), item.getStock(), item.getName(),
+                item.getId(), item.getStock(),
+                item.getNameEn(), item.getNameFr(), item.getNameEs(),
                 item.getPrice(), toLabelViews(item.getLabels()), item.getCategory(),
-                item.getDescription(), item.getImageUrl(), item.getImageId()
+                item.getDescriptionEn(), item.getDescriptionFr(), item.getDescriptionEs(),
+                item.getImageUrl(), item.getImageId()
             );
     }
 
     private ItemViewVerbose toItemViewVerbose(Item item) {
         return new ItemViewVerbose(
-                item.getId(), item.getStock(), item.getName(),
+                item.getId(), item.getStock(),
+                item.getNameEn(), item.getNameFr(), item.getNameEs(),
                 item.getPrice(), toLabelViews(item.getLabels()), item.getCategory(),
-                item.getDescription(), item.getImageUrl(), item.getImageId(),
+                item.getDescriptionEn(), item.getDescriptionFr(), item.getDescriptionEs(),
+                item.getImageUrl(), item.getImageId(),
                 item.getNbSold(), item.getTotalSales(), item.isActive()
             );
     }
 
     public ItemView createItem(ItemRequest req) {
-        if (itemRepository.findByNameIgnoreCase(req.name()).isPresent()) {
-            log.warn("item with name {} already exists", req.name());
-            throw new AppException(HttpStatus.CONFLICT, "ITEM_NAME_CONFLICT", req.name());
+        if (req.nameEn() != null && !req.nameEn().isBlank() &&
+                itemRepository.findByNameEnIgnoreCase(req.nameEn()).isPresent()) {
+            log.warn("item with nameEn {} already exists", req.nameEn());
+            throw new AppException(HttpStatus.CONFLICT, "ITEM_NAME_CONFLICT", req.nameEn());
         }
         Item item = Item.builder()
             .stock(req.stock())
             .price(BigDecimal.valueOf(req.price()))
-            .name(req.name())
+            .nameEn(req.nameEn())
+            .nameFr(req.nameFr())
+            .nameEs(req.nameEs())
             .labels(resolveLabels(req.labelIds()))
             .category(req.category())
-            .description(req.description())
+            .descriptionEn(req.descriptionEn())
+            .descriptionFr(req.descriptionFr())
+            .descriptionEs(req.descriptionEs())
             .build();
         itemRepository.save(item);
         return toItemView(item);
@@ -71,11 +86,16 @@ public class ItemService {
 
     public ItemView updateItem(Long id, ItemRequest req) {
         Item item = findItemOrThrow(id);
-        item.setName(req.name());
+        item.setNameEn(req.nameEn());
+        item.setNameFr(req.nameFr());
+        item.setNameEs(req.nameEs());
         item.setStock(req.stock());
         item.setPrice(BigDecimal.valueOf(req.price()));
         item.setLabels(resolveLabels(req.labelIds()));
         item.setCategory(req.category());
+        item.setDescriptionEn(req.descriptionEn());
+        item.setDescriptionFr(req.descriptionFr());
+        item.setDescriptionEs(req.descriptionEs());
         itemRepository.save(item);
         return toItemView(item);
     }
@@ -106,26 +126,26 @@ public class ItemService {
         Item item = findAnyItemOrThrow(id);
         item.setActive(false);
         itemRepository.save(item);
-        log.info("deactivated {} from the databse", item.getName());
+        log.info("deactivated {} from the database", displayName(item));
     }
 
     public void activate(Long id) {
         Item item = findAnyItemOrThrow(id);
         item.setActive(true);
         itemRepository.save(item);
-        log.info("activated {} from the databse", item.getName());
+        log.info("activated {} from the database", displayName(item));
     }
 
     public void delete(Long id) {
         Item item = findAnyItemOrThrow(id);
         if (item.getImageId() != null && !item.getImageId().isEmpty()) deleteImage(id);
         itemRepository.deleteById(id);
-        log.info("deleted {} from the databse", item.getName());
+        log.info("deleted {} from the database", displayName(item));
     }
 
     public List<ItemViewVerbose> getItemsVerbose() {
         return itemRepository.findAll().stream()
-            .map(item -> toItemViewVerbose(item))
+            .map(this::toItemViewVerbose)
             .toList();
     }
 
@@ -138,20 +158,20 @@ public class ItemService {
     public List<ItemView> getItemsByCategory(Category category) {
         return itemRepository.findByCategoryAndActiveTrue(category)
             .stream()
-            .map(item -> toItemView(item))
+            .map(this::toItemView)
             .toList();
     }
 
-    public List<ItemView> getItemsByLabel(String name) {
-        return itemRepository.findByLabels_NameIgnoreCaseAndActiveTrue(name)
+    public List<ItemView> getItemsByLabel(Long labelId) {
+        return itemRepository.findByLabels_IdAndActiveTrue(labelId)
             .stream()
-            .map(item -> toItemView(item))
+            .map(this::toItemView)
             .toList();
     }
 
     public List<ItemView> getAllItems() {
         return itemRepository.findByActiveTrue().stream()
-            .map(item -> toItemView(item))
+            .map(this::toItemView)
             .toList();
     }
 

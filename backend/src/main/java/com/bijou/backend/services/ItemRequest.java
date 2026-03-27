@@ -7,8 +7,12 @@ import com.bijou.backend.entities.Category;
 public record ItemRequest(
     int stock,
     float price,
-    String name,
+    String nameEn,
+    String nameFr,
+    String nameEs,
     List<Long> labelIds,
     Category category,
-    String description
+    String descriptionEn,
+    String descriptionFr,
+    String descriptionEs
 ) {}

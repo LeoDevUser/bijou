@@ -2,14 +2,16 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useCart } from '../../context/CartContext';
 import type { ItemView } from '../../types';
+import { pickLocale } from '../../types';
 
 export default function ProductCard({ item }: { item: ItemView }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { addItem } = useCart();
+  const name = pickLocale(item.nameEn, item.nameFr, item.nameEs, i18n.language);
 
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault();
-    addItem({ id: item.id, name: item.name, price: item.price, quantity: 1, imageUrl: item.imageUrl });
+    addItem({ id: item.id, name, price: item.price, quantity: 1, imageUrl: item.imageUrl });
   }
 
   return (
@@ -19,7 +21,7 @@ export default function ProductCard({ item }: { item: ItemView }) {
         {item.imageUrl ? (
           <img
             src={item.imageUrl}
-            alt={item.name}
+            alt={name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
@@ -35,7 +37,7 @@ export default function ProductCard({ item }: { item: ItemView }) {
           {t('product.addToCart')}
         </button>
       </div>
-      <p className="text-sm tracking-wide">{item.name}</p>
+      <p className="text-sm tracking-wide">{name}</p>
       <p className="text-sm text-muted mt-0.5">${Number(item.price).toFixed(2)}</p>
     </Link>
   );

@@ -7,8 +7,10 @@ import org.springframework.stereotype.Service;
 
 import com.bijou.backend.entities.Label;
 import com.bijou.backend.exception.AppException;
+import com.bijou.backend.repositories.ItemRepository;
 import com.bijou.backend.repositories.LabelRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -16,25 +18,33 @@ import lombok.RequiredArgsConstructor;
 public class LabelService {
 
     private final LabelRepository labelRepository;
+    private final ItemRepository itemRepository;
+
+    public static LabelView toView(Label l) {
+        return new LabelView(l.getId(), l.getNameEn(), l.getNameFr(), l.getNameEs());
+    }
 
     public List<LabelView> getAll() {
-        return labelRepository.findAll().stream()
-            .map(l -> new LabelView(l.getId(), l.getName()))
-            .toList();
+        return labelRepository.findAll().stream().map(LabelService::toView).toList();
     }
 
-    public LabelView create(String name) {
-        if (labelRepository.existsByNameIgnoreCase(name)) {
-            throw new AppException(HttpStatus.CONFLICT, "LABEL_NAME_CONFLICT", name);
-        }
-        Label label = labelRepository.save(Label.builder().name(name).build());
-        return new LabelView(label.getId(), label.getName());
+    public LabelView create(LabelRequest req) {
+        Label label = labelRepository.save(
+            Label.builder()
+                .nameEn(req.nameEn())
+                .nameFr(req.nameFr())
+                .nameEs(req.nameEs())
+                .build()
+        );
+        return toView(label);
     }
 
+    @Transactional
     public void delete(Long id) {
-        if (!labelRepository.existsById(id)) {
-            throw new AppException(HttpStatus.NOT_FOUND, "LABEL_NOT_FOUND");
-        }
+        Label label = labelRepository.findById(id)
+            .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "LABEL_NOT_FOUND"));
+        // detach from all items before deleting to avoid FK violation
+        itemRepository.findByLabels_Id(id).forEach(item -> item.getLabels().remove(label));
         labelRepository.deleteById(id);
     }
 }

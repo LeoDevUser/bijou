@@ -1,16 +1,22 @@
 export interface LabelView {
   id: number;
-  name: string;
+  nameEn: string | null;
+  nameFr: string | null;
+  nameEs: string | null;
 }
 
 export interface ItemView {
   id: number;
   stock: number;
-  name: string;
+  nameEn: string | null;
+  nameFr: string | null;
+  nameEs: string | null;
   price: number;
   labels: LabelView[];
   category: string;
-  description: string;
+  descriptionEn: string | null;
+  descriptionFr: string | null;
+  descriptionEs: string | null;
   imageUrl: string | null;
   imageId: string | null;
 }
@@ -54,8 +60,12 @@ export interface OrderView {
 export type Category = 'NECKLACE' | 'RING' | 'EARRING' | 'MISC';
 
 export interface ItemRequest {
-  name: string;
-  description: string;
+  nameEn: string;
+  nameFr: string;
+  nameEs: string;
+  descriptionEn: string;
+  descriptionFr: string;
+  descriptionEs: string;
   price: number;
   stock: number;
   category: Category;
@@ -81,4 +91,27 @@ export interface CartItem {
   price: number;
   quantity: number;
   imageUrl?: string | null;
+}
+
+/** Pick the best available translation for the current locale, falling back to any non-null value. */
+export function pickLocale(
+  en: string | null | undefined,
+  fr: string | null | undefined,
+  es: string | null | undefined,
+  lang: string
+): string {
+  if (lang === 'fr') return fr || en || es || '';
+  if (lang === 'es') return es || en || fr || '';
+  return en || fr || es || '';
+}
+
+/** Returns true if any language variant is missing for an item. */
+export function isItemIncomplete(item: ItemView): boolean {
+  return [item.nameEn, item.nameFr, item.nameEs, item.descriptionEn, item.descriptionFr, item.descriptionEs]
+    .some(v => !v);
+}
+
+/** Returns true if any language variant is missing for a label. */
+export function isLabelIncomplete(label: LabelView): boolean {
+  return !label.nameEn || !label.nameFr || !label.nameEs;
 }

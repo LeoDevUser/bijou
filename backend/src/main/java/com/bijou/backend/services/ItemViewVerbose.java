@@ -5,14 +5,18 @@ import java.util.List;
 
 import com.bijou.backend.entities.Category;
 
-public record ItemViewVerbose (
+public record ItemViewVerbose(
         Long id,
         Integer stock,
-        String name,
+        String nameEn,
+        String nameFr,
+        String nameEs,
         BigDecimal price,
         List<LabelView> labels,
         Category category,
-        String description,
+        String descriptionEn,
+        String descriptionFr,
+        String descriptionEs,
         String imageUrl,
         String imageId,
         int nbSold,

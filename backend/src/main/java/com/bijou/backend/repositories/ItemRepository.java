@@ -16,13 +16,14 @@ import jakarta.persistence.LockModeType;
 
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Long>{
-    Optional<Item> findByNameIgnoreCase(String name);
+    Optional<Item> findByNameEnIgnoreCase(String nameEn);
     List<Item> findByCategory(Category category);
     List<Item> findByCategoryAndActiveTrue(Category category);
     List<Item> findByActiveTrue();
     List<Item> findByActiveFalse();
     Optional<Item> findByIdAndActiveTrue(Long id);
-    List<Item> findByLabels_NameIgnoreCaseAndActiveTrue(String name);
+    List<Item> findByLabels_IdAndActiveTrue(Long labelId);
+    List<Item> findByLabels_Id(Long labelId);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT i FROM Item i WHERE i.id = :id")
     Optional<Item> findByIdWithLock(Long id);

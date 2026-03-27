@@ -158,6 +158,7 @@
       "sold": "sold",
       "total": "total",
       "inactive": "Inactive",
+      "incomplete": "Incomplete",
       "edit": "Edit",
       "activate": "Activate",
       "deactivate": "Deactivate",

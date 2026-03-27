@@ -35,8 +35,9 @@ public class Item {
     private Integer stock;
     @Column(nullable=false)
     private BigDecimal price;
-    @Column(nullable=false, unique = true)
-    private String name;
+    private String nameEn;
+    private String nameFr;
+    private String nameEs;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "item_labels",
@@ -55,6 +56,8 @@ public class Item {
     private BigDecimal totalSales = BigDecimal.ZERO;
     @Builder.Default
     private boolean active = true;
-    private String description;
+    private String descriptionEn;
+    private String descriptionFr;
+    private String descriptionEs;
     private String imageId;
 }

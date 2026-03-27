@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, Category, VerboseClient, LabelView } from '../types';
+import { pickLocale, isItemIncomplete, isLabelIncomplete } from '../types';
 
 const CATEGORIES: Category[] = ['NECKLACE', 'RING', 'EARRING', 'MISC'];
 
@@ -207,8 +208,8 @@ function AdminOrders() {
 // ── Item Modal ────────────────────────────────────────────────────────────────
 
 interface ItemFormData {
-  name: string;
-  description: string;
+  nameEn: string; nameFr: string; nameEs: string;
+  descriptionEn: string; descriptionFr: string; descriptionEs: string;
   price: string;
   stock: string;
   category: Category;
@@ -216,7 +217,9 @@ interface ItemFormData {
 }
 
 const emptyForm: ItemFormData = {
-  name: '', description: '', price: '', stock: '', category: 'NECKLACE', labelIds: [],
+  nameEn: '', nameFr: '', nameEs: '',
+  descriptionEn: '', descriptionFr: '', descriptionEs: '',
+  price: '', stock: '', category: 'NECKLACE', labelIds: [],
 };
 
 interface ItemModalProps {
@@ -230,7 +233,12 @@ function ItemModal({ item, allLabels, onClose, onSaved }: ItemModalProps) {
   const { t } = useTranslation();
   const [form, setForm] = useState<ItemFormData>(
     item
-      ? { name: item.name, description: item.description, price: String(item.price), stock: String(item.stock), category: item.category as Category, labelIds: item.labels.map(l => l.id) }
+      ? {
+          nameEn: item.nameEn ?? '', nameFr: item.nameFr ?? '', nameEs: item.nameEs ?? '',
+          descriptionEn: item.descriptionEn ?? '', descriptionFr: item.descriptionFr ?? '', descriptionEs: item.descriptionEs ?? '',
+          price: String(item.price), stock: String(item.stock),
+          category: item.category as Category, labelIds: item.labels.map(l => l.id),
+        }
       : emptyForm
   );
   const [saving, setSaving] = useState(false);
@@ -246,8 +254,8 @@ function ItemModal({ item, allLabels, onClose, onSaved }: ItemModalProps) {
     setError(null);
     try {
       const payload: ItemRequest = {
-        name: form.name,
-        description: form.description,
+        nameEn: form.nameEn, nameFr: form.nameFr, nameEs: form.nameEs,
+        descriptionEn: form.descriptionEn, descriptionFr: form.descriptionFr, descriptionEs: form.descriptionEs,
         price: parseFloat(form.price),
         stock: parseInt(form.stock),
         category: form.category,
@@ -281,11 +289,19 @@ function ItemModal({ item, allLabels, onClose, onSaved }: ItemModalProps) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.name')}</label>
-            <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required className={inputClass} />
+            <div className="space-y-2">
+              <input placeholder="EN" value={form.nameEn} onChange={e => setForm(f => ({ ...f, nameEn: e.target.value }))} className={inputClass} />
+              <input placeholder="FR" value={form.nameFr} onChange={e => setForm(f => ({ ...f, nameFr: e.target.value }))} className={inputClass} />
+              <input placeholder="ES" value={form.nameEs} onChange={e => setForm(f => ({ ...f, nameEs: e.target.value }))} className={inputClass} />
+            </div>
           </div>
           <div>
             <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.description')}</label>
-            <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3} className={inputClass} />
+            <div className="space-y-2">
+              <textarea placeholder="EN" value={form.descriptionEn} onChange={e => setForm(f => ({ ...f, descriptionEn: e.target.value }))} rows={2} className={inputClass} />
+              <textarea placeholder="FR" value={form.descriptionFr} onChange={e => setForm(f => ({ ...f, descriptionFr: e.target.value }))} rows={2} className={inputClass} />
+              <textarea placeholder="ES" value={form.descriptionEs} onChange={e => setForm(f => ({ ...f, descriptionEs: e.target.value }))} rows={2} className={inputClass} />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -321,7 +337,7 @@ function ItemModal({ item, allLabels, onClose, onSaved }: ItemModalProps) {
                           : f.labelIds.filter(id => id !== label.id),
                       }))}
                     />
-                    {label.name}
+                    {label.nameEn || label.nameFr || label.nameEs}
                   </label>
                 ))}
               </div>
@@ -330,7 +346,7 @@ function ItemModal({ item, allLabels, onClose, onSaved }: ItemModalProps) {
           <div>
             <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.image')}</label>
             {item?.imageUrl && !imageFile && (
-              <img src={item.imageUrl} alt={item.name} className="w-20 h-20 object-cover mb-2" />
+              <img src={item.imageUrl} alt={item.nameEn ?? ''} className="w-20 h-20 object-cover mb-2" />
             )}
             <input ref={fileRef} type="file" accept="image/*" onChange={e => setImageFile(e.target.files?.[0] ?? null)} className="text-sm text-muted" />
           </div>
@@ -361,7 +377,7 @@ function AdminProducts() {
   const [sort, setSort] = useState<ProductSort>('default');
   const [search, setSearch] = useState('');
   const [modal, setModal] = useState<'new' | ItemViewVerbose | null>(null);
-  const [newLabelName, setNewLabelName] = useState('');
+  const [newLabel, setNewLabel] = useState({ nameEn: '', nameFr: '', nameEs: '' });
 
   useEffect(() => { load(); }, []);
 
@@ -381,10 +397,9 @@ function AdminProducts() {
 
   async function handleAddLabel(e: React.FormEvent) {
     e.preventDefault();
-    const name = newLabelName.trim();
-    if (!name) return;
-    await api.admin.labels.create(name);
-    setNewLabelName('');
+    if (!newLabel.nameEn && !newLabel.nameFr && !newLabel.nameEs) return;
+    await api.admin.labels.create(newLabel);
+    setNewLabel({ nameEn: '', nameFr: '', nameEs: '' });
     setLabels(await api.labels.list());
   }
 
@@ -409,7 +424,8 @@ function AdminProducts() {
     .filter(item => {
       if (!search) return true;
       const q = search.toLowerCase();
-      return String(item.id).includes(q) || item.name.toLowerCase().includes(q);
+      return String(item.id).includes(q) ||
+        [item.nameEn, item.nameFr, item.nameEs].some(n => n?.toLowerCase().includes(q));
     })
     .sort((a, b) => {
       if (sort === 'sold') return b.nbSold - a.nbSold;
@@ -459,16 +475,22 @@ function AdminProducts() {
         <p className="text-muted text-center py-16">{t('admin.products.empty')}</p>
       ) : (
         <div className="space-y-2">
-          {sorted.map(item => (
-            <div key={item.id} className={`border flex items-center gap-4 px-5 py-4 ${item.active ? 'border-border' : 'border-border opacity-60'}`}>
+          {sorted.map(item => {
+            const displayName = item.nameEn || item.nameFr || item.nameEs || `#${item.id}`;
+            const incomplete = isItemIncomplete(item);
+            return (
+            <div key={item.id} className={`border flex items-center gap-4 px-5 py-4 ${
+              !item.active ? 'border-border opacity-60' : incomplete ? 'border-amber-400' : 'border-border'
+            }`}>
               {item.imageUrl
-                ? <img src={item.imageUrl} alt={item.name} className="w-12 h-12 object-cover flex-shrink-0" />
+                ? <img src={item.imageUrl} alt={displayName} className="w-12 h-12 object-cover flex-shrink-0" />
                 : <div className="w-12 h-12 bg-[#F0EDE8] flex-shrink-0" />
               }
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium">{item.name}</p>
+                  <p className="text-sm font-medium">{displayName}</p>
                   {!item.active && <span className="text-[10px] uppercase tracking-widest border border-muted text-muted px-1.5 py-0.5">{t('admin.products.inactive')}</span>}
+                  {incomplete && <span className="text-[10px] uppercase tracking-widest border border-amber-400 text-amber-600 px-1.5 py-0.5">{t('admin.products.incomplete')}</span>}
                 </div>
                 <p className="text-xs text-muted">{item.category} · ${item.price.toFixed(2)} · {item.stock} {t('admin.products.inStock')}</p>
                 <p className="text-xs text-muted">{item.nbSold} {t('admin.products.sold')} · ${Number(item.totalSales).toFixed(2)} {t('admin.products.total')}</p>
@@ -496,7 +518,8 @@ function AdminProducts() {
                 </button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -505,25 +528,41 @@ function AdminProducts() {
         <div className="flex flex-wrap gap-2 mb-3">
           {labels.length === 0 ? (
             <p className="text-xs text-muted">{t('admin.labels.empty')}</p>
-          ) : labels.map(label => (
-            <span key={label.id} className="flex items-center gap-1.5 border border-border px-3 py-1 text-xs">
-              {label.name}
-              <button
-                onClick={() => handleDeleteLabel(label.id)}
-                className="text-muted hover:text-dark transition-colors leading-none"
-                aria-label="delete"
-              >
-                ×
-              </button>
-            </span>
-          ))}
+          ) : labels.map(label => {
+            const incomplete = isLabelIncomplete(label);
+            return (
+              <span key={label.id} className={`flex items-center gap-1.5 border px-3 py-1 text-xs ${incomplete ? 'border-amber-400 text-amber-700' : 'border-border'}`}>
+                {label.nameEn || label.nameFr || label.nameEs}
+                {incomplete && <span className="text-amber-500">!</span>}
+                <button
+                  onClick={() => handleDeleteLabel(label.id)}
+                  className="text-muted hover:text-dark transition-colors leading-none"
+                  aria-label="delete"
+                >
+                  ×
+                </button>
+              </span>
+            );
+          })}
         </div>
-        <form onSubmit={handleAddLabel} className="flex gap-2">
+        <form onSubmit={handleAddLabel} className="flex flex-wrap gap-2 items-center">
           <input
-            value={newLabelName}
-            onChange={e => setNewLabelName(e.target.value)}
-            placeholder={t('admin.labels.addPlaceholder')}
-            className={`${searchClass} flex-1 min-w-0`}
+            value={newLabel.nameEn}
+            onChange={e => setNewLabel(l => ({ ...l, nameEn: e.target.value }))}
+            placeholder="EN"
+            className={`${searchClass} w-28`}
+          />
+          <input
+            value={newLabel.nameFr}
+            onChange={e => setNewLabel(l => ({ ...l, nameFr: e.target.value }))}
+            placeholder="FR"
+            className={`${searchClass} w-28`}
+          />
+          <input
+            value={newLabel.nameEs}
+            onChange={e => setNewLabel(l => ({ ...l, nameEs: e.target.value }))}
+            placeholder="ES"
+            className={`${searchClass} w-28`}
           />
           <button
             type="submit"

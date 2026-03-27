@@ -59,8 +59,8 @@ public class OrderService {
         for (OrderItemRequest orderItem : req.items()) {
             Item item = itemMap.get(orderItem.itemId());
             if (item.getStock() < orderItem.quantity()) {
-                log.warn("item {} has insufficient stock", item.getName());
-                throw new AppException(HttpStatus.UNPROCESSABLE_CONTENT, "INSUFFICIENT_STOCK", item.getName());
+                log.warn("item {} has insufficient stock", item.getNameEn());
+                throw new AppException(HttpStatus.UNPROCESSABLE_CONTENT, "INSUFFICIENT_STOCK", item.getNameEn());
             }
         }
         

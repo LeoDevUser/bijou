@@ -8,11 +8,15 @@ import com.bijou.backend.entities.Category;
 public record ItemView(
         Long id,
         Integer stock,
-        String name,
+        String nameEn,
+        String nameFr,
+        String nameEs,
         BigDecimal price,
         List<LabelView> labels,
         Category category,
-        String description,
+        String descriptionEn,
+        String descriptionFr,
+        String descriptionEs,
         String imageUrl,
         String imageId
 ) {}

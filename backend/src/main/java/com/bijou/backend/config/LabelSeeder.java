@@ -21,10 +21,11 @@ public class LabelSeeder implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        for (String name : List.of("Gold", "Silver", "New")) {
-            if (!labelRepository.existsByNameIgnoreCase(name)) {
-                labelRepository.save(Label.builder().name(name).build());
-            }
-        }
+        if (labelRepository.count() > 0) return;
+        labelRepository.saveAll(List.of(
+            Label.builder().nameEn("Gold").nameFr("Or").nameEs("Oro").build(),
+            Label.builder().nameEn("Silver").nameFr("Argent").nameEs("Plata").build(),
+            Label.builder().nameEn("New").nameFr("Nouveau").nameEs("Nuevo").build()
+        ));
     }
 }

@@ -42,9 +42,9 @@ public class ItemController {
         return ResponseEntity.ok(itemService.getItemsByCategory(category));
     }
 
-    @GetMapping("/public/items/label/{name}")
-    public ResponseEntity<List<ItemView>> getItemsByLabel(@PathVariable String name) {
-        return ResponseEntity.ok(itemService.getItemsByLabel(name));
+    @GetMapping("/public/items/label/{id}")
+    public ResponseEntity<List<ItemView>> getItemsByLabel(@PathVariable Long id) {
+        return ResponseEntity.ok(itemService.getItemsByLabel(id));
     }
 
     @GetMapping("/public/items/{id}")

@@ -1,5 +1,7 @@
 import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView } from '../types';
 
+interface LabelRequest { nameEn: string; nameFr: string; nameEs: string; }
+
 const BASE_URL = import.meta.env.VITE_API_URL ?? '';
 const ADMIN = import.meta.env.VITE_ADMIN_PAGE ?? '';
 
@@ -44,7 +46,7 @@ export const api = {
     list: () => request<ItemView[]>('/public/items'),
     get: (id: number) => request<ItemView>(`/public/items/${id}`),
     byCategory: (category: string) => request<ItemView[]>(`/public/items/category/${category}`),
-    byLabel: (name: string) => request<ItemView[]>(`/public/items/label/${encodeURIComponent(name)}`),
+    byLabel: (labelId: number) => request<ItemView[]>(`/public/items/label/${labelId}`),
   },
   labels: {
     list: () => request<LabelView[]>('/public/labels'),
@@ -129,8 +131,8 @@ export const api = {
       },
     },
     labels: {
-      create: (name: string) =>
-        request<LabelView>(`/${ADMIN}/labels`, { method: 'POST', body: JSON.stringify({ name }) }),
+      create: (req: LabelRequest) =>
+        request<LabelView>(`/${ADMIN}/labels`, { method: 'POST', body: JSON.stringify(req) }),
       delete: (id: number) =>
         request<void>(`/${ADMIN}/labels/${id}`, { method: 'DELETE' }),
     },

@@ -1,7 +1,6 @@
 package com.bijou.backend.controllers;
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.bijou.backend.services.LabelRequest;
 import com.bijou.backend.services.LabelService;
 import com.bijou.backend.services.LabelView;
 
@@ -29,8 +29,8 @@ public class LabelController {
     }
 
     @PostMapping("/${ADMIN_PAGE}/labels")
-    public ResponseEntity<LabelView> create(@RequestBody Map<String, String> body) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(labelService.create(body.get("name")));
+    public ResponseEntity<LabelView> create(@RequestBody LabelRequest req) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(labelService.create(req));
     }
 
     @DeleteMapping("/${ADMIN_PAGE}/labels/{id}")

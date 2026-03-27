@@ -4,10 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import { useCart } from '../context/CartContext';
 import type { ItemView } from '../types';
+import { pickLocale } from '../types';
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { addItem } = useCart();
   const [item, setItem] = useState<ItemView | null>(null);
   const [loading, setLoading] = useState(true);
@@ -21,9 +22,12 @@ export default function ProductDetail() {
       .finally(() => setLoading(false));
   }, [id]);
 
+  const name = item ? pickLocale(item.nameEn, item.nameFr, item.nameEs, i18n.language) : '';
+  const description = item ? pickLocale(item.descriptionEn, item.descriptionFr, item.descriptionEs, i18n.language) : '';
+
   function handleAddToCart() {
     if (!item) return;
-    addItem({ id: item.id, name: item.name, price: item.price, quantity: 1, imageUrl: item.imageUrl });
+    addItem({ id: item.id, name, price: item.price, quantity: 1, imageUrl: item.imageUrl });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   }
@@ -51,7 +55,7 @@ export default function ProductDetail() {
         {/* Image */}
         <div className="bg-[#F0EDE8] aspect-square overflow-hidden">
           {item.imageUrl ? (
-            <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+            <img src={item.imageUrl} alt={name} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-muted text-sm uppercase tracking-widest">
               {item.category}
@@ -62,20 +66,20 @@ export default function ProductDetail() {
         {/* Info */}
         <div className="flex flex-col justify-center">
           <p className="text-xs uppercase tracking-widest text-muted mb-2">{item.category}</p>
-          <h1 className="font-serif text-4xl md:text-5xl font-light mb-4">{item.name}</h1>
+          <h1 className="font-serif text-4xl md:text-5xl font-light mb-4">{name}</h1>
           <p className="text-xl mb-6">${Number(item.price).toFixed(2)}</p>
 
           {item.labels?.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-6">
               {item.labels.map(label => (
                 <span key={label.id} className="text-xs uppercase tracking-wider border border-border px-3 py-1">
-                  {label.name}
+                  {pickLocale(label.nameEn, label.nameFr, label.nameEs, i18n.language)}
                 </span>
               ))}
             </div>
           )}
 
-          <p className="text-[#555] text-sm leading-relaxed mb-8">{item.description}</p>
+          <p className="text-[#555] text-sm leading-relaxed mb-8">{description}</p>
 
           {item.stock === 0 ? (
             <p className="text-xs uppercase tracking-widest text-muted border border-border px-8 py-4 text-center">
