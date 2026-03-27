@@ -66,39 +66,43 @@ function AdminOrders() {
 
   return (
     <div>
-      <div className="flex flex-wrap gap-3 mb-6">
-        <select
-          value={statusFilter}
-          onChange={e => { setStatusFilter(e.target.value); setCountryFilter(''); }}
-          className={selectClass}
-        >
-          <option value="">{t('admin.orders.allStatuses')}</option>
-          {['AWAITING_PAYMENT', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'].map(s => (
-            <option key={s} value={s}>{s.replace('_', ' ')}</option>
-          ))}
-        </select>
-        <select
-          value={countryFilter}
-          onChange={e => { setCountryFilter(e.target.value); setStatusFilter(''); }}
-          className={selectClass}
-        >
-          <option value="">{t('admin.orders.allCountries')}</option>
-          {['CANADA', 'UNITED_STATES', 'MEXICO'].map(c => (
-            <option key={c} value={c}>{c.replace('_', ' ')}</option>
-          ))}
-        </select>
-        <input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder={t('admin.search.orderPlaceholder')}
-          className={searchClass}
-        />
-        <input
-          type="date"
-          value={dateFilter}
-          onChange={e => setDateFilter(e.target.value)}
-          className={searchClass}
-        />
+      <div className="flex flex-col gap-3 mb-6">
+        <div className="flex flex-wrap gap-3">
+          <select
+            value={statusFilter}
+            onChange={e => { setStatusFilter(e.target.value); setCountryFilter(''); }}
+            className={selectClass}
+          >
+            <option value="">{t('admin.orders.allStatuses')}</option>
+            {['AWAITING_PAYMENT', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'].map(s => (
+              <option key={s} value={s}>{s.replace('_', ' ')}</option>
+            ))}
+          </select>
+          <select
+            value={countryFilter}
+            onChange={e => { setCountryFilter(e.target.value); setStatusFilter(''); }}
+            className={selectClass}
+          >
+            <option value="">{t('admin.orders.allCountries')}</option>
+            {['CANADA', 'UNITED_STATES', 'MEXICO'].map(c => (
+              <option key={c} value={c}>{c.replace('_', ' ')}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex gap-3">
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder={t('admin.search.orderPlaceholder')}
+            className={`${searchClass} flex-1 min-w-0`}
+          />
+          <input
+            type="date"
+            value={dateFilter}
+            onChange={e => setDateFilter(e.target.value)}
+            className={searchClass}
+          />
+        </div>
       </div>
 
       {loading ? (
@@ -115,10 +119,10 @@ function AdminOrders() {
                 className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[#F7F5F0] transition-colors"
                 onClick={() => setExpanded(expanded === o.id ? null : o.id)}
               >
-                <div className="flex items-center gap-8">
-                  <span className="text-xs text-muted w-10">#{o.id}</span>
-                  <span className="text-sm">{o.firstName} {o.lastName}</span>
-                  <span className="text-sm text-muted hidden md:block">{o.email}</span>
+                <div className="flex items-center gap-8 min-w-0">
+                  <span className="text-xs text-muted w-10 flex-shrink-0">#{o.id}</span>
+                  <span className="text-sm flex-shrink-0">{o.firstName} {o.lastName}</span>
+                  <span className="text-sm text-muted hidden md:block truncate max-w-[180px]" title={o.email}>{o.email}</span>
                 </div>
                 <div className="flex items-center gap-6">
                   <span className={`text-xs uppercase tracking-wider ${STATUS_COLOR[o.status]}`}>
@@ -381,23 +385,25 @@ function AdminProducts() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder={t('admin.search.productPlaceholder')}
-            className={searchClass}
-          />
-          {sortBtn(t('admin.products.sortBySold'), 'sold')}
-          {sortBtn(t('admin.products.sortBySales'), 'sales')}
+      <div className="flex flex-col gap-3 mb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {sortBtn(t('admin.products.sortBySold'), 'sold')}
+            {sortBtn(t('admin.products.sortBySales'), 'sales')}
+          </div>
+          <button
+            onClick={() => setModal('new')}
+            className="bg-dark text-white text-xs uppercase tracking-widest px-6 py-3 hover:bg-gold transition-colors"
+          >
+            {t('admin.products.addProduct')}
+          </button>
         </div>
-        <button
-          onClick={() => setModal('new')}
-          className="bg-dark text-white text-xs uppercase tracking-widest px-6 py-3 hover:bg-gold transition-colors"
-        >
-          {t('admin.products.addProduct')}
-        </button>
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder={t('admin.search.productPlaceholder')}
+          className={`${searchClass} w-full`}
+        />
       </div>
 
       {loading ? (
@@ -482,10 +488,10 @@ function VerboseRow({
         className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[#F7F5F0] transition-colors"
         onClick={onToggle}
       >
-        <div className="flex items-center gap-8">
-          <span className="text-xs text-muted w-10">#{u.id}</span>
-          <span className="text-sm">{u.firstName} {u.lastName}</span>
-          <span className="text-sm text-muted hidden md:block">{u.email}</span>
+        <div className="flex items-center gap-8 min-w-0">
+          <span className="text-xs text-muted w-10 flex-shrink-0">#{u.id}</span>
+          <span className="text-sm flex-shrink-0">{u.firstName} {u.lastName}</span>
+          <span className="text-sm text-muted hidden md:block truncate max-w-[180px]" title={u.email}>{u.email}</span>
         </div>
         <div className="flex items-center gap-6 text-sm text-muted">
           <span>${Number(u.moneySpent).toFixed(2)}</span>
@@ -516,7 +522,7 @@ function VerboseRow({
             {u.stripeCustomerId && (
               <div>
                 <p className="text-xs uppercase tracking-widest text-muted mb-1">{t('admin.detail.stripeId')}</p>
-                <p className="text-xs font-mono truncate">{u.stripeCustomerId}</p>
+                <p className="text-xs font-mono truncate" title={u.stripeCustomerId ?? undefined}>{u.stripeCustomerId}</p>
               </div>
             )}
           </div>
@@ -594,17 +600,17 @@ function AdminUsers() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-3 mb-6">
-        <input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder={t('admin.search.clientPlaceholder')}
-          className={searchClass}
-        />
+      <div className="flex flex-col gap-3 mb-6">
         <div className="flex gap-2">
           {sortBtn(t('admin.users.sortByMoney'), 'money')}
           {sortBtn(t('admin.users.sortByOrders'), 'orders')}
         </div>
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder={t('admin.search.clientPlaceholder')}
+          className={`${searchClass} w-full`}
+        />
       </div>
 
       {loading ? (
@@ -695,7 +701,7 @@ function AdminAdmins() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder={t('admin.search.clientPlaceholder')}
-          className={searchClass}
+          className={`${searchClass} w-full`}
         />
       </div>
 
