@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, Category, VerboseClient, LabelView } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, Category, VerboseClient, LabelView, AnnouncementView } from '../types';
 import { pickLocale, isItemIncomplete, isLabelIncomplete } from '../types';
 
 const CATEGORIES: Category[] = ['NECKLACE', 'RING', 'EARRING', 'MISC'];
@@ -846,9 +846,125 @@ function AdminAdmins() {
   );
 }
 
+// ── Site ──────────────────────────────────────────────────────────────────────
+
+function AdminSite() {
+  const { t } = useTranslation();
+  const [announcements, setAnnouncements] = useState<AnnouncementView[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState({ textEn: '', textFr: '', textEs: '', active: true });
+  const [newForm, setNewForm] = useState({ textEn: '', textFr: '', textEs: '' });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function load() {
+    setLoading(true);
+    try { setAnnouncements(await api.admin.announcements.list()); }
+    finally { setLoading(false); }
+  }
+
+  function openEdit(a: AnnouncementView) {
+    setEditing(a.id);
+    setEditForm({ textEn: a.textEn ?? '', textFr: a.textFr ?? '', textEs: a.textEs ?? '', active: a.active });
+  }
+
+  async function saveEdit(id: number) {
+    setSaving(true);
+    try {
+      await api.admin.announcements.update(id, { ...editForm });
+      setEditing(null);
+      await load();
+    } finally { setSaving(false); }
+  }
+
+  async function handleDelete(id: number) {
+    if (!confirm(t('admin.site.deleteConfirm'))) return;
+    await api.admin.announcements.delete(id);
+    await load();
+  }
+
+  async function handleMove(id: number, dir: 'up' | 'down') {
+    const updated = dir === 'up'
+      ? await api.admin.announcements.moveUp(id)
+      : await api.admin.announcements.moveDown(id);
+    setAnnouncements(updated);
+  }
+
+  async function handleAdd(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newForm.textEn && !newForm.textFr && !newForm.textEs) return;
+    await api.admin.announcements.create({ ...newForm, active: true });
+    setNewForm({ textEn: '', textFr: '', textEs: '' });
+    await load();
+  }
+
+  return (
+    <div>
+      <h2 className="text-xs uppercase tracking-widest text-muted mb-6">{t('admin.site.announcementsTitle')}</h2>
+
+      {loading ? (
+        <div className="space-y-2">{[...Array(3)].map((_, i) => <div key={i} className="h-12 bg-[#F0EDE8] animate-pulse" />)}</div>
+      ) : announcements.length === 0 ? (
+        <p className="text-muted text-center py-8">{t('admin.site.empty')}</p>
+      ) : (
+        <div className="space-y-2 mb-10">
+          {announcements.map((a, idx) => (
+            <div key={a.id} className={`border p-4 ${a.active ? 'border-border' : 'border-border opacity-50'}`}>
+              {editing === a.id ? (
+                <div className="space-y-2">
+                  <input value={editForm.textEn} onChange={e => setEditForm(f => ({ ...f, textEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={editForm.textFr} onChange={e => setEditForm(f => ({ ...f, textFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={editForm.textEs} onChange={e => setEditForm(f => ({ ...f, textEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <div className="flex items-center gap-4 pt-1">
+                    <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                      <input type="checkbox" checked={editForm.active} onChange={e => setEditForm(f => ({ ...f, active: e.target.checked }))} />
+                      {t('admin.site.active')}
+                    </label>
+                    <button onClick={() => saveEdit(a.id)} disabled={saving} className="text-xs uppercase tracking-widest border border-dark bg-dark text-white px-4 py-2 hover:bg-gold transition-colors disabled:opacity-50">
+                      {saving ? '...' : t('admin.site.save')}
+                    </button>
+                    <button onClick={() => setEditing(null)} className="text-xs uppercase tracking-widest border border-border px-4 py-2 hover:border-dark transition-colors">
+                      {t('admin.site.cancel')}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm">{a.textEn || <span className="text-muted italic">—</span>}</p>
+                    {(a.textFr || a.textEs) && (
+                      <p className="text-xs text-muted mt-1">{a.textFr}{a.textFr && a.textEs ? ' · ' : ''}{a.textEs}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button onClick={() => handleMove(a.id, 'up')} disabled={idx === 0} className="text-xs border border-border px-2 py-1 hover:border-dark transition-colors disabled:opacity-30">↑</button>
+                    <button onClick={() => handleMove(a.id, 'down')} disabled={idx === announcements.length - 1} className="text-xs border border-border px-2 py-1 hover:border-dark transition-colors disabled:opacity-30">↓</button>
+                    <button onClick={() => openEdit(a)} className="text-xs uppercase tracking-widest border border-border px-3 py-1 hover:border-dark transition-colors">{t('admin.site.edit')}</button>
+                    <button onClick={() => handleDelete(a.id)} className="text-xs uppercase tracking-widest border border-red-300 text-red-500 px-3 py-1 hover:border-red-500 transition-colors">{t('admin.site.delete')}</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <h3 className="text-xs uppercase tracking-widest text-muted mb-3">{t('admin.site.addTitle')}</h3>
+      <form onSubmit={handleAdd} className="space-y-2">
+        <input value={newForm.textEn} onChange={e => setNewForm(f => ({ ...f, textEn: e.target.value }))} placeholder={`${t('admin.site.textPlaceholder')} (EN)`} className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+        <input value={newForm.textFr} onChange={e => setNewForm(f => ({ ...f, textFr: e.target.value }))} placeholder={`${t('admin.site.textPlaceholder')} (FR)`} className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+        <input value={newForm.textEs} onChange={e => setNewForm(f => ({ ...f, textEs: e.target.value }))} placeholder={`${t('admin.site.textPlaceholder')} (ES)`} className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+        <button type="submit" className="text-xs uppercase tracking-widest border border-dark bg-dark text-white px-4 py-2 hover:bg-gold transition-colors">{t('admin.site.add')}</button>
+      </form>
+    </div>
+  );
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-type Tab = 'orders' | 'products' | 'users' | 'admins';
+type Tab = 'orders' | 'products' | 'users' | 'admins' | 'site';
 
 export default function Admin() {
   const { t } = useTranslation();
@@ -859,6 +975,7 @@ export default function Admin() {
     { key: 'products', label: t('admin.tabs.products') },
     { key: 'users', label: t('admin.tabs.users') },
     { key: 'admins', label: t('admin.tabs.admins') },
+    { key: 'site', label: t('admin.tabs.site') },
   ];
 
   return (
@@ -884,6 +1001,7 @@ export default function Admin() {
       {tab === 'products' && <AdminProducts />}
       {tab === 'users' && <AdminUsers />}
       {tab === 'admins' && <AdminAdmins />}
+      {tab === 'site' && <AdminSite />}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, AnnouncementView } from '../types';
 
 interface LabelRequest { nameEn: string; nameFr: string; nameEs: string; }
 
@@ -50,6 +50,9 @@ export const api = {
   },
   labels: {
     list: () => request<LabelView[]>('/public/labels'),
+  },
+  announcements: {
+    list: () => request<AnnouncementView[]>('/public/announcements'),
   },
   orders: {
     list: () => request<OrderView[]>('/api/orders'),
@@ -135,6 +138,19 @@ export const api = {
         request<LabelView>(`/${ADMIN}/labels`, { method: 'POST', body: JSON.stringify(req) }),
       delete: (id: number) =>
         request<void>(`/${ADMIN}/labels/${id}`, { method: 'DELETE' }),
+    },
+    announcements: {
+      list: () => request<AnnouncementView[]>(`/${ADMIN}/announcements`),
+      create: (data: { textEn: string; textFr: string; textEs: string; active: boolean }) =>
+        request<AnnouncementView>(`/${ADMIN}/announcements`, { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: number, data: { textEn: string; textFr: string; textEs: string; active: boolean }) =>
+        request<AnnouncementView>(`/${ADMIN}/announcements/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: number) =>
+        request<void>(`/${ADMIN}/announcements/${id}`, { method: 'DELETE' }),
+      moveUp: (id: number) =>
+        request<AnnouncementView[]>(`/${ADMIN}/announcements/${id}/up`, { method: 'PATCH' }),
+      moveDown: (id: number) =>
+        request<AnnouncementView[]>(`/${ADMIN}/announcements/${id}/down`, { method: 'PATCH' }),
     },
     orders: {
       list: () => request<OrderView[]>(`/${ADMIN}/orders`),

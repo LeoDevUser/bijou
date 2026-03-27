@@ -93,6 +93,15 @@ export interface CartItem {
   imageUrl?: string | null;
 }
 
+export interface AnnouncementView {
+  id: number;
+  textEn: string | null;
+  textFr: string | null;
+  textEs: string | null;
+  active: boolean;
+  sortOrder: number;
+}
+
 /** Pick the best available translation for the current locale, falling back to any non-null value. */
 export function pickLocale(
   en: string | null | undefined,

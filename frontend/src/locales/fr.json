@@ -125,7 +125,8 @@
       "orders": "Commandes",
       "products": "Produits",
       "users": "Utilisateurs",
-      "admins": "Admins"
+      "admins": "Admins",
+      "site": "Site"
     },
     "search": {
       "orderPlaceholder": "Rechercher par ID de commande ou e-mail...",
@@ -202,6 +203,19 @@
       "add": "Ajouter",
       "deleteConfirm": "Supprimer cette étiquette ? Elle sera retirée de tous les articles.",
       "empty": "Aucune étiquette pour l'instant."
+    },
+    "site": {
+      "announcementsTitle": "Barre d'annonces",
+      "empty": "Aucune annonce pour l'instant.",
+      "addTitle": "Nouvelle Annonce",
+      "textPlaceholder": "Texte de l'annonce",
+      "add": "Ajouter",
+      "edit": "Modifier",
+      "save": "Enregistrer",
+      "cancel": "Annuler",
+      "delete": "Supprimer",
+      "deleteConfirm": "Supprimer cette annonce ?",
+      "active": "Active"
     }
   },
   "account": {

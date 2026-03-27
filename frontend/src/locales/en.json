@@ -125,7 +125,8 @@
       "orders": "Orders",
       "products": "Products",
       "users": "Users",
-      "admins": "Admins"
+      "admins": "Admins",
+      "site": "Site"
     },
     "search": {
       "orderPlaceholder": "Search by order ID or email...",
@@ -202,6 +203,19 @@
       "add": "Add",
       "deleteConfirm": "Delete this label? It will be removed from all items.",
       "empty": "No labels yet."
+    },
+    "site": {
+      "announcementsTitle": "Announcement Bar",
+      "empty": "No announcements yet.",
+      "addTitle": "New Announcement",
+      "textPlaceholder": "Announcement text",
+      "add": "Add",
+      "edit": "Edit",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this announcement?",
+      "active": "Active"
     }
   },
   "account": {

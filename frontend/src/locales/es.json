@@ -125,7 +125,8 @@
       "orders": "Pedidos",
       "products": "Productos",
       "users": "Usuarios",
-      "admins": "Admins"
+      "admins": "Admins",
+      "site": "Sitio"
     },
     "search": {
       "orderPlaceholder": "Buscar por ID de pedido o correo...",
@@ -202,6 +203,19 @@
       "add": "Agregar",
       "deleteConfirm": "¿Eliminar esta etiqueta? Se quitará de todos los artículos.",
       "empty": "Aún no hay etiquetas."
+    },
+    "site": {
+      "announcementsTitle": "Barra de Anuncios",
+      "empty": "Aún no hay anuncios.",
+      "addTitle": "Nuevo Anuncio",
+      "textPlaceholder": "Texto del anuncio",
+      "add": "Agregar",
+      "edit": "Editar",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "delete": "Eliminar",
+      "deleteConfirm": "¿Eliminar este anuncio?",
+      "active": "Activo"
     }
   },
   "account": {
