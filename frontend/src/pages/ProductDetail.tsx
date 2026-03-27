@@ -68,8 +68,8 @@ export default function ProductDetail() {
           {item.labels?.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-6">
               {item.labels.map(label => (
-                <span key={label} className="text-xs uppercase tracking-wider border border-border px-3 py-1">
-                  {label}
+                <span key={label.id} className="text-xs uppercase tracking-wider border border-border px-3 py-1">
+                  {label.name}
                 </span>
               ))}
             </div>

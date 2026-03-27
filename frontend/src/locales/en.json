@@ -194,6 +194,13 @@
     },
     "admins": {
       "empty": "No admins found."
+    },
+    "labels": {
+      "title": "Labels",
+      "addPlaceholder": "New label...",
+      "add": "Add",
+      "deleteConfirm": "Delete this label? It will be removed from all items.",
+      "empty": "No labels yet."
     }
   },
   "account": {

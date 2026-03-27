@@ -4,10 +4,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.CollectionTable;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -37,9 +37,13 @@ public class Item {
     private BigDecimal price;
     @Column(nullable=false, unique = true)
     private String name;
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "item_labels", joinColumns = @JoinColumn(name = "item_id"))
-    private List<String> labels;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "item_labels",
+        joinColumns = @JoinColumn(name = "item_id"),
+        inverseJoinColumns = @JoinColumn(name = "label_id")
+    )
+    private List<Label> labels;
     @Enumerated(EnumType.STRING)
     @Column(nullable=false)
     private Category category;

@@ -10,7 +10,7 @@ public record ItemViewVerbose (
         Integer stock,
         String name,
         BigDecimal price,
-        List<String> labels,
+        List<LabelView> labels,
         Category category,
         String description,
         String imageUrl,

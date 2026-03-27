@@ -1,9 +1,14 @@
+export interface LabelView {
+  id: number;
+  name: string;
+}
+
 export interface ItemView {
   id: number;
   stock: number;
   name: string;
   price: number;
-  labels: string[];
+  labels: LabelView[];
   category: string;
   description: string;
   imageUrl: string | null;
@@ -54,7 +59,7 @@ export interface ItemRequest {
   price: number;
   stock: number;
   category: Category;
-  labels: string[];
+  labelIds: number[];
 }
 
 export interface VerboseClient {

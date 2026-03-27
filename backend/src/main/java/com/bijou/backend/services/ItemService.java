@@ -7,9 +7,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.bijou.backend.entities.Category;
+import com.bijou.backend.entities.Label;
 import com.bijou.backend.exception.AppException;
 import com.bijou.backend.entities.Item;
 import com.bijou.backend.repositories.ItemRepository;
+import com.bijou.backend.repositories.LabelRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,11 +23,22 @@ public class ItemService {
 
     private final CloudinaryService cloudinaryService;
     private final ItemRepository itemRepository;
+    private final LabelRepository labelRepository;
+
+    private List<LabelView> toLabelViews(List<Label> labels) {
+        if (labels == null) return List.of();
+        return labels.stream().map(l -> new LabelView(l.getId(), l.getName())).toList();
+    }
+
+    private List<Label> resolveLabels(List<Long> labelIds) {
+        if (labelIds == null || labelIds.isEmpty()) return List.of();
+        return labelRepository.findAllById(labelIds);
+    }
 
     private ItemView toItemView(Item item) {
         return new ItemView(
                 item.getId(), item.getStock(), item.getName(),
-                item.getPrice(), item.getLabels(), item.getCategory(),
+                item.getPrice(), toLabelViews(item.getLabels()), item.getCategory(),
                 item.getDescription(), item.getImageUrl(), item.getImageId()
             );
     }
@@ -33,12 +46,12 @@ public class ItemService {
     private ItemViewVerbose toItemViewVerbose(Item item) {
         return new ItemViewVerbose(
                 item.getId(), item.getStock(), item.getName(),
-                item.getPrice(), item.getLabels(), item.getCategory(),
+                item.getPrice(), toLabelViews(item.getLabels()), item.getCategory(),
                 item.getDescription(), item.getImageUrl(), item.getImageId(),
                 item.getNbSold(), item.getTotalSales(), item.isActive()
             );
     }
-    
+
     public ItemView createItem(ItemRequest req) {
         if (itemRepository.findByNameIgnoreCase(req.name()).isPresent()) {
             log.warn("item with name {} already exists", req.name());
@@ -48,7 +61,7 @@ public class ItemService {
             .stock(req.stock())
             .price(BigDecimal.valueOf(req.price()))
             .name(req.name())
-            .labels(req.labels())
+            .labels(resolveLabels(req.labelIds()))
             .category(req.category())
             .description(req.description())
             .build();
@@ -61,7 +74,7 @@ public class ItemService {
         item.setName(req.name());
         item.setStock(req.stock());
         item.setPrice(BigDecimal.valueOf(req.price()));
-        item.setLabels(req.labels());
+        item.setLabels(resolveLabels(req.labelIds()));
         item.setCategory(req.category());
         itemRepository.save(item);
         return toItemView(item);
@@ -116,7 +129,7 @@ public class ItemService {
             .toList();
     }
 
-    //public facing Functions
+    // public facing functions
 
     public ItemView getItem(Long id) {
         return toItemView(findItemOrThrow(id));
@@ -129,6 +142,13 @@ public class ItemService {
             .toList();
     }
 
+    public List<ItemView> getItemsByLabel(String name) {
+        return itemRepository.findByLabels_NameIgnoreCaseAndActiveTrue(name)
+            .stream()
+            .map(item -> toItemView(item))
+            .toList();
+    }
+
     public List<ItemView> getAllItems() {
         return itemRepository.findByActiveTrue().stream()
             .map(item -> toItemView(item))
@@ -136,18 +156,18 @@ public class ItemService {
     }
 
     private Item findItemOrThrow(Long id) {
-    return itemRepository.findByIdAndActiveTrue(id)
-        .orElseThrow(() -> {
-            log.warn("item with id {} does not exist", id);
-            return new AppException(HttpStatus.NOT_FOUND, "ITEM_NOT_FOUND");
-        });
+        return itemRepository.findByIdAndActiveTrue(id)
+            .orElseThrow(() -> {
+                log.warn("item with id {} does not exist", id);
+                return new AppException(HttpStatus.NOT_FOUND, "ITEM_NOT_FOUND");
+            });
     }
 
     private Item findAnyItemOrThrow(Long id) {
-    return itemRepository.findById(id)
-        .orElseThrow(() -> {
-            log.warn("item with id {} does not exist", id);
-            return new AppException(HttpStatus.NOT_FOUND, "ITEM_NOT_FOUND");
-        });
+        return itemRepository.findById(id)
+            .orElseThrow(() -> {
+                log.warn("item with id {} does not exist", id);
+                return new AppException(HttpStatus.NOT_FOUND, "ITEM_NOT_FOUND");
+            });
     }
 }

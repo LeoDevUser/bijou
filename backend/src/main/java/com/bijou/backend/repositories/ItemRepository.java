@@ -22,6 +22,7 @@ public interface ItemRepository extends JpaRepository<Item, Long>{
     List<Item> findByActiveTrue();
     List<Item> findByActiveFalse();
     Optional<Item> findByIdAndActiveTrue(Long id);
+    List<Item> findByLabels_NameIgnoreCaseAndActiveTrue(String name);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT i FROM Item i WHERE i.id = :id")
     Optional<Item> findByIdWithLock(Long id);

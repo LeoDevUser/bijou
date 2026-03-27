@@ -8,7 +8,7 @@ public record ItemRequest(
     int stock,
     float price,
     String name,
-    List<String> labels,
+    List<Long> labelIds,
     Category category,
     String description
 ) {}

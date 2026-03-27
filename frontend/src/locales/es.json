@@ -194,6 +194,13 @@
     },
     "admins": {
       "empty": "No se encontraron admins."
+    },
+    "labels": {
+      "title": "Etiquetas",
+      "addPlaceholder": "Nueva etiqueta...",
+      "add": "Agregar",
+      "deleteConfirm": "¿Eliminar esta etiqueta? Se quitará de todos los artículos.",
+      "empty": "Aún no hay etiquetas."
     }
   },
   "account": {

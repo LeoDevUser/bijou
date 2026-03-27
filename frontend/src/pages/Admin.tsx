@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, Category, VerboseClient } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, Category, VerboseClient, LabelView } from '../types';
 
 const CATEGORIES: Category[] = ['NECKLACE', 'RING', 'EARRING', 'MISC'];
 
@@ -212,24 +212,25 @@ interface ItemFormData {
   price: string;
   stock: string;
   category: Category;
-  labels: string;
+  labelIds: number[];
 }
 
 const emptyForm: ItemFormData = {
-  name: '', description: '', price: '', stock: '', category: 'NECKLACE', labels: '',
+  name: '', description: '', price: '', stock: '', category: 'NECKLACE', labelIds: [],
 };
 
 interface ItemModalProps {
   item?: ItemView;
+  allLabels: LabelView[];
   onClose: () => void;
   onSaved: () => void;
 }
 
-function ItemModal({ item, onClose, onSaved }: ItemModalProps) {
+function ItemModal({ item, allLabels, onClose, onSaved }: ItemModalProps) {
   const { t } = useTranslation();
   const [form, setForm] = useState<ItemFormData>(
     item
-      ? { name: item.name, description: item.description, price: String(item.price), stock: String(item.stock), category: item.category as Category, labels: item.labels.join(', ') }
+      ? { name: item.name, description: item.description, price: String(item.price), stock: String(item.stock), category: item.category as Category, labelIds: item.labels.map(l => l.id) }
       : emptyForm
   );
   const [saving, setSaving] = useState(false);
@@ -250,7 +251,7 @@ function ItemModal({ item, onClose, onSaved }: ItemModalProps) {
         price: parseFloat(form.price),
         stock: parseInt(form.stock),
         category: form.category,
-        labels: form.labels.split(',').map(l => l.trim()).filter(Boolean),
+        labelIds: form.labelIds,
       };
       if (imageFile) {
         if (item) {
@@ -303,10 +304,28 @@ function ItemModal({ item, onClose, onSaved }: ItemModalProps) {
             </select>
           </div>
           <div>
-            <label className="block text-xs uppercase tracking-widest mb-2">
-              {t('admin.modal.labels')} <span className="normal-case text-muted">{t('admin.modal.labelsHint')}</span>
-            </label>
-            <input value={form.labels} onChange={e => setForm(f => ({ ...f, labels: e.target.value }))} placeholder={t('admin.modal.labelsPlaceholder')} className={inputClass} />
+            <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.labels')}</label>
+            {allLabels.length === 0 ? (
+              <p className="text-xs text-muted">{t('admin.labels.empty')}</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {allLabels.map(label => (
+                  <label key={label.id} className="flex items-center gap-1.5 text-sm cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={form.labelIds.includes(label.id)}
+                      onChange={e => setForm(f => ({
+                        ...f,
+                        labelIds: e.target.checked
+                          ? [...f.labelIds, label.id]
+                          : f.labelIds.filter(id => id !== label.id),
+                      }))}
+                    />
+                    {label.name}
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.image')}</label>
@@ -337,16 +356,42 @@ type ProductSort = 'default' | 'sold' | 'sales';
 function AdminProducts() {
   const { t } = useTranslation();
   const [items, setItems] = useState<ItemViewVerbose[]>([]);
+  const [labels, setLabels] = useState<LabelView[]>([]);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState<ProductSort>('default');
   const [search, setSearch] = useState('');
   const [modal, setModal] = useState<'new' | ItemViewVerbose | null>(null);
+  const [newLabelName, setNewLabelName] = useState('');
 
   useEffect(() => { load(); }, []);
 
   async function load() {
     setLoading(true);
-    try { setItems(await api.admin.items.listVerbose()); } finally { setLoading(false); }
+    try {
+      const [itemData, labelData] = await Promise.all([
+        api.admin.items.listVerbose(),
+        api.labels.list(),
+      ]);
+      setItems(itemData);
+      setLabels(labelData);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleAddLabel(e: React.FormEvent) {
+    e.preventDefault();
+    const name = newLabelName.trim();
+    if (!name) return;
+    await api.admin.labels.create(name);
+    setNewLabelName('');
+    setLabels(await api.labels.list());
+  }
+
+  async function handleDeleteLabel(id: number) {
+    if (!confirm(t('admin.labels.deleteConfirm'))) return;
+    await api.admin.labels.delete(id);
+    setLabels(await api.labels.list());
   }
 
   async function handleDelete(id: number) {
@@ -455,9 +500,44 @@ function AdminProducts() {
         </div>
       )}
 
+      <div className="mt-10 pt-6 border-t border-border">
+        <p className="text-xs uppercase tracking-widest mb-4">{t('admin.labels.title')}</p>
+        <div className="flex flex-wrap gap-2 mb-3">
+          {labels.length === 0 ? (
+            <p className="text-xs text-muted">{t('admin.labels.empty')}</p>
+          ) : labels.map(label => (
+            <span key={label.id} className="flex items-center gap-1.5 border border-border px-3 py-1 text-xs">
+              {label.name}
+              <button
+                onClick={() => handleDeleteLabel(label.id)}
+                className="text-muted hover:text-dark transition-colors leading-none"
+                aria-label="delete"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+        <form onSubmit={handleAddLabel} className="flex gap-2">
+          <input
+            value={newLabelName}
+            onChange={e => setNewLabelName(e.target.value)}
+            placeholder={t('admin.labels.addPlaceholder')}
+            className={`${searchClass} flex-1 min-w-0`}
+          />
+          <button
+            type="submit"
+            className="border border-border text-xs uppercase tracking-widest px-4 py-2 hover:border-dark transition-colors"
+          >
+            {t('admin.labels.add')}
+          </button>
+        </form>
+      </div>
+
       {modal !== null && (
         <ItemModal
           item={modal === 'new' ? undefined : modal}
+          allLabels={labels}
           onClose={() => setModal(null)}
           onSaved={() => { setModal(null); load(); }}
         />

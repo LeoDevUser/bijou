@@ -1,4 +1,4 @@
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView } from '../types';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? '';
 const ADMIN = import.meta.env.VITE_ADMIN_PAGE ?? '';
@@ -44,6 +44,10 @@ export const api = {
     list: () => request<ItemView[]>('/public/items'),
     get: (id: number) => request<ItemView>(`/public/items/${id}`),
     byCategory: (category: string) => request<ItemView[]>(`/public/items/category/${category}`),
+    byLabel: (name: string) => request<ItemView[]>(`/public/items/label/${encodeURIComponent(name)}`),
+  },
+  labels: {
+    list: () => request<LabelView[]>('/public/labels'),
   },
   orders: {
     list: () => request<OrderView[]>('/api/orders'),
@@ -123,6 +127,12 @@ export const api = {
         if (!res.ok) { const body = await res.json().catch(() => ({})); throw { status: res.status, ...body }; }
         return res.json();
       },
+    },
+    labels: {
+      create: (name: string) =>
+        request<LabelView>(`/${ADMIN}/labels`, { method: 'POST', body: JSON.stringify({ name }) }),
+      delete: (id: number) =>
+        request<void>(`/${ADMIN}/labels/${id}`, { method: 'DELETE' }),
     },
     orders: {
       list: () => request<OrderView[]>(`/${ADMIN}/orders`),

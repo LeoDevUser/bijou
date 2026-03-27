@@ -194,6 +194,13 @@
     },
     "admins": {
       "empty": "Aucun admin trouvé."
+    },
+    "labels": {
+      "title": "Étiquettes",
+      "addPlaceholder": "Nouvelle étiquette...",
+      "add": "Ajouter",
+      "deleteConfirm": "Supprimer cette étiquette ? Elle sera retirée de tous les articles.",
+      "empty": "Aucune étiquette pour l'instant."
     }
   },
   "account": {
