@@ -1,6 +1,7 @@
 package com.bijou.backend.services;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -21,34 +22,39 @@ public class SiteAssetService {
     private final SiteAssetRepository siteAssetRepository;
     private final CloudinaryService cloudinaryService;
 
+    private static final Set<String> VIDEO_TYPES = Set.of("video/mp4", "video/webm", "video/quicktime");
+
     private SiteAssetView toView(SiteAsset a) {
-        return new SiteAssetView(a.getId(), a.getSlot(), a.getImageUrl(), a.getImageId());
+        return new SiteAssetView(a.getId(), a.getSlot(), a.getImageUrl(), a.getImageId(), a.getResourceType());
     }
 
     public List<SiteAssetView> getAll() {
         return siteAssetRepository.findAllByOrderByIdAsc().stream().map(this::toView).toList();
     }
 
-    public SiteAssetView uploadImage(String slot, MultipartFile file) {
+    public SiteAssetView uploadMedia(String slot, MultipartFile file) {
         SiteAsset asset = findBySlotOrThrow(slot);
         if (asset.getImageId() != null && !asset.getImageId().isEmpty()) {
-            cloudinaryService.delete(asset.getImageId());
+            cloudinaryService.delete(asset.getImageId(), asset.getResourceType());
         }
-        CloudinaryResponse res = cloudinaryService.upload(file);
+        boolean isVideo = VIDEO_TYPES.contains(file.getContentType());
+        CloudinaryResponse res = isVideo ? cloudinaryService.uploadVideo(file) : cloudinaryService.upload(file);
         asset.setImageUrl(res.url());
         asset.setImageId(res.imageId());
-        log.info("uploaded image for site asset slot '{}'", slot);
+        asset.setResourceType(isVideo ? "video" : "image");
+        log.info("uploaded {} for site asset slot '{}'", asset.getResourceType(), slot);
         return toView(siteAssetRepository.save(asset));
     }
 
-    public SiteAssetView deleteImage(String slot) {
+    public SiteAssetView deleteMedia(String slot) {
         SiteAsset asset = findBySlotOrThrow(slot);
         if (asset.getImageId() != null && !asset.getImageId().isEmpty()) {
-            cloudinaryService.delete(asset.getImageId());
+            cloudinaryService.delete(asset.getImageId(), asset.getResourceType());
         }
         asset.setImageUrl(null);
         asset.setImageId(null);
-        log.info("deleted image for site asset slot '{}'", slot);
+        asset.setResourceType("image");
+        log.info("deleted media for site asset slot '{}'", slot);
         return toView(siteAssetRepository.save(asset));
     }
 

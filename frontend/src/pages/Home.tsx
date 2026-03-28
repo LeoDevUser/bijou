@@ -13,17 +13,26 @@ const CATEGORIES = [
   { key: 'home.categories.anklets', value: 'ANKLETS', slot: 'anklet' },
 ] as const;
 
+type AssetEntry = { url: string; resourceType: string };
+
+function SlotMedia({ entry, alt, className }: { entry: AssetEntry; alt: string; className: string }) {
+  if (entry.resourceType === 'video') {
+    return <video src={entry.url} className={className} autoPlay muted loop playsInline />;
+  }
+  return <img src={entry.url} alt={alt} className={className} />;
+}
+
 export default function Home() {
   const { t } = useTranslation();
   const [items, setItems] = useState<ItemView[]>([]);
-  const [assetMap, setAssetMap] = useState<Record<string, string>>({});
+  const [assetMap, setAssetMap] = useState<Record<string, AssetEntry>>({});
 
   useEffect(() => {
     api.items.list().then(setItems).catch(console.error);
     api.siteAssets.list()
-      .then((assets: SiteAssetView[]) => {
-        const map: Record<string, string> = {};
-        assets.forEach(a => { if (a.imageUrl) map[a.slot] = a.imageUrl; });
+      .then((list: SiteAssetView[]) => {
+        const map: Record<string, AssetEntry> = {};
+        list.forEach(a => { if (a.imageUrl) map[a.slot] = { url: a.imageUrl, resourceType: a.resourceType }; });
         setAssetMap(map);
       })
       .catch(console.error);
@@ -35,11 +44,10 @@ export default function Home() {
       <section className="relative w-full h-[85vh] bg-[#D8D4CC] flex items-end overflow-hidden">
         <div className="absolute inset-0">
           {assetMap.hero
-            ? <img src={assetMap.hero} alt="Hero" className="w-full h-full object-cover" />
+            ? <SlotMedia entry={assetMap.hero} alt="Hero" className="w-full h-full object-cover" />
             : <div className="w-full h-full flex items-center justify-center"><p className="text-muted text-sm uppercase tracking-widest">{t('home.hero.imagePlaceholder')}</p></div>
           }
         </div>
-        {/* Text overlay — bottom left */}
         <div className="relative z-10 p-10 md:p-16 max-w-lg">
           <h1 className="font-serif text-5xl md:text-6xl italic font-light text-dark leading-tight mb-6">
             {t('home.hero.tagline')}
@@ -63,7 +71,7 @@ export default function Home() {
             <Link key={cat.key} to={`/shop?category=${cat.value}`} className="group block">
               <div className="bg-[#F0EDE8] aspect-square mb-3 overflow-hidden group-hover:bg-[#E8E4DC] transition-colors">
                 {assetMap[cat.slot]
-                  ? <img src={assetMap[cat.slot]} alt={t(cat.key)} className="w-full h-full object-cover" />
+                  ? <SlotMedia entry={assetMap[cat.slot]} alt={t(cat.key)} className="w-full h-full object-cover" />
                   : <div className="w-full h-full flex items-center justify-center"><span className="text-muted text-xs uppercase tracking-widest">{t(cat.key)}</span></div>
                 }
               </div>
@@ -97,7 +105,7 @@ export default function Home() {
       <section className="grid md:grid-cols-2">
         <div className="bg-[#E0DDD8] min-h-[440px] overflow-hidden">
           {assetMap.editorial1
-            ? <img src={assetMap.editorial1} alt="Editorial 1" className="w-full h-full object-cover" />
+            ? <SlotMedia entry={assetMap.editorial1} alt="Editorial 1" className="w-full h-full object-cover" />
             : <div className="w-full h-full min-h-[440px] flex items-center justify-center"><p className="text-muted text-xs uppercase tracking-widest">{t('home.hero.imagePlaceholder')}</p></div>
           }
         </div>
@@ -135,7 +143,7 @@ export default function Home() {
         </div>
         <div className="bg-[#D0CCC8] min-h-[440px] overflow-hidden order-1 md:order-2">
           {assetMap.editorial2
-            ? <img src={assetMap.editorial2} alt="Editorial 2" className="w-full h-full object-cover" />
+            ? <SlotMedia entry={assetMap.editorial2} alt="Editorial 2" className="w-full h-full object-cover" />
             : <div className="w-full h-full min-h-[440px] flex items-center justify-center"><p className="text-muted text-xs uppercase tracking-widest">{t('home.hero.imagePlaceholder')}</p></div>
           }
         </div>

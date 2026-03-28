@@ -30,4 +30,7 @@ public class SiteAsset {
 
     private String imageUrl;
     private String imageId;
+
+    @Builder.Default
+    private String resourceType = "image";
 }

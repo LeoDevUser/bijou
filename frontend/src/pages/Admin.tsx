@@ -898,7 +898,9 @@ function AdminSiteAssets() {
         <div key={asset.slot} className="border border-border p-4 flex items-center gap-4">
           <div className="w-20 h-14 bg-[#F0EDE8] shrink-0 overflow-hidden flex items-center justify-center">
             {asset.imageUrl
-              ? <img src={asset.imageUrl} alt={asset.slot} className="w-full h-full object-cover" />
+              ? asset.resourceType === 'video'
+                ? <video src={asset.imageUrl} className="w-full h-full object-cover" muted />
+                : <img src={asset.imageUrl} alt={asset.slot} className="w-full h-full object-cover" />
               : <span className="text-muted text-xs">—</span>
             }
           </div>
@@ -911,7 +913,7 @@ function AdminSiteAssets() {
               {uploading === asset.slot ? '...' : 'Upload'}
               <input
                 type="file"
-                accept="image/png,image/jpeg,image/webp"
+                accept="image/png,image/jpeg,image/webp,video/mp4,video/webm,video/quicktime"
                 className="hidden"
                 onChange={e => { const f = e.target.files?.[0]; if (f) handleUpload(asset.slot, f); e.target.value = ''; }}
               />

@@ -32,11 +32,11 @@ public class SiteAssetController {
     public ResponseEntity<SiteAssetView> uploadImage(
             @PathVariable String slot,
             @RequestPart("file") MultipartFile file) {
-        return ResponseEntity.ok(siteAssetService.uploadImage(slot, file));
+        return ResponseEntity.ok(siteAssetService.uploadMedia(slot, file));
     }
 
     @DeleteMapping("/${ADMIN_PAGE}/site-assets/{slot}/image")
     public ResponseEntity<SiteAssetView> deleteImage(@PathVariable String slot) {
-        return ResponseEntity.ok(siteAssetService.deleteImage(slot));
+        return ResponseEntity.ok(siteAssetService.deleteMedia(slot));
     }
 }

@@ -107,6 +107,7 @@ export interface SiteAssetView {
   slot: string;
   imageUrl: string | null;
   imageId: string | null;
+  resourceType: string;
 }
 
 /** Pick the best available translation for the current locale, falling back to any non-null value. */
