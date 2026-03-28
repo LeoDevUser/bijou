@@ -7,9 +7,8 @@ import AnnouncementBar from './AnnouncementBar';
 //TODO
 const NAV_LINKS = [
   { key: 'nav.allJewelry', to: '/shop' },
-  { key: 'nav.newIn', to: '/shop' },
-  { key: 'nav.collections', to: '/shop' },
-  { key: 'nav.gifts', to: '/shop' },
+  { key: 'nav.newIn', to: '/shop?label=new' },
+  { key: 'nav.collections', to: '/collections' },
 ] as const;
 
 const LANGUAGES = ['en', 'fr', 'es'] as const;

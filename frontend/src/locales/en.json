@@ -3,7 +3,6 @@
     "allJewelry": "All Jewelry",
     "newIn": "New In",
     "collections": "Collections",
-    "gifts": "Gifts",
     "account": "Account",
     "orders": "My Orders",
     "logout": "Sign Out"
@@ -33,12 +32,14 @@
     "editorial1": {
       "label": "New In",
       "tagline": "On the Go",
-      "cta": "Shop the Look"
+      "cta": "Shop the Look",
+      "imagePlaceholder": "Editorial 1"
     },
     "editorial2": {
       "label": "Collections",
       "tagline": "All Night Long",
-      "cta": "Explore Now"
+      "cta": "Explore Now",
+      "imagePlaceholder": "Editorial 2"
     }
   },
   "shop": {
@@ -122,6 +123,10 @@
       "CANCELLED": "Cancelled"
     }
   },
+  "collections": {
+    "empty": "No collections yet.",
+    "shopNow": "Shop Now"
+  },
   "admin": {
     "title": "Admin",
     "subtitle": "Bijou Monde management console",
@@ -201,6 +206,17 @@
     "admins": {
       "empty": "No admins found."
     },
+    "collections": {
+      "title": "Collections",
+      "addCollection": "+ Add Collection",
+      "newTitle": "New Collection",
+      "editTitle": "Edit Collection",
+      "label": "Label",
+      "labelRequired": "Please select a label.",
+      "deleteConfirm": "Delete this collection? This cannot be undone.",
+      "saveError": "Failed to save. Please try again.",
+      "empty": "No collections yet."
+    },
     "labels": {
       "title": "Labels",
       "addPlaceholder": "New label...",
@@ -209,6 +225,25 @@
       "empty": "No labels yet."
     },
     "site": {
+      "assetsTitle": "Landing Page Assets",
+      "upload": "Upload",
+      "remove": "Remove",
+      "noImage": "No image",
+      "headerPlaceholder": "Header",
+      "subheaderPlaceholder": "Subheader",
+      "colorPlaceholder": "Text color (e.g. #1C1C1C)",
+      "ctaCategory": "CTA → Category",
+      "ctaLabel": "CTA → Label",
+      "noneOption": "— None —",
+      "slots": {
+        "hero": "Main Image/Video",
+        "ring": "Rings Category",
+        "necklace": "Necklaces Category",
+        "earring": "Earrings Category",
+        "bracelet": "Bracelets Category",
+        "editorial1": "Editorial 1",
+        "editorial2": "Editorial 2"
+      },
       "announcementsTitle": "Announcement Bar",
       "empty": "No announcements yet.",
       "addTitle": "New Announcement",

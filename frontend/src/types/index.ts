@@ -102,14 +102,36 @@ export interface AnnouncementView {
   sortOrder: number;
 }
 
+export interface CollectionView {
+  id: number;
+  labelId: number | null;
+  labelNameEn: string | null;
+  labelNameFr: string | null;
+  labelNameEs: string | null;
+  imageUrl: string | null;
+  imageId: string | null;
+  resourceType: string;
+  headerEn: string | null;
+  headerFr: string | null;
+  headerEs: string | null;
+  subheaderEn: string | null;
+  subheaderFr: string | null;
+  subheaderEs: string | null;
+  color: string | null;
+}
+
 export interface SiteAssetView {
   id: number;
   slot: string;
   imageUrl: string | null;
   imageId: string | null;
   resourceType: string;
-  header: string | null;
-  subheader: string | null;
+  headerEn: string | null;
+  headerFr: string | null;
+  headerEs: string | null;
+  subheaderEn: string | null;
+  subheaderFr: string | null;
+  subheaderEs: string | null;
   color: string | null;
   ctaCategory: string | null;
   ctaLabelId: number | null;

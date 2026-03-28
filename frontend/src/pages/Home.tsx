@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import ProductCard from '../components/ui/ProductCard';
 import type { ItemView, SiteAssetView } from '../types';
+import { pickLocale } from '../types';
 
 const CATEGORIES = [
   { key: 'home.categories.rings', value: 'RINGS', slot: 'ring' },
@@ -14,7 +15,9 @@ const CATEGORIES = [
 
 type AssetEntry = {
   url: string | null; resourceType: string;
-  header: string | null; subheader: string | null; color: string | null;
+  headerEn: string | null; headerFr: string | null; headerEs: string | null;
+  subheaderEn: string | null; subheaderFr: string | null; subheaderEs: string | null;
+  color: string | null;
   ctaCategory: string | null; ctaLabelId: number | null;
 };
 
@@ -36,7 +39,7 @@ function SlotMedia({ entry, alt, className }: { entry: AssetEntry; alt: string; 
 }
 
 export default function Home() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [items, setItems] = useState<ItemView[]>([]);
   const [assetMap, setAssetMap] = useState<Record<string, AssetEntry>>({});
 
@@ -46,7 +49,7 @@ export default function Home() {
       .then((list: SiteAssetView[]) => {
         const map: Record<string, AssetEntry> = {};
         list.forEach(a => {
-          map[a.slot] = { url: a.imageUrl, resourceType: a.resourceType, header: a.header, subheader: a.subheader, color: a.color, ctaCategory: a.ctaCategory, ctaLabelId: a.ctaLabelId };
+          map[a.slot] = { url: a.imageUrl, resourceType: a.resourceType, headerEn: a.headerEn, headerFr: a.headerFr, headerEs: a.headerEs, subheaderEn: a.subheaderEn, subheaderFr: a.subheaderFr, subheaderEs: a.subheaderEs, color: a.color, ctaCategory: a.ctaCategory, ctaLabelId: a.ctaLabelId };
         });
         setAssetMap(map);
       })
@@ -69,10 +72,10 @@ export default function Home() {
         </div>
         <div className="relative z-10 p-10 md:p-16 max-w-lg" style={hero?.color ? { color: hero.color } : undefined}>
           <h1 className="font-serif text-5xl md:text-6xl italic font-light leading-tight mb-6">
-            {hero?.header || t('home.hero.tagline')}
+            {pickLocale(hero?.headerEn, hero?.headerFr, hero?.headerEs, i18n.language) || t('home.hero.tagline')}
           </h1>
-          {hero?.subheader && (
-            <p className="text-sm uppercase tracking-widest mb-4">{hero.subheader}</p>
+          {(hero?.subheaderEn || hero?.subheaderFr || hero?.subheaderEs) && (
+            <p className="text-sm uppercase tracking-widest mb-4">{pickLocale(hero?.subheaderEn, hero?.subheaderFr, hero?.subheaderEs, i18n.language)}</p>
           )}
           <Link
             to="/shop"
@@ -132,14 +135,14 @@ export default function Home() {
         <div className="bg-[#E0DDD8] min-h-[440px] overflow-hidden">
           {ed1?.url
             ? <SlotMedia entry={ed1} alt="Editorial 1" className="w-full h-full object-cover" />
-            : <div className="w-full h-full min-h-[440px] flex items-center justify-center"><p className="text-muted text-xs uppercase tracking-widest">{t('home.hero.imagePlaceholder')}</p></div>
+            : <div className="w-full h-full min-h-[440px] flex items-center justify-center"><p className="text-muted text-xs uppercase tracking-widest">{t('home.editorial1.imagePlaceholder')}</p></div>
           }
         </div>
         <div className="bg-[#F5F0EA] flex items-center justify-center p-12 md:p-20 min-h-[440px]">
           <div className="text-center max-w-xs" style={ed1?.color ? { color: ed1.color } : undefined}>
-            <p className="text-xs uppercase tracking-widest mb-4">{ed1?.subheader || t('home.editorial1.label')}</p>
+            <p className="text-xs uppercase tracking-widest mb-4">{pickLocale(ed1?.subheaderEn, ed1?.subheaderFr, ed1?.subheaderEs, i18n.language) || t('home.editorial1.label')}</p>
             <h2 className="font-serif text-4xl md:text-5xl italic font-light mb-6 leading-tight">
-              {ed1?.header || t('home.editorial1.tagline')}
+              {pickLocale(ed1?.headerEn, ed1?.headerFr, ed1?.headerEs, i18n.language) || t('home.editorial1.tagline')}
             </h2>
             <Link
               to={ctaHref(ed1)}
@@ -156,9 +159,9 @@ export default function Home() {
       <section className="grid md:grid-cols-2">
         <div className="bg-[#EAE8E4] flex items-center justify-center p-12 md:p-20 min-h-[440px] order-2 md:order-1">
           <div className="text-center max-w-xs" style={ed2?.color ? { color: ed2.color } : undefined}>
-            <p className="text-xs uppercase tracking-widest mb-4">{ed2?.subheader || t('home.editorial2.label')}</p>
+            <p className="text-xs uppercase tracking-widest mb-4">{pickLocale(ed2?.subheaderEn, ed2?.subheaderFr, ed2?.subheaderEs, i18n.language) || t('home.editorial2.label')}</p>
             <h2 className="font-serif text-4xl md:text-5xl italic font-light mb-6 leading-tight">
-              {ed2?.header || t('home.editorial2.tagline')}
+              {pickLocale(ed2?.headerEn, ed2?.headerFr, ed2?.headerEs, i18n.language) || t('home.editorial2.tagline')}
             </h2>
             <Link
               to={ctaHref(ed2)}
@@ -172,7 +175,7 @@ export default function Home() {
         <div className="bg-[#D0CCC8] min-h-[440px] overflow-hidden order-1 md:order-2">
           {ed2?.url
             ? <SlotMedia entry={ed2} alt="Editorial 2" className="w-full h-full object-cover" />
-            : <div className="w-full h-full min-h-[440px] flex items-center justify-center"><p className="text-muted text-xs uppercase tracking-widest">{t('home.hero.imagePlaceholder')}</p></div>
+            : <div className="w-full h-full min-h-[440px] flex items-center justify-center"><p className="text-muted text-xs uppercase tracking-widest">{t('home.editorial2.imagePlaceholder')}</p></div>
           }
         </div>
       </section>

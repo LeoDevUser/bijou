@@ -31,6 +31,20 @@ export default function Shop() {
       .finally(() => setLoading(false));
   }, []);
 
+  const resolvedLabelId = useMemo(() => {
+    if (!activeLabelId) return null;
+    const numeric = Number(activeLabelId);
+    if (!isNaN(numeric)) return numeric;
+    // Slug resolution: match by name (case-insensitive)
+    const slug = activeLabelId.toLowerCase();
+    const match = labels.find(l =>
+      (l.nameEn ?? '').toLowerCase() === slug ||
+      (l.nameFr ?? '').toLowerCase() === slug ||
+      (l.nameEs ?? '').toLowerCase() === slug
+    );
+    return match ? match.id : null;
+  }, [activeLabelId, labels]);
+
   const items = useMemo(() => {
     let result = allItems;
     if (activeCategory) {
@@ -38,12 +52,11 @@ export default function Shop() {
         item.category.toUpperCase() === activeCategory.toUpperCase()
       );
     }
-    if (activeLabelId) {
-      const id = Number(activeLabelId);
-      result = result.filter(item => item.labels.some(l => l.id === id));
+    if (resolvedLabelId !== null) {
+      result = result.filter(item => item.labels.some(l => l.id === resolvedLabelId));
     }
     return result;
-  }, [allItems, activeCategory, activeLabelId]);
+  }, [allItems, activeCategory, resolvedLabelId]);
 
   function setCategory(value: string) {
     setSearchParams(prev => {
@@ -65,7 +78,7 @@ export default function Shop() {
     setSearchParams({}, { replace: true });
   }
 
-  const hasFilters = activeCategory || activeLabelId;
+  const hasFilters = activeCategory || resolvedLabelId !== null;
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
@@ -100,15 +113,15 @@ export default function Shop() {
             <span className="text-xs uppercase tracking-widest text-muted w-16 shrink-0">{t('shop.label')}</span>
             <button
               onClick={() => setLabel('')}
-              className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${!activeLabelId ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
+              className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${resolvedLabelId === null ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
             >
               {t('shop.all')}
             </button>
             {labels.map(label => (
               <button
                 key={label.id}
-                onClick={() => setLabel(activeLabelId === String(label.id) ? '' : String(label.id))}
-                className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${activeLabelId === String(label.id) ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
+                onClick={() => setLabel(resolvedLabelId === label.id ? '' : String(label.id))}
+                className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${resolvedLabelId === label.id ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
               >
                 {pickLocale(label.nameEn, label.nameFr, label.nameEs, i18n.language)}
               </button>

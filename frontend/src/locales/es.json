@@ -3,7 +3,6 @@
     "allJewelry": "Todas las Joyas",
     "newIn": "Novedades",
     "collections": "Colecciones",
-    "gifts": "Regalos",
     "account": "Cuenta",
     "orders": "Mis Pedidos",
     "logout": "Cerrar Sesión"
@@ -33,12 +32,14 @@
     "editorial1": {
       "label": "Novedades",
       "tagline": "Al Ritmo de tu Día",
-      "cta": "Ver el Look"
+      "cta": "Ver el Look",
+      "imagePlaceholder": "Editorial 1"
     },
     "editorial2": {
       "label": "Colecciones",
       "tagline": "Toda la Noche",
-      "cta": "Explorar"
+      "cta": "Explorar",
+      "imagePlaceholder": "Editorial 2"
     }
   },
   "shop": {
@@ -122,6 +123,10 @@
       "CANCELLED": "Cancelado"
     }
   },
+  "collections": {
+    "empty": "Aún no hay colecciones.",
+    "shopNow": "Explorar"
+  },
   "admin": {
     "title": "Admin",
     "subtitle": "Consola de gestión de Bijou Monde",
@@ -201,6 +206,17 @@
     "admins": {
       "empty": "No se encontraron admins."
     },
+    "collections": {
+      "title": "Colecciones",
+      "addCollection": "+ Agregar Colección",
+      "newTitle": "Nueva Colección",
+      "editTitle": "Editar Colección",
+      "label": "Etiqueta",
+      "labelRequired": "Por favor selecciona una etiqueta.",
+      "deleteConfirm": "¿Eliminar esta colección? Esta acción no se puede deshacer.",
+      "saveError": "Error al guardar. Por favor, intenta de nuevo.",
+      "empty": "Aún no hay colecciones."
+    },
     "labels": {
       "title": "Etiquetas",
       "addPlaceholder": "Nueva etiqueta...",
@@ -209,6 +225,25 @@
       "empty": "Aún no hay etiquetas."
     },
     "site": {
+      "assetsTitle": "Recursos de la Página de Inicio",
+      "upload": "Subir",
+      "remove": "Eliminar",
+      "noImage": "Sin imagen",
+      "headerPlaceholder": "Encabezado",
+      "subheaderPlaceholder": "Subtítulo",
+      "colorPlaceholder": "Color del texto (ej. #1C1C1C)",
+      "ctaCategory": "CTA → Categoría",
+      "ctaLabel": "CTA → Etiqueta",
+      "noneOption": "— Ninguno —",
+      "slots": {
+        "hero": "Imagen/Video Principal",
+        "ring": "Categoría Anillos",
+        "necklace": "Categoría Collares",
+        "earring": "Categoría Aretes",
+        "bracelet": "Categoría Pulseras",
+        "editorial1": "Editorial 1",
+        "editorial2": "Editorial 2"
+      },
       "announcementsTitle": "Barra de Anuncios",
       "empty": "Aún no hay anuncios.",
       "addTitle": "Nuevo Anuncio",

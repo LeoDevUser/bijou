@@ -3,7 +3,6 @@
     "allJewelry": "Tous les Bijoux",
     "newIn": "Nouveautés",
     "collections": "Collections",
-    "gifts": "Cadeaux",
     "account": "Compte",
     "orders": "Mes Commandes",
     "logout": "Se Déconnecter"
@@ -33,12 +32,14 @@
     "editorial1": {
       "label": "Nouveautés",
       "tagline": "En Mouvement",
-      "cta": "Voir le Look"
+      "cta": "Voir le Look",
+      "imagePlaceholder": "Éditorial 1"
     },
     "editorial2": {
       "label": "Collections",
       "tagline": "Toute la Nuit",
-      "cta": "Explorer"
+      "cta": "Explorer",
+      "imagePlaceholder": "Éditorial 2"
     }
   },
   "shop": {
@@ -122,6 +123,10 @@
       "CANCELLED": "Annulée"
     }
   },
+  "collections": {
+    "empty": "Aucune collection pour l'instant.",
+    "shopNow": "Découvrir"
+  },
   "admin": {
     "title": "Admin",
     "subtitle": "Console de gestion Bijou Monde",
@@ -201,6 +206,17 @@
     "admins": {
       "empty": "Aucun admin trouvé."
     },
+    "collections": {
+      "title": "Collections",
+      "addCollection": "+ Ajouter une Collection",
+      "newTitle": "Nouvelle Collection",
+      "editTitle": "Modifier la Collection",
+      "label": "Étiquette",
+      "labelRequired": "Veuillez sélectionner une étiquette.",
+      "deleteConfirm": "Supprimer cette collection ? Cette action est irréversible.",
+      "saveError": "Échec de l'enregistrement. Veuillez réessayer.",
+      "empty": "Aucune collection pour l'instant."
+    },
     "labels": {
       "title": "Étiquettes",
       "addPlaceholder": "Nouvelle étiquette...",
@@ -209,6 +225,25 @@
       "empty": "Aucune étiquette pour l'instant."
     },
     "site": {
+      "assetsTitle": "Ressources de la Page d'Accueil",
+      "upload": "Téléverser",
+      "remove": "Supprimer",
+      "noImage": "Aucune image",
+      "headerPlaceholder": "En-tête",
+      "subheaderPlaceholder": "Sous-titre",
+      "colorPlaceholder": "Couleur du texte (ex. #1C1C1C)",
+      "ctaCategory": "CTA → Catégorie",
+      "ctaLabel": "CTA → Étiquette",
+      "noneOption": "— Aucun —",
+      "slots": {
+        "hero": "Image/Vidéo Principale",
+        "ring": "Catégorie Bagues",
+        "necklace": "Catégorie Colliers",
+        "earring": "Catégorie Boucles d'oreilles",
+        "bracelet": "Catégorie Bracelets",
+        "editorial1": "Éditorial 1",
+        "editorial2": "Éditorial 2"
+      },
       "announcementsTitle": "Barre d'annonces",
       "empty": "Aucune annonce pour l'instant.",
       "addTitle": "Nouvelle Annonce",

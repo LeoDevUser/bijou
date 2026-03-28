@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, Category, VerboseClient, LabelView, AnnouncementView, SiteAssetView } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, Category, VerboseClient, LabelView, AnnouncementView, SiteAssetView, CollectionView } from '../types';
 import { pickLocale, isItemIncomplete, isLabelIncomplete } from '../types';
 
 const CATEGORIES: Category[] = ['NECKLACE', 'RING', 'EARRING', 'MISC'];
@@ -581,6 +581,264 @@ function AdminProducts() {
           onSaved={() => { setModal(null); load(); }}
         />
       )}
+
+      <AdminCollections labels={labels} />
+    </div>
+  );
+}
+
+// ── Collections ───────────────────────────────────────────────────────────────
+
+type CollectionModal = 'new' | CollectionView;
+
+function CollectionFormModal({
+  initial,
+  labels,
+  onClose,
+  onSaved,
+}: {
+  initial?: CollectionView;
+  labels: LabelView[];
+  onClose: () => void;
+  onSaved: (c: CollectionView) => void;
+}) {
+  const { t } = useTranslation();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [form, setForm] = useState({
+    labelId: initial?.labelId ?? (labels[0]?.id ?? 0),
+    headerEn: initial?.headerEn ?? '',
+    headerFr: initial?.headerFr ?? '',
+    headerEs: initial?.headerEs ?? '',
+    subheaderEn: initial?.subheaderEn ?? '',
+    subheaderFr: initial?.subheaderFr ?? '',
+    subheaderEs: initial?.subheaderEs ?? '',
+    color: initial?.color ?? '',
+  });
+
+  const set = (k: keyof typeof form, v: string | number) =>
+    setForm(f => ({ ...f, [k]: v }));
+
+  async function handleSave() {
+    if (!form.labelId) { setError(t('admin.collections.labelRequired')); return; }
+    setSaving(true);
+    setError('');
+    try {
+      const payload = {
+        labelId: Number(form.labelId),
+        headerEn: form.headerEn,
+        headerFr: form.headerFr,
+        headerEs: form.headerEs,
+        subheaderEn: form.subheaderEn,
+        subheaderFr: form.subheaderFr,
+        subheaderEs: form.subheaderEs,
+        color: form.color,
+      };
+      let saved: CollectionView;
+      if (initial) {
+        saved = await api.admin.collections.updateText(initial.id, payload);
+      } else {
+        saved = await api.admin.collections.create(payload);
+      }
+      if (file) {
+        saved = await api.admin.collections.uploadImage(saved.id, file);
+      }
+      onSaved(saved);
+    } catch {
+      setError(t('admin.collections.saveError'));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const inputClass = 'border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full';
+
+  return (
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+      <div className="bg-cream w-full max-w-lg max-h-[90vh] overflow-y-auto p-8 space-y-4">
+        <h2 className="font-serif text-2xl font-light">
+          {initial ? t('admin.collections.editTitle') : t('admin.collections.newTitle')}
+        </h2>
+
+        <div>
+          <label className="text-xs uppercase tracking-widest text-muted block mb-1">{t('admin.collections.label')}</label>
+          <select value={form.labelId} onChange={e => set('labelId', Number(e.target.value))} className={inputClass}>
+            {labels.map(l => (
+              <option key={l.id} value={l.id}>{l.nameEn || l.nameFr || l.nameEs}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2">
+          <div>
+            <label className="text-xs text-muted block mb-1">EN</label>
+            <input value={form.headerEn} onChange={e => set('headerEn', e.target.value)} placeholder={t('admin.modal.name')} className={inputClass} />
+          </div>
+          <div>
+            <label className="text-xs text-muted block mb-1">FR</label>
+            <input value={form.headerFr} onChange={e => set('headerFr', e.target.value)} placeholder={t('admin.modal.name')} className={inputClass} />
+          </div>
+          <div>
+            <label className="text-xs text-muted block mb-1">ES</label>
+            <input value={form.headerEs} onChange={e => set('headerEs', e.target.value)} placeholder={t('admin.modal.name')} className={inputClass} />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2">
+          <div>
+            <label className="text-xs text-muted block mb-1">EN</label>
+            <input value={form.subheaderEn} onChange={e => set('subheaderEn', e.target.value)} placeholder={t('admin.site.subheaderPlaceholder')} className={inputClass} />
+          </div>
+          <div>
+            <label className="text-xs text-muted block mb-1">FR</label>
+            <input value={form.subheaderFr} onChange={e => set('subheaderFr', e.target.value)} placeholder={t('admin.site.subheaderPlaceholder')} className={inputClass} />
+          </div>
+          <div>
+            <label className="text-xs text-muted block mb-1">ES</label>
+            <input value={form.subheaderEs} onChange={e => set('subheaderEs', e.target.value)} placeholder={t('admin.site.subheaderPlaceholder')} className={inputClass} />
+          </div>
+        </div>
+
+        <input
+          value={form.color}
+          onChange={e => set('color', e.target.value)}
+          placeholder={t('admin.site.colorPlaceholder')}
+          className={inputClass}
+        />
+
+        <div>
+          <label className="text-xs uppercase tracking-widest text-muted block mb-1">{t('admin.modal.image')}</label>
+          {initial?.imageUrl && (
+            <img src={initial.imageUrl} alt="" className="w-24 h-16 object-cover mb-2" />
+          )}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp,video/mp4,video/webm,video/quicktime"
+            className="hidden"
+            onChange={e => setFile(e.target.files?.[0] ?? null)}
+          />
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="border border-border text-xs uppercase tracking-widest px-4 py-2 hover:border-dark transition-colors"
+          >
+            {file ? file.name : t('admin.site.upload')}
+          </button>
+        </div>
+
+        {error && <p className="text-red-500 text-xs">{error}</p>}
+
+        <div className="flex gap-3 pt-2">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-dark text-white text-xs uppercase tracking-widest px-6 py-3 hover:bg-gold transition-colors disabled:opacity-50"
+          >
+            {saving ? '...' : t('admin.modal.save')}
+          </button>
+          <button
+            onClick={onClose}
+            className="border border-border text-xs uppercase tracking-widest px-6 py-3 hover:border-dark transition-colors"
+          >
+            {t('admin.modal.cancel')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AdminCollections({ labels }: { labels: LabelView[] }) {
+  const { t, i18n } = useTranslation();
+  const [collections, setCollections] = useState<CollectionView[]>([]);
+  const [modal, setModal] = useState<CollectionModal | null>(null);
+
+  useEffect(() => { loadCollections(); }, []);
+
+  async function loadCollections() {
+    const data = await api.collections.list().catch(() => []);
+    setCollections(data);
+  }
+
+  async function handleDelete(id: number) {
+    if (!confirm(t('admin.collections.deleteConfirm'))) return;
+    await api.admin.collections.delete(id);
+    loadCollections();
+  }
+
+  async function handleDeleteImage(id: number) {
+    await api.admin.collections.deleteImage(id);
+    loadCollections();
+  }
+
+  return (
+    <div className="mt-10 pt-6 border-t border-border">
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-xs uppercase tracking-widest">{t('admin.collections.title')}</p>
+        <button
+          onClick={() => setModal('new')}
+          className="bg-dark text-white text-xs uppercase tracking-widest px-4 py-2 hover:bg-gold transition-colors"
+        >
+          {t('admin.collections.addCollection')}
+        </button>
+      </div>
+
+      {collections.length === 0 ? (
+        <p className="text-xs text-muted">{t('admin.collections.empty')}</p>
+      ) : (
+        <div className="space-y-2">
+          {collections.map(c => {
+            const labelName = pickLocale(c.labelNameEn, c.labelNameFr, c.labelNameEs, i18n.language) || `#${c.labelId}`;
+            const header = pickLocale(c.headerEn, c.headerFr, c.headerEs, i18n.language);
+            return (
+              <div key={c.id} className="border border-border flex items-center gap-4 px-5 py-4">
+                {c.imageUrl
+                  ? <img src={c.imageUrl} alt={header || labelName} className="w-16 h-12 object-cover flex-shrink-0" />
+                  : <div className="w-16 h-12 bg-[#F0EDE8] flex-shrink-0" />
+                }
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{header || labelName}</p>
+                  <p className="text-xs text-muted">{labelName}</p>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => setModal(c)}
+                    className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors"
+                  >
+                    {t('admin.products.edit')}
+                  </button>
+                  {c.imageUrl && (
+                    <button
+                      onClick={() => handleDeleteImage(c.id)}
+                      className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors"
+                    >
+                      {t('admin.products.delImage')}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleDelete(c.id)}
+                    className="text-xs uppercase tracking-widest border border-red-300 text-red-500 px-3 py-1.5 hover:border-red-500 transition-colors"
+                  >
+                    {t('admin.products.delete')}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {modal !== null && (
+        <CollectionFormModal
+          initial={modal === 'new' ? undefined : modal}
+          labels={labels}
+          onClose={() => setModal(null)}
+          onSaved={() => { setModal(null); loadCollections(); }}
+        />
+      )}
     </div>
   );
 }
@@ -848,30 +1106,31 @@ function AdminAdmins() {
 
 // ── Site Assets ───────────────────────────────────────────────────────────────
 
-const SLOT_LABELS: Record<string, string> = {
-  hero: 'Hero',
-  ring: 'Rings Category',
-  necklace: 'Necklaces Category',
-  earring: 'Earrings Category',
-  bracelet: 'Bracelets Category',
-  editorial1: 'Editorial 1',
-  editorial2: 'Editorial 2',
+const SLOT_LABEL_KEYS: Record<string, string> = {
+  hero: 'admin.site.slots.hero',
+  ring: 'admin.site.slots.ring',
+  necklace: 'admin.site.slots.necklace',
+  earring: 'admin.site.slots.earring',
+  bracelet: 'admin.site.slots.bracelet',
+  editorial1: 'admin.site.slots.editorial1',
+  editorial2: 'admin.site.slots.editorial2',
 };
 
-const ASSET_CATEGORIES: { value: string; label: string }[] = [
-  { value: 'RING', label: 'Rings' },
-  { value: 'NECKLACE', label: 'Necklaces' },
-  { value: 'EARRING', label: 'Earrings' },
-  { value: 'MISC', label: 'Misc' },
+const ASSET_CATEGORIES: { value: string; labelKey: string }[] = [
+  { value: 'RING', labelKey: 'home.categories.rings' },
+  { value: 'NECKLACE', labelKey: 'home.categories.necklaces' },
+  { value: 'EARRING', labelKey: 'home.categories.earrings' },
+  { value: 'MISC', labelKey: 'shop.misc' },
 ];
 
 function AdminSiteAssets() {
+  const { t } = useTranslation();
   const [assets, setAssets] = useState<SiteAssetView[]>([]);
   const [labels, setLabels] = useState<LabelView[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
-  const [textForm, setTextForm] = useState({ header: '', subheader: '', color: '', ctaCategory: '', ctaLabelId: '' });
+  const [textForm, setTextForm] = useState({ headerEn: '', headerFr: '', headerEs: '', subheaderEn: '', subheaderFr: '', subheaderEs: '', color: '', ctaCategory: '', ctaLabelId: '' });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -884,8 +1143,12 @@ function AdminSiteAssets() {
   function openEdit(asset: SiteAssetView) {
     setEditing(asset.slot);
     setTextForm({
-      header: asset.header ?? '',
-      subheader: asset.subheader ?? '',
+      headerEn: asset.headerEn ?? '',
+      headerFr: asset.headerFr ?? '',
+      headerEs: asset.headerEs ?? '',
+      subheaderEn: asset.subheaderEn ?? '',
+      subheaderFr: asset.subheaderFr ?? '',
+      subheaderEs: asset.subheaderEs ?? '',
       color: asset.color ?? '',
       ctaCategory: asset.ctaCategory ?? '',
       ctaLabelId: asset.ctaLabelId != null ? String(asset.ctaLabelId) : '',
@@ -896,7 +1159,13 @@ function AdminSiteAssets() {
     setSaving(true);
     try {
       const updated = await api.admin.siteAssets.updateText(slot, {
-        ...textForm,
+        headerEn: textForm.headerEn,
+        headerFr: textForm.headerFr,
+        headerEs: textForm.headerEs,
+        subheaderEn: textForm.subheaderEn,
+        subheaderFr: textForm.subheaderFr,
+        subheaderEs: textForm.subheaderEs,
+        color: textForm.color,
         ctaCategory: textForm.ctaCategory || null,
         ctaLabelId: textForm.ctaLabelId ? Number(textForm.ctaLabelId) : null,
       });
@@ -940,10 +1209,10 @@ function AdminSiteAssets() {
               }
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium">{SLOT_LABELS[asset.slot] ?? asset.slot}</p>
-              {(asset.header || asset.subheader) && (
+              <p className="text-sm font-medium">{t(SLOT_LABEL_KEYS[asset.slot] ?? asset.slot)}</p>
+              {(asset.headerEn || asset.subheaderEn) && (
                 <p className="text-xs text-muted truncate mt-0.5">
-                  {[asset.header, asset.subheader].filter(Boolean).join(' · ')}
+                  {[asset.headerEn, asset.subheaderEn].filter(Boolean).join(' · ')}
                   {asset.color && <span className="ml-2" style={{ color: asset.color }}>■</span>}
                 </p>
               )}
@@ -953,10 +1222,10 @@ function AdminSiteAssets() {
                 onClick={() => editing === asset.slot ? setEditing(null) : openEdit(asset)}
                 className={`text-xs uppercase tracking-widest border px-3 py-1.5 transition-colors ${editing === asset.slot ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
               >
-                Edit
+                {t('admin.site.edit')}
               </button>
               <label className={`text-xs uppercase tracking-widest border border-dark bg-dark text-white px-3 py-1.5 cursor-pointer hover:bg-gold transition-colors ${uploading === asset.slot ? 'opacity-50 pointer-events-none' : ''}`}>
-                {uploading === asset.slot ? '...' : 'Upload'}
+                {uploading === asset.slot ? '...' : t('admin.site.upload')}
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/webp,video/mp4,video/webm,video/quicktime"
@@ -970,7 +1239,7 @@ function AdminSiteAssets() {
                   disabled={uploading === asset.slot}
                   className="text-xs uppercase tracking-widest border border-red-300 text-red-500 px-3 py-1.5 hover:border-red-500 transition-colors disabled:opacity-50"
                 >
-                  Remove
+                  {t('admin.site.remove')}
                 </button>
               )}
             </div>
@@ -979,24 +1248,24 @@ function AdminSiteAssets() {
           {/* Text edit panel */}
           {editing === asset.slot && (
             <div className="border-t border-border p-4 bg-[#FAF9F7] space-y-2">
-              <input
-                value={textForm.header}
-                onChange={e => setTextForm(f => ({ ...f, header: e.target.value }))}
-                placeholder="Header"
-                className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full"
-              />
-              <input
-                value={textForm.subheader}
-                onChange={e => setTextForm(f => ({ ...f, subheader: e.target.value }))}
-                placeholder="Subheader"
-                className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full"
-              />
+              <div className="space-y-1">
+                <p className="text-xs text-muted uppercase tracking-widest">{t('admin.site.headerPlaceholder')}</p>
+                <input value={textForm.headerEn} onChange={e => setTextForm(f => ({ ...f, headerEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                <input value={textForm.headerFr} onChange={e => setTextForm(f => ({ ...f, headerFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                <input value={textForm.headerEs} onChange={e => setTextForm(f => ({ ...f, headerEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted uppercase tracking-widest">{t('admin.site.subheaderPlaceholder')}</p>
+                <input value={textForm.subheaderEn} onChange={e => setTextForm(f => ({ ...f, subheaderEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                <input value={textForm.subheaderFr} onChange={e => setTextForm(f => ({ ...f, subheaderFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                <input value={textForm.subheaderEs} onChange={e => setTextForm(f => ({ ...f, subheaderEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+              </div>
               <div className="flex items-center gap-3">
                 <div className="relative flex-1">
                   <input
                     value={textForm.color}
                     onChange={e => setTextForm(f => ({ ...f, color: e.target.value }))}
-                    placeholder="Text color (e.g. #1C1C1C)"
+                    placeholder={t('admin.site.colorPlaceholder')}
                     className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full pr-10"
                   />
                   {textForm.color && (
@@ -1013,26 +1282,26 @@ function AdminSiteAssets() {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <p className="text-xs text-muted uppercase tracking-widest mb-1">CTA → Category</p>
+                  <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.ctaCategory')}</p>
                   <select
                     value={textForm.ctaCategory}
                     onChange={e => setTextForm(f => ({ ...f, ctaCategory: e.target.value }))}
                     className={`${selectClass} w-full`}
                   >
-                    <option value="">— None —</option>
+                    <option value="">{t('admin.site.noneOption')}</option>
                     {ASSET_CATEGORIES.map(c => (
-                      <option key={c.value} value={c.value}>{c.label}</option>
+                      <option key={c.value} value={c.value}>{t(c.labelKey)}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <p className="text-xs text-muted uppercase tracking-widest mb-1">CTA → Label</p>
+                  <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.ctaLabel')}</p>
                   <select
                     value={textForm.ctaLabelId}
                     onChange={e => setTextForm(f => ({ ...f, ctaLabelId: e.target.value }))}
                     className={`${selectClass} w-full`}
                   >
-                    <option value="">— None —</option>
+                    <option value="">{t('admin.site.noneOption')}</option>
                     {labels.map(l => (
                       <option key={l.id} value={l.id}>{l.nameEn || l.nameFr || l.nameEs}</option>
                     ))}
@@ -1041,10 +1310,10 @@ function AdminSiteAssets() {
               </div>
               <div className="flex gap-2 pt-1">
                 <button onClick={() => saveText(asset.slot)} disabled={saving} className="text-xs uppercase tracking-widest border border-dark bg-dark text-white px-4 py-2 hover:bg-gold transition-colors disabled:opacity-50">
-                  {saving ? '...' : 'Save'}
+                  {saving ? '...' : t('admin.site.save')}
                 </button>
                 <button onClick={() => setEditing(null)} className="text-xs uppercase tracking-widest border border-border px-4 py-2 hover:border-dark transition-colors">
-                  Cancel
+                  {t('admin.site.cancel')}
                 </button>
               </div>
             </div>
@@ -1111,7 +1380,7 @@ function AdminSite() {
 
   return (
     <div>
-      <h2 className="text-xs uppercase tracking-widest text-muted mb-6">Landing Page Assets</h2>
+      <h2 className="text-xs uppercase tracking-widest text-muted mb-6">{t('admin.site.assetsTitle')}</h2>
       <AdminSiteAssets />
 
       <h2 className="text-xs uppercase tracking-widest text-muted mb-6">{t('admin.site.announcementsTitle')}</h2>

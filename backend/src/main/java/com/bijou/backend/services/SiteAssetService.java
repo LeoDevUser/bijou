@@ -25,7 +25,7 @@ public class SiteAssetService {
     private static final Set<String> VIDEO_TYPES = Set.of("video/mp4", "video/webm", "video/quicktime");
 
     private SiteAssetView toView(SiteAsset a) {
-        return new SiteAssetView(a.getId(), a.getSlot(), a.getImageUrl(), a.getImageId(), a.getResourceType(), a.getHeader(), a.getSubheader(), a.getColor(), a.getCtaCategory(), a.getCtaLabelId());
+        return new SiteAssetView(a.getId(), a.getSlot(), a.getImageUrl(), a.getImageId(), a.getResourceType(), a.getHeaderEn(), a.getHeaderFr(), a.getHeaderEs(), a.getSubheaderEn(), a.getSubheaderFr(), a.getSubheaderEs(), a.getColor(), a.getCtaCategory(), a.getCtaLabelId());
     }
 
     public List<SiteAssetView> getAll() {
@@ -60,8 +60,12 @@ public class SiteAssetService {
 
     public SiteAssetView updateText(String slot, SiteAssetTextRequest req) {
         SiteAsset asset = findBySlotOrThrow(slot);
-        asset.setHeader(req.header());
-        asset.setSubheader(req.subheader());
+        asset.setHeaderEn(req.headerEn());
+        asset.setHeaderFr(req.headerFr());
+        asset.setHeaderEs(req.headerEs());
+        asset.setSubheaderEn(req.subheaderEn());
+        asset.setSubheaderFr(req.subheaderFr());
+        asset.setSubheaderEs(req.subheaderEs());
         asset.setColor(req.color());
         asset.setCtaCategory(req.ctaCategory());
         asset.setCtaLabelId(req.ctaLabelId());
