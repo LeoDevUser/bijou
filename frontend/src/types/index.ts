@@ -108,6 +108,11 @@ export interface SiteAssetView {
   imageUrl: string | null;
   imageId: string | null;
   resourceType: string;
+  header: string | null;
+  subheader: string | null;
+  color: string | null;
+  ctaCategory: string | null;
+  ctaLabelId: number | null;
 }
 
 /** Pick the best available translation for the current locale, falling back to any non-null value. */

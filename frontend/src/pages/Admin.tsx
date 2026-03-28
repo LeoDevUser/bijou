@@ -854,22 +854,55 @@ const SLOT_LABELS: Record<string, string> = {
   necklace: 'Necklaces Category',
   earring: 'Earrings Category',
   bracelet: 'Bracelets Category',
-  anklet: 'Anklets Category',
   editorial1: 'Editorial 1',
   editorial2: 'Editorial 2',
 };
 
+const ASSET_CATEGORIES: { value: string; label: string }[] = [
+  { value: 'RING', label: 'Rings' },
+  { value: 'NECKLACE', label: 'Necklaces' },
+  { value: 'EARRING', label: 'Earrings' },
+  { value: 'MISC', label: 'Misc' },
+];
+
 function AdminSiteAssets() {
   const [assets, setAssets] = useState<SiteAssetView[]>([]);
+  const [labels, setLabels] = useState<LabelView[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState<string | null>(null);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [textForm, setTextForm] = useState({ header: '', subheader: '', color: '', ctaCategory: '', ctaLabelId: '' });
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => { loadAssets(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  async function loadAssets() {
+  useEffect(() => {
     setLoading(true);
-    try { setAssets(await api.siteAssets.list()); }
-    finally { setLoading(false); }
+    Promise.all([api.siteAssets.list(), api.labels.list()])
+      .then(([a, l]) => { setAssets(a); setLabels(l); })
+      .finally(() => setLoading(false));
+  }, []);
+
+  function openEdit(asset: SiteAssetView) {
+    setEditing(asset.slot);
+    setTextForm({
+      header: asset.header ?? '',
+      subheader: asset.subheader ?? '',
+      color: asset.color ?? '',
+      ctaCategory: asset.ctaCategory ?? '',
+      ctaLabelId: asset.ctaLabelId != null ? String(asset.ctaLabelId) : '',
+    });
+  }
+
+  async function saveText(slot: string) {
+    setSaving(true);
+    try {
+      const updated = await api.admin.siteAssets.updateText(slot, {
+        ...textForm,
+        ctaCategory: textForm.ctaCategory || null,
+        ctaLabelId: textForm.ctaLabelId ? Number(textForm.ctaLabelId) : null,
+      });
+      setAssets(prev => prev.map(a => a.slot === slot ? updated : a));
+      setEditing(null);
+    } finally { setSaving(false); }
   }
 
   async function handleUpload(slot: string, file: File) {
@@ -895,39 +928,127 @@ function AdminSiteAssets() {
   return (
     <div className="space-y-3 mb-10">
       {assets.map(asset => (
-        <div key={asset.slot} className="border border-border p-4 flex items-center gap-4">
-          <div className="w-20 h-14 bg-[#F0EDE8] shrink-0 overflow-hidden flex items-center justify-center">
-            {asset.imageUrl
-              ? asset.resourceType === 'video'
-                ? <video src={asset.imageUrl} className="w-full h-full object-cover" muted />
-                : <img src={asset.imageUrl} alt={asset.slot} className="w-full h-full object-cover" />
-              : <span className="text-muted text-xs">—</span>
-            }
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium">{SLOT_LABELS[asset.slot] ?? asset.slot}</p>
-            <p className="text-xs text-muted truncate">{asset.imageUrl ?? 'No image'}</p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <label className={`text-xs uppercase tracking-widest border border-dark bg-dark text-white px-3 py-1.5 cursor-pointer hover:bg-gold transition-colors ${uploading === asset.slot ? 'opacity-50 pointer-events-none' : ''}`}>
-              {uploading === asset.slot ? '...' : 'Upload'}
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/webp,video/mp4,video/webm,video/quicktime"
-                className="hidden"
-                onChange={e => { const f = e.target.files?.[0]; if (f) handleUpload(asset.slot, f); e.target.value = ''; }}
-              />
-            </label>
-            {asset.imageId && (
+        <div key={asset.slot} className="border border-border">
+          {/* Main row */}
+          <div className="p-4 flex items-center gap-4">
+            <div className="w-20 h-14 bg-[#F0EDE8] shrink-0 overflow-hidden flex items-center justify-center">
+              {asset.imageUrl
+                ? asset.resourceType === 'video'
+                  ? <video src={asset.imageUrl} className="w-full h-full object-cover" muted />
+                  : <img src={asset.imageUrl} alt={asset.slot} className="w-full h-full object-cover" />
+                : <span className="text-muted text-xs">—</span>
+              }
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium">{SLOT_LABELS[asset.slot] ?? asset.slot}</p>
+              {(asset.header || asset.subheader) && (
+                <p className="text-xs text-muted truncate mt-0.5">
+                  {[asset.header, asset.subheader].filter(Boolean).join(' · ')}
+                  {asset.color && <span className="ml-2" style={{ color: asset.color }}>■</span>}
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
               <button
-                onClick={() => handleDelete(asset.slot)}
-                disabled={uploading === asset.slot}
-                className="text-xs uppercase tracking-widest border border-red-300 text-red-500 px-3 py-1.5 hover:border-red-500 transition-colors disabled:opacity-50"
+                onClick={() => editing === asset.slot ? setEditing(null) : openEdit(asset)}
+                className={`text-xs uppercase tracking-widest border px-3 py-1.5 transition-colors ${editing === asset.slot ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
               >
-                Remove
+                Edit
               </button>
-            )}
+              <label className={`text-xs uppercase tracking-widest border border-dark bg-dark text-white px-3 py-1.5 cursor-pointer hover:bg-gold transition-colors ${uploading === asset.slot ? 'opacity-50 pointer-events-none' : ''}`}>
+                {uploading === asset.slot ? '...' : 'Upload'}
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,video/mp4,video/webm,video/quicktime"
+                  className="hidden"
+                  onChange={e => { const f = e.target.files?.[0]; if (f) handleUpload(asset.slot, f); e.target.value = ''; }}
+                />
+              </label>
+              {asset.imageId && (
+                <button
+                  onClick={() => handleDelete(asset.slot)}
+                  disabled={uploading === asset.slot}
+                  className="text-xs uppercase tracking-widest border border-red-300 text-red-500 px-3 py-1.5 hover:border-red-500 transition-colors disabled:opacity-50"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
           </div>
+
+          {/* Text edit panel */}
+          {editing === asset.slot && (
+            <div className="border-t border-border p-4 bg-[#FAF9F7] space-y-2">
+              <input
+                value={textForm.header}
+                onChange={e => setTextForm(f => ({ ...f, header: e.target.value }))}
+                placeholder="Header"
+                className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full"
+              />
+              <input
+                value={textForm.subheader}
+                onChange={e => setTextForm(f => ({ ...f, subheader: e.target.value }))}
+                placeholder="Subheader"
+                className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full"
+              />
+              <div className="flex items-center gap-3">
+                <div className="relative flex-1">
+                  <input
+                    value={textForm.color}
+                    onChange={e => setTextForm(f => ({ ...f, color: e.target.value }))}
+                    placeholder="Text color (e.g. #1C1C1C)"
+                    className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full pr-10"
+                  />
+                  {textForm.color && (
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 rounded-sm border border-border" style={{ background: textForm.color }} />
+                  )}
+                </div>
+                <input
+                  type="color"
+                  value={textForm.color || '#1C1C1C'}
+                  onChange={e => setTextForm(f => ({ ...f, color: e.target.value }))}
+                  className="w-10 h-9 border border-border cursor-pointer bg-cream p-0.5"
+                  title="Pick color"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <p className="text-xs text-muted uppercase tracking-widest mb-1">CTA → Category</p>
+                  <select
+                    value={textForm.ctaCategory}
+                    onChange={e => setTextForm(f => ({ ...f, ctaCategory: e.target.value }))}
+                    className={`${selectClass} w-full`}
+                  >
+                    <option value="">— None —</option>
+                    {ASSET_CATEGORIES.map(c => (
+                      <option key={c.value} value={c.value}>{c.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <p className="text-xs text-muted uppercase tracking-widest mb-1">CTA → Label</p>
+                  <select
+                    value={textForm.ctaLabelId}
+                    onChange={e => setTextForm(f => ({ ...f, ctaLabelId: e.target.value }))}
+                    className={`${selectClass} w-full`}
+                  >
+                    <option value="">— None —</option>
+                    {labels.map(l => (
+                      <option key={l.id} value={l.id}>{l.nameEn || l.nameFr || l.nameEs}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="flex gap-2 pt-1">
+                <button onClick={() => saveText(asset.slot)} disabled={saving} className="text-xs uppercase tracking-widest border border-dark bg-dark text-white px-4 py-2 hover:bg-gold transition-colors disabled:opacity-50">
+                  {saving ? '...' : 'Save'}
+                </button>
+                <button onClick={() => setEditing(null)} className="text-xs uppercase tracking-widest border border-border px-4 py-2 hover:border-dark transition-colors">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       ))}
     </div>

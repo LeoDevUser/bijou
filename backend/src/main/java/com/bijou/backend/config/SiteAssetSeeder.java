@@ -28,7 +28,6 @@ public class SiteAssetSeeder implements ApplicationRunner {
             SiteAsset.builder().slot("necklace").build(),
             SiteAsset.builder().slot("earring").build(),
             SiteAsset.builder().slot("bracelet").build(),
-            SiteAsset.builder().slot("anklet").build(),
             SiteAsset.builder().slot("editorial1").build(),
             SiteAsset.builder().slot("editorial2").build()
         ));

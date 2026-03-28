@@ -25,7 +25,7 @@ public class SiteAssetService {
     private static final Set<String> VIDEO_TYPES = Set.of("video/mp4", "video/webm", "video/quicktime");
 
     private SiteAssetView toView(SiteAsset a) {
-        return new SiteAssetView(a.getId(), a.getSlot(), a.getImageUrl(), a.getImageId(), a.getResourceType());
+        return new SiteAssetView(a.getId(), a.getSlot(), a.getImageUrl(), a.getImageId(), a.getResourceType(), a.getHeader(), a.getSubheader(), a.getColor(), a.getCtaCategory(), a.getCtaLabelId());
     }
 
     public List<SiteAssetView> getAll() {
@@ -55,6 +55,16 @@ public class SiteAssetService {
         asset.setImageId(null);
         asset.setResourceType("image");
         log.info("deleted media for site asset slot '{}'", slot);
+        return toView(siteAssetRepository.save(asset));
+    }
+
+    public SiteAssetView updateText(String slot, SiteAssetTextRequest req) {
+        SiteAsset asset = findBySlotOrThrow(slot);
+        asset.setHeader(req.header());
+        asset.setSubheader(req.subheader());
+        asset.setColor(req.color());
+        asset.setCtaCategory(req.ctaCategory());
+        asset.setCtaLabelId(req.ctaLabelId());
         return toView(siteAssetRepository.save(asset));
     }
 

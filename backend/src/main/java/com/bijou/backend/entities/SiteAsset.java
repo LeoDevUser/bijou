@@ -33,4 +33,10 @@ public class SiteAsset {
 
     @Builder.Default
     private String resourceType = "image";
+
+    private String header;
+    private String subheader;
+    private String color;
+    private String ctaCategory;
+    private Long ctaLabelId;
 }

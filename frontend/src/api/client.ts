@@ -156,6 +156,8 @@ export const api = {
         request<AnnouncementView[]>(`/${ADMIN}/announcements/${id}/down`, { method: 'PATCH' }),
     },
     siteAssets: {
+      updateText: (slot: string, data: { header: string; subheader: string; color: string; ctaCategory: string | null; ctaLabelId: number | null }) =>
+        request<SiteAssetView>(`/${ADMIN}/site-assets/${slot}`, { method: 'PATCH', body: JSON.stringify(data) }),
       uploadImage: async (slot: string, file: File): Promise<SiteAssetView> => {
         const form = new FormData();
         form.append('file', file);

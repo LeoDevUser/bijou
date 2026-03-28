@@ -1,30 +1,128 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import ProductCard from '../components/ui/ProductCard';
-import type { ItemView } from '../types';
+import type { ItemView, LabelView } from '../types';
+import { pickLocale } from '../types';
+
+const CATEGORIES = [
+  { value: 'RING', labelKey: 'home.categories.rings' },
+  { value: 'NECKLACE', labelKey: 'home.categories.necklaces' },
+  { value: 'EARRING', labelKey: 'home.categories.earrings' },
+  { value: 'MISC', labelKey: 'shop.misc' },
+] as const;
 
 export default function Shop() {
-  const { t } = useTranslation();
-  const [items, setItems] = useState<ItemView[]>([]);
+  const { t, i18n } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [allItems, setAllItems] = useState<ItemView[]>([]);
+  const [labels, setLabels] = useState<LabelView[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchParams] = useSearchParams();
-  const category = searchParams.get('category');
+
+  const activeCategory = searchParams.get('category') ?? '';
+  const activeLabelId = searchParams.get('label') ?? '';
 
   useEffect(() => {
     setLoading(true);
-    const fetch = category ? api.items.byCategory(category) : api.items.list();
-    fetch
-      .then(setItems)
+    Promise.all([api.items.list(), api.labels.list()])
+      .then(([items, lbls]) => { setAllItems(items); setLabels(lbls); })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [category]);
+  }, []);
+
+  const items = useMemo(() => {
+    let result = allItems;
+    if (activeCategory) {
+      result = result.filter(item =>
+        item.category.toUpperCase() === activeCategory.toUpperCase()
+      );
+    }
+    if (activeLabelId) {
+      const id = Number(activeLabelId);
+      result = result.filter(item => item.labels.some(l => l.id === id));
+    }
+    return result;
+  }, [allItems, activeCategory, activeLabelId]);
+
+  function setCategory(value: string) {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (value) next.set('category', value); else next.delete('category');
+      return next;
+    }, { replace: true });
+  }
+
+  function setLabel(value: string) {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (value) next.set('label', value); else next.delete('label');
+      return next;
+    }, { replace: true });
+  }
+
+  function clearAll() {
+    setSearchParams({}, { replace: true });
+  }
+
+  const hasFilters = activeCategory || activeLabelId;
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
       <h1 className="font-serif text-4xl font-light mb-1">{t('shop.title')}</h1>
-      <p className="text-muted text-sm mb-10">{items.length} {t('shop.items')}</p>
+      <p className="text-muted text-sm mb-8">{items.length} {t('shop.items')}</p>
+
+      {/* Filters */}
+      <div className="mb-10 space-y-3">
+        {/* Category pills */}
+        <div className="flex flex-wrap gap-2 items-center">
+          <span className="text-xs uppercase tracking-widest text-muted w-16 shrink-0">{t('shop.category')}</span>
+          <button
+            onClick={() => setCategory('')}
+            className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${!activeCategory ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
+          >
+            {t('shop.all')}
+          </button>
+          {CATEGORIES.map(cat => (
+            <button
+              key={cat.value}
+              onClick={() => setCategory(activeCategory === cat.value ? '' : cat.value)}
+              className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${activeCategory === cat.value ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
+            >
+              {t(cat.labelKey)}
+            </button>
+          ))}
+        </div>
+
+        {/* Label pills — only shown when labels exist */}
+        {labels.length > 0 && (
+          <div className="flex flex-wrap gap-2 items-center">
+            <span className="text-xs uppercase tracking-widest text-muted w-16 shrink-0">{t('shop.label')}</span>
+            <button
+              onClick={() => setLabel('')}
+              className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${!activeLabelId ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
+            >
+              {t('shop.all')}
+            </button>
+            {labels.map(label => (
+              <button
+                key={label.id}
+                onClick={() => setLabel(activeLabelId === String(label.id) ? '' : String(label.id))}
+                className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${activeLabelId === String(label.id) ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
+              >
+                {pickLocale(label.nameEn, label.nameFr, label.nameEs, i18n.language)}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Clear all */}
+        {hasFilters && (
+          <button onClick={clearAll} className="text-xs uppercase tracking-widest text-muted hover:text-dark transition-colors border-b border-muted pb-0.5">
+            {t('shop.clearFilters')}
+          </button>
+        )}
+      </div>
 
       {loading ? (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">

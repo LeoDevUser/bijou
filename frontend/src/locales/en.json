@@ -24,8 +24,7 @@
       "rings": "Rings",
       "necklaces": "Necklaces",
       "earrings": "Earrings",
-      "bracelets": "Bracelets",
-      "anklets": "Anklets"
+      "bracelets": "Bracelets"
     },
     "trending": {
       "title": "Trending Now",
@@ -45,7 +44,12 @@
   "shop": {
     "title": "All Jewelry",
     "items": "items",
-    "noProducts": "No products found."
+    "noProducts": "No products found.",
+    "all": "All",
+    "category": "Category",
+    "label": "Label",
+    "misc": "Other",
+    "clearFilters": "Clear filters"
   },
   "product": {
     "addToCart": "Add to Cart",

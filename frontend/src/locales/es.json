@@ -24,8 +24,7 @@
       "rings": "Anillos",
       "necklaces": "Collares",
       "earrings": "Aretes",
-      "bracelets": "Pulseras",
-      "anklets": "Tobilleras"
+      "bracelets": "Pulseras"
     },
     "trending": {
       "title": "Tendencias",
@@ -45,7 +44,12 @@
   "shop": {
     "title": "Todas las Joyas",
     "items": "artículos",
-    "noProducts": "No se encontraron productos."
+    "noProducts": "No se encontraron productos.",
+    "all": "Todo",
+    "category": "Categoría",
+    "label": "Etiqueta",
+    "misc": "Otro",
+    "clearFilters": "Borrar filtros"
   },
   "product": {
     "addToCart": "Añadir al Carrito",

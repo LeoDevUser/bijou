@@ -24,8 +24,7 @@
       "rings": "Bagues",
       "necklaces": "Colliers",
       "earrings": "Boucles d'oreilles",
-      "bracelets": "Bracelets",
-      "anklets": "Chevillères"
+      "bracelets": "Bracelets"
     },
     "trending": {
       "title": "Tendances",
@@ -45,7 +44,12 @@
   "shop": {
     "title": "Tous les Bijoux",
     "items": "articles",
-    "noProducts": "Aucun produit trouvé."
+    "noProducts": "Aucun produit trouvé.",
+    "all": "Tous",
+    "category": "Catégorie",
+    "label": "Étiquette",
+    "misc": "Autre",
+    "clearFilters": "Effacer les filtres"
   },
   "product": {
     "addToCart": "Ajouter au Panier",
