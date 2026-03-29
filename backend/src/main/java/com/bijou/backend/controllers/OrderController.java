@@ -93,4 +93,10 @@ public class OrderController {
         orderService.changeStatus(req.id(), req.status());
         return ResponseEntity.ok().build();
     }
+
+    @PatchMapping("/${ADMIN_PAGE}/orders/tracking")
+    public ResponseEntity<Void> changeStatus(@Valid @RequestBody TrackingChangeRequest req) {
+        orderService.setTracking(req.id(), req.tracking());
+        return ResponseEntity.ok().build();
+    }
 }

@@ -70,10 +70,13 @@ public class OrderService {
         for (OrderItemRequest orderItemReq : req.items()) {
             Item item = itemMap.get(orderItemReq.itemId());
             item.setStock(item.getStock() - orderItemReq.quantity());
+            BigDecimal unitPrice = item.getDiscountPercent() != null && item.getDiscountPercent() > 0
+                ? item.getPrice().multiply(BigDecimal.valueOf(100 - item.getDiscountPercent()).movePointLeft(2))
+                : item.getPrice();
             OrderItem orderItem = OrderItem.builder()
                 .item(item)
                 .quantity(orderItemReq.quantity())
-                .unitPrice(item.getPrice())
+                .unitPrice(unitPrice)
                 .build();
             orderItems.add(orderItem);
             total = total.add(orderItem.getUnitPrice().multiply(BigDecimal.valueOf(orderItem.getQuantity())));
@@ -253,5 +256,15 @@ public class OrderService {
         order.setStatus(status);
         orderRepository.save(order);
         log.info("order {} changed status from {} to {}", order.getId(), oldStatus, order.getStatus());
+    }
+
+    @Transactional
+    public void setTracking(Long id, String tracking) {
+        Order order = orderRepository.findById(id).orElseThrow( () ->
+                new AppException(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND")
+            );
+        order.setTrackingNumber(tracking);
+        orderRepository.save(order);
+        log.info("set tracking number {} for order {}", order.getTrackingNumber(),order.getId());
     }
 }

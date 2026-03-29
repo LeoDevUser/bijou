@@ -146,7 +146,10 @@
       "allStatuses": "Tous les Statuts",
       "allCountries": "Tous les Pays",
       "empty": "Aucune commande trouvée.",
-      "changeStatus": "Changer le Statut"
+      "changeStatus": "Changer le Statut",
+      "setTracking": "Numéro de Suivi",
+      "trackingPlaceholder": "Entrer le numéro de suivi",
+      "save": "Enregistrer"
     },
     "detail": {
       "address": "Adresse",
@@ -259,6 +262,7 @@
     }
   },
   "account": {
+    "admindashboard": "TABLEAU DE BORD",
     "title": "Mon Compte",
     "subtitle": "Gérez votre profil et vos paramètres de sécurité",
     "address": {

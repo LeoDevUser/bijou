@@ -37,6 +37,8 @@ function AdminOrders() {
   const [dateFilter, setDateFilter] = useState('');
   const [expanded, setExpanded] = useState<number | null>(null);
   const [changingStatus, setChangingStatus] = useState<number | null>(null);
+  const [trackingInput, setTrackingInput] = useState<Record<number, string>>({});
+  const [savingTracking, setSavingTracking] = useState<number | null>(null);
 
   useEffect(() => { load(); }, [statusFilter, countryFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -163,6 +165,33 @@ function AdminOrders() {
                       ))}
                     </div>
                   </div>
+                  {o.status !== 'DELIVERED' && (
+                    <div className="mt-4 flex items-center gap-3">
+                      <p className="text-xs uppercase tracking-widest text-muted">{t('admin.orders.setTracking')}</p>
+                      <input
+                        value={trackingInput[o.id] ?? o.tracking ?? ''}
+                        onChange={e => setTrackingInput(prev => ({ ...prev, [o.id]: e.target.value }))}
+                        placeholder={t('admin.orders.trackingPlaceholder')}
+                        className="border border-border bg-cream px-3 py-1.5 text-xs outline-none focus:border-dark transition-colors"
+                      />
+                      <button
+                        onClick={async () => {
+                          setSavingTracking(o.id);
+                          try {
+                            await api.admin.orders.setTracking(o.id, trackingInput[o.id] ?? o.tracking ?? '');
+                            await load();
+                          } finally {
+                            setSavingTracking(null);
+                          }
+                        }}
+                        disabled={savingTracking === o.id}
+                        className="border border-border px-3 py-1.5 text-xs hover:bg-[#F7F5F0] transition-colors disabled:opacity-50"
+                      >
+                        {t('admin.orders.save')}
+                      </button>
+                      {savingTracking === o.id && <span className="text-xs text-muted">...</span>}
+                    </div>
+                  )}
                   {(VALID_TRANSITIONS[o.status]?.length ?? 0) > 0 && (
                     <div className="mt-4 flex items-center gap-3">
                       <p className="text-xs uppercase tracking-widest text-muted">{t('admin.orders.changeStatus')}</p>

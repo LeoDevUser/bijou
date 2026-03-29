@@ -203,6 +203,8 @@ export const api = {
       byCountry: (country: string) => request<OrderView[]>(`/${ADMIN}/orders/country/${country}`),
       changeStatus: (id: number, status: string) =>
         request<void>(`/${ADMIN}/orders/status`, { method: 'PATCH', body: JSON.stringify({ id, status }) }),
+      setTracking: (id: number, tracking: string) =>
+        request<void>(`/${ADMIN}/orders/tracking`, { method: 'PATCH', body: JSON.stringify({ id, tracking }) }),
     },
     users: {
       listVerbose: () => request<VerboseClient[]>(`/account/${ADMIN}/clients/verbose`),

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
@@ -34,7 +34,8 @@ function StatusMsg({ msg }: { msg: { type: 'success' | 'error'; text: string } |
 
 export default function Account() {
   const { t } = useTranslation();
-  const { isAdmin } = useAuth();
+  const { isAdmin, logout } = useAuth();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
 
   const [pwForm, setPwForm] = useState({ oldPassword: '', newPassword: '', confirm: '' });
@@ -66,8 +67,8 @@ export default function Account() {
     setPwMsg(null);
     try {
       await api.account.changePassword(pwForm.oldPassword, pwForm.newPassword);
-      setPwMsg({ type: 'success', text: t('account.password.success') });
-      setPwForm({ oldPassword: '', newPassword: '', confirm: '' });
+      logout();
+      navigate('/login');
     } catch {
       setPwMsg({ type: 'error', text: t('account.password.error') });
     } finally {
@@ -81,9 +82,8 @@ export default function Account() {
     setEmailMsg(null);
     try {
       await api.account.changeEmail(emailForm.password, emailForm.newEmail);
-      setEmailMsg({ type: 'success', text: t('account.email.success') });
-      setProfile(p => p ? { ...p, email: emailForm.newEmail } : p);
-      setEmailForm({ password: '', newEmail: '' });
+      logout();
+      navigate('/login');
     } catch {
       setEmailMsg({ type: 'error', text: t('account.email.error') });
     } finally {
@@ -115,7 +115,7 @@ export default function Account() {
             to={`/${ADMIN_URL}`}
             className="text-xs uppercase tracking-widest border border-border px-4 py-2 hover:border-dark transition-colors"
           >
-            Admin Dashboard
+            {t('account.admindashboard')}
           </Link>
         )}
       </div>
