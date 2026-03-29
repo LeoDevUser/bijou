@@ -15,6 +15,12 @@ import Payment from './pages/Payment'
 import Admin from './pages/Admin'
 import Account from './pages/Account'
 import Collections from './pages/Collections'
+import About from './pages/About'
+import Privacy from './pages/Privacy'
+import Terms from './pages/Terms'
+import Faq from './pages/Faq'
+import Shipping from './pages/Shipping'
+import Returns from './pages/Returns'
 
 const ADMIN_URL = import.meta.env.VITE_ADMIN_PAGE ?? '';
 
@@ -47,6 +53,12 @@ function App() {
                 <Route path="/register" element={<Register />} />
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/payment" element={<Payment />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/faq" element={<Faq />} />
+                <Route path="/shipping" element={<Shipping />} />
+                <Route path="/returns" element={<Returns />} />
                 <Route path="/account" element={<AuthRoute><Account /></AuthRoute>} />
                 <Route path={`/${ADMIN_URL}`} element={<AdminRoute />} />
               </Routes>

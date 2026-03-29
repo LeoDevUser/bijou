@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 export default function Footer() {
@@ -37,16 +38,15 @@ export default function Footer() {
         <div>
           <p className="text-xs uppercase tracking-widest text-muted mb-5">{t('footer.help')}</p>
           <ul className="space-y-3">
-            <li><a href="#" className="text-sm text-[#ccc] hover:text-white transition-colors">{t('footer.faq')}</a></li>
-            <li><a href="#" className="text-sm text-[#ccc] hover:text-white transition-colors">{t('footer.shipping')}</a></li>
-            <li><a href="#" className="text-sm text-[#ccc] hover:text-white transition-colors">{t('footer.returns')}</a></li>
+            <li><Link to="/faq" className="text-sm text-[#ccc] hover:text-white transition-colors">{t('footer.faq')}</Link></li>
+            <li><Link to="/shipping" className="text-sm text-[#ccc] hover:text-white transition-colors">{t('footer.shipping')}</Link></li>
+            <li><Link to="/returns" className="text-sm text-[#ccc] hover:text-white transition-colors">{t('footer.returns')}</Link></li>
           </ul>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-widest text-muted mb-5">{t('footer.about')}</p>
+          <p className="text-xs uppercase tracking-widest text-muted mb-5">{t('footer.company')}</p>
           <ul className="space-y-3">
-            <li><a href="#" className="text-sm text-[#ccc] hover:text-white transition-colors">{t('footer.sustainability')}</a></li>
-            <li><a href="#" className="text-sm text-[#ccc] hover:text-white transition-colors">{t('footer.careers')}</a></li>
+            <li><Link to="/about" className="text-sm text-[#ccc] hover:text-white transition-colors">{t('footer.aboutUs')}</Link></li>
           </ul>
         </div>
         <div className="col-span-2">
@@ -55,8 +55,8 @@ export default function Footer() {
             © {new Date().getFullYear()} Bijou Monde. {t('footer.rights')}
           </p>
           <div className="flex gap-5">
-            <a href="#" className="text-muted hover:text-white text-sm transition-colors">{t('footer.legal.privacy')}</a>
-            <a href="#" className="text-muted hover:text-white text-sm transition-colors">{t('footer.legal.terms')}</a>
+            <Link to="/privacy" className="text-muted hover:text-white text-sm transition-colors">{t('footer.legal.privacy')}</Link>
+            <Link to="/terms" className="text-muted hover:text-white text-sm transition-colors">{t('footer.legal.terms')}</Link>
           </div>
         </div>
       </div>

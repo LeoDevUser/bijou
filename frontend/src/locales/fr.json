@@ -291,14 +291,174 @@
       "error": "Échec. Vérifiez votre mot de passe actuel et réessayez."
     }
   },
+  "faq": {
+    "title": "Foire Aux Questions",
+    "q1": { "q": "Vers quels pays livrez-vous ?", "a": "Nous livrons actuellement au Mexique, aux États-Unis et au Canada. Nous travaillons à étendre notre couverture à d'autres pays dans le futur." },
+    "q2": { "q": "Quels sont les délais de livraison ?", "a": "La livraison au Mexique prend 3 à 7 jours ouvrables. Aux États-Unis, 7 à 14 jours ouvrables. Au Canada, 10 à 18 jours ouvrables. Ces estimations peuvent varier selon votre localisation et le transporteur." },
+    "q3": { "q": "Comment suivre ma commande ?", "a": "Une fois votre commande expédiée, vous recevrez un numéro de suivi par e-mail. Vous pouvez également consulter l'état de votre commande à tout moment depuis la section Mes Commandes de votre compte." },
+    "q4": { "q": "Quels modes de paiement acceptez-vous ?", "a": "Nous acceptons toutes les principales cartes de crédit et de débit (Visa, Mastercard, American Express) via notre prestataire de paiement sécurisé, Stripe. Aucune information bancaire n'est stockée sur nos serveurs." },
+    "q5": { "q": "Puis-je retourner ou échanger un article ?", "a": "Oui. Nous acceptons les retours dans les 30 jours suivant la livraison pour les articles dans leur état d'origine, non portés. Consultez notre page Retours pour connaître la procédure complète." },
+    "q6": { "q": "Les matériaux utilisés dans vos bijoux sont-ils sûrs ?", "a": "Tous nos bijoux sont fabriqués avec des matériaux de haute qualité et hypoallergéniques. Si vous avez des sensibilités particulières, contactez-nous avant d'acheter et nous serons heureux de vous aider." },
+    "q7": { "q": "Comment entretenir mes bijoux ?", "a": "Nous recommandons de ranger vos bijoux dans un endroit sec à l'abri de la lumière directe du soleil. Évitez le contact avec les parfums, les lotions et l'eau. Nettoyez délicatement avec un chiffon doux et sec." },
+    "q8": { "q": "J'ai un problème avec ma commande. Qui contacter ?", "a": "Contactez-nous à support@bijou-monde.com avec votre numéro de commande et une description du problème. Nous nous efforçons de répondre dans les 2 jours ouvrables." }
+  },
+  "shipping": {
+    "title": "Livraison",
+    "s1": {
+      "title": "Délais et Modes de Livraison",
+      "body": "Nous expédions toutes les commandes depuis le Mexique via des services de messagerie de confiance. Les délais de livraison estimés sont les suivants :",
+      "tableDestination": "Destination",
+      "tableMethod": "Mode",
+      "tableTime": "Délai estimé",
+      "mxDest": "Mexique", "mxMethod": "Coursier standard", "mxTime": "3–7 jours ouvrables",
+      "usDest": "États-Unis", "usMethod": "Coursier international", "usTime": "7–14 jours ouvrables",
+      "caDest": "Canada", "caMethod": "Coursier international", "caTime": "10–18 jours ouvrables"
+    },
+    "s2": {
+      "title": "Suivi",
+      "body": "Toutes les commandes incluent un suivi. Une fois votre commande expédiée, vous recevrez un e-mail de confirmation avec votre numéro de suivi. Vous pouvez également consulter vos informations de suivi à tout moment depuis la section Mes Commandes de votre compte."
+    },
+    "s3": {
+      "title": "Douanes et Taxes",
+      "body": "Pour les commandes à destination des États-Unis ou du Canada, des droits de douane et taxes à l'importation peuvent s'appliquer à l'arrivée dans votre pays. Ces frais sont déterminés par les autorités douanières locales et sont à la charge du destinataire. Bijou Monde n'a aucun contrôle sur ces frais."
+    },
+    "s4": {
+      "title": "Retards",
+      "body": "Les délais de livraison sont des estimations et ne sont pas garantis. Des retards peuvent survenir en raison du traitement douanier, de perturbations du transporteur ou de circonstances hors de notre contrôle. Si votre commande n'est pas arrivée dans le délai estimé, contactez-nous à support@bijou-monde.com."
+    }
+  },
+  "returns": {
+    "title": "Retours et Remboursements",
+    "s1": {
+      "title": "Délai de Retour",
+      "body": "Nous acceptons les retours dans les 30 jours suivant la date de livraison. Passé ce délai, nous ne sommes plus en mesure d'accepter des retours ni d'émettre des remboursements."
+    },
+    "s2": {
+      "title": "Conditions d'Éligibilité",
+      "intro": "Pour être éligible à un retour, l'article doit répondre aux conditions suivantes :",
+      "i1": "Non porté et dans son état d'origine",
+      "i2": "Dans son emballage d'origine",
+      "i3": "Ne pas être un article en solde ou en promotion marqué comme non retournable"
+    },
+    "s3": {
+      "title": "Procédure de Retour",
+      "i1": "Envoyez-nous un e-mail à returns@bijou-monde.com avec votre numéro de commande et le motif du retour.",
+      "i2": "Nous confirmerons l'éligibilité de votre retour et vous fournirons l'adresse de retour.",
+      "i3": "Renvoyez l'article de manière sécurisée. Les frais de retour sont à votre charge, sauf si l'article est arrivé endommagé ou incorrect.",
+      "i4": "Une fois l'article reçu et inspecté, nous traiterons votre remboursement."
+    },
+    "s4": {
+      "title": "Remboursements",
+      "body": "Les remboursements approuvés sont émis sur votre mode de paiement d'origine dans un délai de 5 à 10 jours ouvrables après réception de l'article retourné. Vous recevrez un e-mail de confirmation lorsque votre remboursement aura été traité."
+    },
+    "s5": {
+      "title": "Articles Endommagés ou Incorrects",
+      "body": "Si votre commande est arrivée endommagée ou si vous avez reçu le mauvais article, contactez-nous à support@bijou-monde.com dans les 7 jours suivant la livraison avec une photo de l'article. Nous organiserons un remplacement ou un remboursement complet sans frais pour vous."
+    }
+  },
+  "privacy": {
+    "title": "Politique de Confidentialité",
+    "updated": "Dernière mise à jour : mars 2026",
+    "s1": {
+      "title": "Qui Sommes-Nous",
+      "body": "Bijou Monde est un détaillant de bijoux constitué au Mexique. Nous exploitons le site bijou-monde.com et livrons des commandes aux clients au Mexique, aux États-Unis et au Canada. Les références à « nous » ou « notre » dans cette politique désignent Bijou Monde."
+    },
+    "s2": {
+      "title": "Informations que Nous Collectons",
+      "intro": "Lorsque vous passez une commande ou créez un compte, nous collectons les données personnelles suivantes :",
+      "i1": "Nom complet et adresse e-mail",
+      "i2": "Adresse de livraison et pays",
+      "i3": "Historique des commandes et détails d'achat",
+      "i4": "Le paiement est entièrement traité par Stripe, Inc. Nous ne recevons, ne stockons ni n'avons accès à votre numéro de carte, CVV ou autres identifiants de paiement."
+    },
+    "s3": {
+      "title": "Comment Nous Utilisons Vos Informations",
+      "intro": "Nous utilisons vos données personnelles exclusivement pour :",
+      "i1": "Traiter et exécuter vos commandes",
+      "i2": "Envoyer des confirmations de commande et des mises à jour d'expédition",
+      "i3": "Répondre aux demandes du service client"
+    },
+    "s4": {
+      "title": "Traitement des Paiements",
+      "body": "Toutes les transactions de paiement sont gérées par Stripe, Inc., un processeur de paiement certifié PCI-DSS niveau 1. Lorsque vous saisissez vos coordonnées bancaires lors du paiement, ces informations sont transmises directement à Stripe et ne transitent jamais par nos serveurs ni n'y sont stockées."
+    },
+    "s5": {
+      "title": "Partage avec des Tiers",
+      "body": "Nous ne vendons, ne louons ni ne partageons vos informations personnelles avec des tiers à des fins marketing. Nous partageons votre nom et adresse de livraison avec nos partenaires logistiques uniquement pour livrer votre commande."
+    },
+    "s6": {
+      "title": "Vos Droits",
+      "intro": "Conformément à la loi mexicaine fédérale sur la protection des données personnelles (LFPDPPP), vous avez le droit de :",
+      "i1": "Accéder aux données personnelles que nous détenons sur vous",
+      "i2": "Demander la correction de données inexactes",
+      "i3": "Demander la suppression de vos données",
+      "i4": "Vous opposer au traitement ou le restreindre"
+    },
+    "s7": {
+      "title": "Conservation des Données",
+      "body": "Nous conservons vos données personnelles aussi longtemps que votre compte est actif et jusqu'à 5 ans après votre dernière commande, conformément aux obligations légales mexicaines. Vous pouvez demander la suppression à tout moment."
+    },
+    "s8": {
+      "title": "Contact",
+      "body": "Pour exercer vos droits ou pour toute question relative à la confidentialité, contactez-nous à privacy@bijou-monde.com. Nous répondrons dans un délai de 20 jours ouvrables conformément à la LFPDPPP."
+    }
+  },
+  "terms": {
+    "title": "Conditions d'Utilisation",
+    "updated": "Dernière mise à jour : mars 2026",
+    "s1": {
+      "title": "Acceptation des Conditions",
+      "body": "En accédant à notre site ou en passant une commande, vous acceptez ces conditions d'utilisation. Ces conditions constituent un accord contraignant entre vous et Bijou Monde, constitué au Mexique."
+    },
+    "s2": {
+      "title": "Produits et Tarification",
+      "body": "Tous les prix sont affichés dans la devise sélectionnée lors du paiement (MXN, USD ou CAD). Nous nous réservons le droit de modifier les prix à tout moment. Le prix confirmé au moment de votre commande est celui qui vous sera facturé."
+    },
+    "s3": {
+      "title": "Commandes et Paiement",
+      "body": "Les commandes sont confirmées lors de l'autorisation de paiement réussie via Stripe. Nous nous réservons le droit d'annuler toute commande en cas d'indisponibilité de stock, d'erreur de prix ou de fraude suspectée, auquel cas vous recevrez un remboursement complet."
+    },
+    "s4": {
+      "title": "Livraison",
+      "intro": "Nous livrons au Mexique, aux États-Unis et au Canada. Les délais de livraison estimés varient selon la destination :",
+      "i1": "Mexique : 3 à 7 jours ouvrables",
+      "i2": "États-Unis : 7 à 14 jours ouvrables",
+      "i3": "Canada : 10 à 18 jours ouvrables"
+    },
+    "s5": {
+      "title": "Retours et Remboursements",
+      "body": "Nous acceptons les retours dans les 30 jours suivant la livraison pour les articles dans leur état d'origine, non portés. Pour initier un retour, contactez-nous à returns@bijou-monde.com avec votre numéro de commande. Les frais de retour sont à la charge du client, sauf si l'article est arrivé endommagé ou incorrect."
+    },
+    "s6": {
+      "title": "Propriété Intellectuelle",
+      "body": "Tout le contenu de ce site — y compris les images, textes, logos et designs — est la propriété de Bijou Monde et ne peut être reproduit ou utilisé sans notre consentement écrit préalable."
+    },
+    "s7": {
+      "title": "Limitation de Responsabilité",
+      "body": "Bijou Monde n'est pas responsable des dommages indirects, accessoires ou consécutifs découlant de l'utilisation de notre site ou de nos produits. Notre responsabilité totale ne dépassera pas le montant payé pour la commande concernée."
+    },
+    "s8": {
+      "title": "Droit Applicable",
+      "body": "Ces conditions sont régies par les lois des États-Unis mexicains. Tout litige sera soumis à la juridiction exclusive des tribunaux de Mexico."
+    },
+    "s9": {
+      "title": "Modifications des Conditions",
+      "body": "Nous nous réservons le droit de mettre à jour ces conditions à tout moment. Les modifications seront publiées sur cette page avec une date de mise à jour. L'utilisation continue de nos services après toute modification vaut acceptation des nouvelles conditions."
+    }
+  },
+  "about": {
+    "title": "À propos de nous",
+    "p1": "Bijou Monde est né d'une passion pour l'élégance intemporelle et le savoir-faire artisanal. Chaque pièce de notre collection est soigneusement conçue pour célébrer la beauté dans sa forme la plus raffinée.",
+    "p2": "Nous travaillons avec des artisans talentueux et des matériaux issus de sources responsables pour créer des bijoux destinés à être portés, chéris et transmis.",
+    "p3": "Que vous vous fassiez plaisir ou que vous cherchiez le cadeau parfait, nous sommes là pour rendre chaque moment un peu plus spécial."
+  },
   "footer": {
     "help": "Aide",
     "faq": "FAQ",
     "shipping": "Livraison",
     "returns": "Retours",
-    "about": "À Propos de Bijou Monde",
-    "sustainability": "Durabilité",
-    "careers": "Carrières",
+    "company": "Entreprise",
+    "aboutUs": "À propos de nous",
     "rights": "Tous droits réservés.",
     "newsletter": {
       "title": "Restez informé",

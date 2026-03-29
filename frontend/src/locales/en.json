@@ -291,14 +291,174 @@
       "error": "Failed. Check your current password and try again."
     }
   },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "q1": { "q": "Where do you ship?", "a": "We currently ship to Mexico, the United States, and Canada. We are working on expanding to more countries in the future." },
+    "q2": { "q": "How long does delivery take?", "a": "Delivery to Mexico takes 3–7 business days. To the United States, 7–14 business days. To Canada, 10–18 business days. These are estimates and may vary depending on your location and carrier." },
+    "q3": { "q": "How can I track my order?", "a": "Once your order has shipped, you will receive a tracking number by email. You can also view your order status at any time from the My Orders section of your account." },
+    "q4": { "q": "What payment methods do you accept?", "a": "We accept all major credit and debit cards (Visa, Mastercard, American Express) through our secure payment provider, Stripe. We do not store any card information on our servers." },
+    "q5": { "q": "Can I return or exchange an item?", "a": "Yes. We accept returns within 30 days of delivery for items in their original, unworn condition. Please visit our Returns page for the full process." },
+    "q6": { "q": "Are the materials used in your jewelry safe?", "a": "All of our jewelry is made with high-quality, hypoallergenic materials. If you have specific sensitivities, please contact us before purchasing and we will be happy to help." },
+    "q7": { "q": "How do I care for my jewelry?", "a": "We recommend storing your jewelry in a dry place away from direct sunlight. Avoid contact with perfumes, lotions, and water. Clean gently with a soft dry cloth." },
+    "q8": { "q": "I have a problem with my order. Who do I contact?", "a": "Please reach out to us at support@bijou-monde.com with your order number and a description of the issue. We aim to respond within 2 business days." }
+  },
+  "shipping": {
+    "title": "Shipping & Delivery",
+    "s1": {
+      "title": "Delivery Times & Methods",
+      "body": "We ship all orders from Mexico using trusted courier services. Estimated delivery times are as follows:",
+      "tableDestination": "Destination",
+      "tableMethod": "Method",
+      "tableTime": "Est. Time",
+      "mxDest": "Mexico", "mxMethod": "Standard courier", "mxTime": "3–7 business days",
+      "usDest": "United States", "usMethod": "International courier", "usTime": "7–14 business days",
+      "caDest": "Canada", "caMethod": "International courier", "caTime": "10–18 business days"
+    },
+    "s2": {
+      "title": "Tracking",
+      "body": "All orders include tracking. Once your order ships, you will receive a confirmation email with your tracking number. You can also view your tracking information at any time from the My Orders section of your account."
+    },
+    "s3": {
+      "title": "Customs & Duties",
+      "body": "For orders shipped to the United States or Canada, customs duties and import taxes may apply upon arrival in your country. These charges are determined by your local customs authority and are the responsibility of the recipient. Bijou Monde has no control over these fees and cannot predict their amount."
+    },
+    "s4": {
+      "title": "Delays",
+      "body": "Delivery estimates are not guaranteed. Delays can occur due to customs processing, carrier disruptions, or circumstances beyond our control. If your order has not arrived within the estimated window, please contact us at support@bijou-monde.com."
+    }
+  },
+  "returns": {
+    "title": "Returns & Refunds",
+    "s1": {
+      "title": "Return Window",
+      "body": "We accept returns within 30 days of the delivery date. After 30 days, we are unable to accept returns or issue refunds."
+    },
+    "s2": {
+      "title": "Eligibility",
+      "intro": "To be eligible for a return, your item must meet the following conditions:",
+      "i1": "Unworn and in its original condition",
+      "i2": "In its original packaging",
+      "i3": "Not a final sale or discounted item marked as non-returnable"
+    },
+    "s3": {
+      "title": "How to Return",
+      "i1": "Email us at returns@bijou-monde.com with your order number and reason for return.",
+      "i2": "We will confirm your return is eligible and provide the return address.",
+      "i3": "Ship the item back securely. Return shipping costs are your responsibility unless the item arrived damaged or incorrect.",
+      "i4": "Once we receive and inspect the item, we will process your refund."
+    },
+    "s4": {
+      "title": "Refunds",
+      "body": "Approved refunds are issued to your original payment method within 5–10 business days of us receiving the returned item. You will receive an email confirmation when your refund has been processed."
+    },
+    "s5": {
+      "title": "Damaged or Incorrect Items",
+      "body": "If your order arrived damaged or you received the wrong item, please contact us at support@bijou-monde.com within 7 days of delivery with a photo of the item. We will arrange a replacement or full refund at no cost to you."
+    }
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "updated": "Last updated: March 2026",
+    "s1": {
+      "title": "Who We Are",
+      "body": "Bijou Monde is a jewelry retailer incorporated in Mexico. We operate the website bijou-monde.com and ship orders to customers in Mexico, the United States, and Canada. References to \"we\", \"us\", or \"our\" in this policy refer to Bijou Monde."
+    },
+    "s2": {
+      "title": "Information We Collect",
+      "intro": "When you place an order or create an account, we collect the following personal data:",
+      "i1": "Full name and email address",
+      "i2": "Shipping address and country",
+      "i3": "Order history and purchase details",
+      "i4": "Payment is processed entirely by Stripe, Inc. We do not receive, store, or have access to your card number, CVV, or any other payment credentials."
+    },
+    "s3": {
+      "title": "How We Use Your Information",
+      "intro": "We use your personal data exclusively to:",
+      "i1": "Process and fulfill your orders",
+      "i2": "Send order confirmations and shipping updates",
+      "i3": "Respond to customer service inquiries"
+    },
+    "s4": {
+      "title": "Payment Processing",
+      "body": "All payment transactions are handled by Stripe, Inc., a PCI-DSS Level 1 certified payment processor. When you enter your card details at checkout, that information is transmitted directly to Stripe and is never passed through or stored on our servers. You can review Stripe's privacy policy at stripe.com/privacy."
+    },
+    "s5": {
+      "title": "Third-Party Sharing",
+      "body": "We do not sell, rent, or share your personal information with third parties for marketing purposes. We share your name and shipping address with our logistics and carrier partners solely for the purpose of delivering your order."
+    },
+    "s6": {
+      "title": "Your Rights",
+      "intro": "In accordance with Mexico's Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP), you have the right to:",
+      "i1": "Access the personal data we hold about you",
+      "i2": "Request correction of inaccurate data",
+      "i3": "Request deletion of your data",
+      "i4": "Oppose or restrict the processing of your data"
+    },
+    "s7": {
+      "title": "Data Retention",
+      "body": "We retain your personal data for as long as your account is active and for up to 5 years after your last order, as required for tax and legal compliance under Mexican law. You may request deletion at any time, subject to any legal retention obligations."
+    },
+    "s8": {
+      "title": "Contact",
+      "body": "To exercise your rights or for any privacy-related questions, please contact us at privacy@bijou-monde.com. We will respond within 20 business days as required by the LFPDPPP."
+    }
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "updated": "Last updated: March 2026",
+    "s1": {
+      "title": "Acceptance of Terms",
+      "body": "By accessing our website or placing an order, you agree to these Terms of Service. If you do not agree, please do not use our services. These terms constitute a binding agreement between you and Bijou Monde, incorporated in Mexico."
+    },
+    "s2": {
+      "title": "Products and Pricing",
+      "body": "All prices are displayed in the currency selected at checkout (MXN, USD, or CAD) and are inclusive of applicable taxes where required. We reserve the right to modify prices at any time. The price confirmed at the time of your order is the price you will be charged."
+    },
+    "s3": {
+      "title": "Orders and Payment",
+      "body": "Orders are confirmed upon successful payment authorization through Stripe. We reserve the right to cancel any order due to stock unavailability, pricing errors, or suspected fraud, in which case you will receive a full refund."
+    },
+    "s4": {
+      "title": "Shipping",
+      "intro": "We ship to Mexico, the United States, and Canada. Estimated delivery times vary by destination:",
+      "i1": "Mexico: 3–7 business days",
+      "i2": "United States: 7–14 business days",
+      "i3": "Canada: 10–18 business days"
+    },
+    "s5": {
+      "title": "Returns and Refunds",
+      "body": "We accept returns within 30 days of delivery for items in their original, unworn condition. To initiate a return, contact us at returns@bijou-monde.com with your order number. Return shipping costs are the responsibility of the customer unless the item arrived damaged or incorrect."
+    },
+    "s6": {
+      "title": "Intellectual Property",
+      "body": "All content on this website — including images, text, logos, and designs — is the property of Bijou Monde and may not be reproduced, distributed, or used without our prior written consent."
+    },
+    "s7": {
+      "title": "Limitation of Liability",
+      "body": "Bijou Monde is not liable for any indirect, incidental, or consequential damages arising from your use of our website or products. Our total liability shall not exceed the amount paid for the order in question."
+    },
+    "s8": {
+      "title": "Governing Law",
+      "body": "These terms are governed by the laws of the United Mexican States. Any disputes shall be subject to the exclusive jurisdiction of the courts of Mexico City, Mexico."
+    },
+    "s9": {
+      "title": "Changes to These Terms",
+      "body": "We reserve the right to update these terms at any time. Changes will be posted on this page with an updated date. Continued use of our services after any changes constitutes acceptance of the new terms."
+    }
+  },
+  "about": {
+    "title": "About Us",
+    "p1": "Bijou Monde was born from a passion for timeless elegance and fine craftsmanship. Each piece in our collection is carefully designed to celebrate beauty in its most refined form.",
+    "p2": "We work with skilled artisans and responsibly sourced materials to create jewelry that is meant to be worn, treasured, and passed down.",
+    "p3": "Whether you're treating yourself or finding the perfect gift, we're here to make every moment a little more special."
+  },
   "footer": {
     "help": "Help",
     "faq": "FAQ",
     "shipping": "Shipping & Delivery",
     "returns": "Returns",
-    "about": "About Bijou Monde",
-    "sustainability": "Sustainability",
-    "careers": "Careers",
+    "company": "Company",
+    "aboutUs": "About Us",
     "rights": "All rights reserved.",
     "newsletter": {
       "title": "Stay in the loop",

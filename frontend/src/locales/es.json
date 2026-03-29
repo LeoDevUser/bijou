@@ -291,14 +291,174 @@
       "error": "Error. Verifica tu contraseña actual e intenta de nuevo."
     }
   },
+  "faq": {
+    "title": "Preguntas Frecuentes",
+    "q1": { "q": "¿A qué países envían?", "a": "Actualmente enviamos a México, Estados Unidos y Canadá. Estamos trabajando para ampliar nuestra cobertura a más países en el futuro." },
+    "q2": { "q": "¿Cuánto tarda la entrega?", "a": "La entrega en México tarda de 3 a 7 días hábiles. A Estados Unidos, de 7 a 14 días hábiles. A Canadá, de 10 a 18 días hábiles. Estos son estimados y pueden variar según tu ubicación y el transportista." },
+    "q3": { "q": "¿Cómo puedo rastrear mi pedido?", "a": "Una vez que tu pedido haya sido enviado, recibirás un número de rastreo por correo electrónico. También puedes consultar el estado de tu pedido en cualquier momento desde la sección Mis Pedidos de tu cuenta." },
+    "q4": { "q": "¿Qué métodos de pago aceptan?", "a": "Aceptamos todas las principales tarjetas de crédito y débito (Visa, Mastercard, American Express) a través de nuestro proveedor de pagos seguro, Stripe. No almacenamos ningún dato de tarjeta en nuestros servidores." },
+    "q5": { "q": "¿Puedo devolver o cambiar un artículo?", "a": "Sí. Aceptamos devoluciones dentro de los 30 días posteriores a la entrega para artículos en su condición original, sin usar. Visita nuestra página de Devoluciones para conocer el proceso completo." },
+    "q6": { "q": "¿Los materiales de sus joyas son seguros?", "a": "Todas nuestras joyas están fabricadas con materiales de alta calidad e hipoalergénicos. Si tienes sensibilidades específicas, contáctanos antes de comprar y con gusto te ayudaremos." },
+    "q7": { "q": "¿Cómo cuido mis joyas?", "a": "Recomendamos guardar tus joyas en un lugar seco alejado de la luz solar directa. Evita el contacto con perfumes, lociones y agua. Limpia suavemente con un paño suave y seco." },
+    "q8": { "q": "Tengo un problema con mi pedido. ¿A quién contacto?", "a": "Escríbenos a support@bijou-monde.com con tu número de pedido y una descripción del problema. Nuestro objetivo es responder en 2 días hábiles." }
+  },
+  "shipping": {
+    "title": "Envíos y Entregas",
+    "s1": {
+      "title": "Tiempos y Métodos de Entrega",
+      "body": "Enviamos todos los pedidos desde México a través de servicios de mensajería de confianza. Los tiempos de entrega estimados son los siguientes:",
+      "tableDestination": "Destino",
+      "tableMethod": "Método",
+      "tableTime": "Tiempo estimado",
+      "mxDest": "México", "mxMethod": "Mensajería estándar", "mxTime": "3–7 días hábiles",
+      "usDest": "Estados Unidos", "usMethod": "Mensajería internacional", "usTime": "7–14 días hábiles",
+      "caDest": "Canadá", "caMethod": "Mensajería internacional", "caTime": "10–18 días hábiles"
+    },
+    "s2": {
+      "title": "Rastreo",
+      "body": "Todos los pedidos incluyen rastreo. Una vez enviado tu pedido, recibirás un correo de confirmación con tu número de rastreo. También puedes consultar tu información de rastreo en cualquier momento desde la sección Mis Pedidos de tu cuenta."
+    },
+    "s3": {
+      "title": "Aduanas e Impuestos",
+      "body": "Para pedidos enviados a Estados Unidos o Canadá, pueden aplicarse aranceles aduaneros e impuestos de importación a la llegada a tu país. Estos cargos son determinados por las autoridades aduaneras locales y son responsabilidad del destinatario. Bijou Monde no tiene control sobre estos costos."
+    },
+    "s4": {
+      "title": "Retrasos",
+      "body": "Los tiempos de entrega son estimados y no están garantizados. Pueden ocurrir retrasos por trámites aduaneros, interrupciones del transportista u otras circunstancias fuera de nuestro control. Si tu pedido no ha llegado en el plazo estimado, contáctanos en support@bijou-monde.com."
+    }
+  },
+  "returns": {
+    "title": "Devoluciones y Reembolsos",
+    "s1": {
+      "title": "Plazo de Devolución",
+      "body": "Aceptamos devoluciones dentro de los 30 días posteriores a la fecha de entrega. Después de 30 días, no podremos aceptar devoluciones ni emitir reembolsos."
+    },
+    "s2": {
+      "title": "Requisitos",
+      "intro": "Para ser elegible para una devolución, el artículo debe cumplir las siguientes condiciones:",
+      "i1": "Sin usar y en su condición original",
+      "i2": "En su empaque original",
+      "i3": "No ser un artículo en liquidación o promoción marcado como no retornable"
+    },
+    "s3": {
+      "title": "Cómo Devolver",
+      "i1": "Envíanos un correo a returns@bijou-monde.com con tu número de pedido y el motivo de la devolución.",
+      "i2": "Confirmaremos si tu devolución es elegible y te proporcionaremos la dirección de envío.",
+      "i3": "Envía el artículo de forma segura. Los gastos de envío de devolución son tu responsabilidad, salvo que el artículo haya llegado dañado o incorrecto.",
+      "i4": "Una vez recibido e inspeccionado el artículo, procesaremos tu reembolso."
+    },
+    "s4": {
+      "title": "Reembolsos",
+      "body": "Los reembolsos aprobados se emiten al método de pago original en un plazo de 5 a 10 días hábiles tras recibir el artículo devuelto. Recibirás un correo de confirmación cuando tu reembolso haya sido procesado."
+    },
+    "s5": {
+      "title": "Artículos Dañados o Incorrectos",
+      "body": "Si tu pedido llegó dañado o recibiste el artículo equivocado, contáctanos en support@bijou-monde.com dentro de los 7 días posteriores a la entrega con una foto del artículo. Organizaremos un reemplazo o reembolso completo sin costo para ti."
+    }
+  },
+  "privacy": {
+    "title": "Política de Privacidad",
+    "updated": "Última actualización: marzo de 2026",
+    "s1": {
+      "title": "Quiénes Somos",
+      "body": "Bijou Monde es una tienda de joyería constituida en México. Operamos el sitio bijou-monde.com y enviamos pedidos a clientes en México, Estados Unidos y Canadá. Las referencias a «nosotros» o «nuestro» en esta política se refieren a Bijou Monde."
+    },
+    "s2": {
+      "title": "Información que Recopilamos",
+      "intro": "Cuando realizas un pedido o creas una cuenta, recopilamos los siguientes datos personales:",
+      "i1": "Nombre completo y correo electrónico",
+      "i2": "Dirección de envío y país",
+      "i3": "Historial de pedidos y detalles de compra",
+      "i4": "El pago es procesado íntegramente por Stripe, Inc. No recibimos, almacenamos ni tenemos acceso a tu número de tarjeta, CVV ni ninguna otra credencial de pago."
+    },
+    "s3": {
+      "title": "Cómo Usamos Tu Información",
+      "intro": "Usamos tus datos personales exclusivamente para:",
+      "i1": "Procesar y cumplir tus pedidos",
+      "i2": "Enviar confirmaciones de pedido y actualizaciones de envío",
+      "i3": "Responder consultas de servicio al cliente"
+    },
+    "s4": {
+      "title": "Procesamiento de Pagos",
+      "body": "Todas las transacciones de pago son gestionadas por Stripe, Inc., un procesador de pagos certificado PCI-DSS nivel 1. Cuando ingresas los datos de tu tarjeta en el proceso de pago, esa información se transmite directamente a Stripe y nunca pasa por nuestros servidores ni se almacena en ellos."
+    },
+    "s5": {
+      "title": "Compartir con Terceros",
+      "body": "No vendemos, arrendamos ni compartimos tu información personal con terceros con fines de marketing. Compartimos tu nombre y dirección de envío con nuestros socios logísticos únicamente para entregar tu pedido."
+    },
+    "s6": {
+      "title": "Tus Derechos",
+      "intro": "De conformidad con la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP) de México, tienes derecho a:",
+      "i1": "Acceder a los datos personales que tenemos sobre ti",
+      "i2": "Solicitar la corrección de datos inexactos",
+      "i3": "Solicitar la eliminación de tus datos",
+      "i4": "Oponerte al tratamiento de tus datos o restringirlo"
+    },
+    "s7": {
+      "title": "Retención de Datos",
+      "body": "Conservamos tus datos personales mientras tu cuenta esté activa y hasta 5 años después de tu último pedido, según lo requieren las obligaciones legales y fiscales mexicanas. Puedes solicitar la eliminación en cualquier momento."
+    },
+    "s8": {
+      "title": "Contacto",
+      "body": "Para ejercer tus derechos o para cualquier consulta relacionada con privacidad, contáctanos en privacy@bijou-monde.com. Responderemos en un plazo de 20 días hábiles conforme a la LFPDPPP."
+    }
+  },
+  "terms": {
+    "title": "Términos de Servicio",
+    "updated": "Última actualización: marzo de 2026",
+    "s1": {
+      "title": "Aceptación de los Términos",
+      "body": "Al acceder a nuestro sitio web o realizar un pedido, aceptas estos Términos de Servicio. Estos términos constituyen un acuerdo vinculante entre tú y Bijou Monde, constituida en México."
+    },
+    "s2": {
+      "title": "Productos y Precios",
+      "body": "Todos los precios se muestran en la moneda seleccionada al momento del pago (MXN, USD o CAD). Nos reservamos el derecho de modificar los precios en cualquier momento. El precio confirmado al momento de tu pedido es el que se te cobrará."
+    },
+    "s3": {
+      "title": "Pedidos y Pago",
+      "body": "Los pedidos se confirman tras la autorización exitosa del pago a través de Stripe. Nos reservamos el derecho de cancelar cualquier pedido por falta de stock, errores de precio o sospecha de fraude, en cuyo caso recibirás un reembolso completo."
+    },
+    "s4": {
+      "title": "Envíos",
+      "intro": "Enviamos a México, Estados Unidos y Canadá. Los tiempos de entrega estimados varían según el destino:",
+      "i1": "México: 3 a 7 días hábiles",
+      "i2": "Estados Unidos: 7 a 14 días hábiles",
+      "i3": "Canadá: 10 a 18 días hábiles"
+    },
+    "s5": {
+      "title": "Devoluciones y Reembolsos",
+      "body": "Aceptamos devoluciones dentro de los 30 días posteriores a la entrega para artículos en su condición original, sin usar. Para iniciar una devolución, contáctanos en returns@bijou-monde.com con tu número de pedido. Los gastos de envío de devolución son responsabilidad del cliente, salvo que el artículo haya llegado dañado o incorrecto."
+    },
+    "s6": {
+      "title": "Propiedad Intelectual",
+      "body": "Todo el contenido de este sitio — incluyendo imágenes, textos, logotipos y diseños — es propiedad de Bijou Monde y no puede ser reproducido ni utilizado sin nuestro consentimiento previo por escrito."
+    },
+    "s7": {
+      "title": "Limitación de Responsabilidad",
+      "body": "Bijou Monde no es responsable de daños indirectos, incidentales o consecuentes derivados del uso de nuestro sitio o productos. Nuestra responsabilidad total no excederá el monto pagado por el pedido en cuestión."
+    },
+    "s8": {
+      "title": "Ley Aplicable",
+      "body": "Estos términos se rigen por las leyes de los Estados Unidos Mexicanos. Cualquier disputa estará sujeta a la jurisdicción exclusiva de los tribunales de la Ciudad de México."
+    },
+    "s9": {
+      "title": "Cambios en los Términos",
+      "body": "Nos reservamos el derecho de actualizar estos términos en cualquier momento. Los cambios se publicarán en esta página con una fecha actualizada. El uso continuado de nuestros servicios tras cualquier modificación implica la aceptación de los nuevos términos."
+    }
+  },
+  "about": {
+    "title": "Sobre Nosotros",
+    "p1": "Bijou Monde nació de una pasión por la elegancia atemporal y la artesanía refinada. Cada pieza de nuestra colección está cuidadosamente diseñada para celebrar la belleza en su forma más pura.",
+    "p2": "Trabajamos con artesanos talentosos y materiales de origen responsable para crear joyas pensadas para usarse, atesorarse y transmitirse.",
+    "p3": "Ya sea que te des un capricho o busques el regalo perfecto, estamos aquí para hacer cada momento un poco más especial."
+  },
   "footer": {
     "help": "Ayuda",
     "faq": "Preguntas Frecuentes",
     "shipping": "Envíos",
     "returns": "Devoluciones",
-    "about": "Acerca de Bijou Monde",
-    "sustainability": "Sostenibilidad",
-    "careers": "Empleo",
+    "company": "Empresa",
+    "aboutUs": "Sobre Nosotros",
     "rights": "Todos los derechos reservados.",
     "newsletter": {
       "title": "Mantente al día",
