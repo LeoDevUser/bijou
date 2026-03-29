@@ -50,7 +50,12 @@
     "category": "Categoría",
     "label": "Etiqueta",
     "misc": "Otro",
-    "clearFilters": "Borrar filtros"
+    "clearFilters": "Borrar filtros",
+    "sort": "Ordenar",
+    "sortDefault": "Ninguno",
+    "sortBestselling": "Más Vendidos",
+    "sortPriceAsc": "Precio ↑",
+    "sortPriceDesc": "Precio ↓"
   },
   "product": {
     "addToCart": "Añadir al Carrito",

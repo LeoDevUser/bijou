@@ -13,23 +13,34 @@ const CATEGORIES = [
   { value: 'MISC', labelKey: 'shop.misc' },
 ] as const;
 
+type SortOption = 'default' | 'bestselling' | 'price_asc' | 'price_desc';
+
+const effectivePrice = (item: ItemView) =>
+  item.discountPercent ? item.price * (1 - item.discountPercent / 100) : item.price;
+
 export default function Shop() {
   const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [allItems, setAllItems] = useState<ItemView[]>([]);
   const [labels, setLabels] = useState<LabelView[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sort, setSort] = useState<SortOption>('default');
 
   const activeCategory = searchParams.get('category') ?? '';
   const activeLabelId = searchParams.get('label') ?? '';
 
   useEffect(() => {
+    api.labels.list().then(setLabels).catch(console.error);
+  }, []);
+
+  useEffect(() => {
     setLoading(true);
-    Promise.all([api.items.list(), api.labels.list()])
-      .then(([items, lbls]) => { setAllItems(items); setLabels(lbls); })
+    const fetch = sort === 'bestselling' ? api.items.bestselling() : api.items.list();
+    fetch
+      .then(setAllItems)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [sort === 'bestselling']); // eslint-disable-line react-hooks/exhaustive-deps
 
   const resolvedLabelId = useMemo(() => {
     if (!activeLabelId) return null;
@@ -55,8 +66,10 @@ export default function Shop() {
     if (resolvedLabelId !== null) {
       result = result.filter(item => item.labels.some(l => l.id === resolvedLabelId));
     }
+    if (sort === 'price_asc') result = [...result].sort((a, b) => effectivePrice(a) - effectivePrice(b));
+    if (sort === 'price_desc') result = [...result].sort((a, b) => effectivePrice(b) - effectivePrice(a));
     return result;
-  }, [allItems, activeCategory, resolvedLabelId]);
+  }, [allItems, activeCategory, resolvedLabelId, sort]);
 
   function setCategory(value: string) {
     setSearchParams(prev => {
@@ -128,6 +141,25 @@ export default function Shop() {
             ))}
           </div>
         )}
+
+        {/* Sort */}
+        <div className="flex flex-wrap gap-2 items-center">
+          <span className="text-xs uppercase tracking-widest text-muted w-16 shrink-0">{t('shop.sort')}</span>
+          {([
+            ['default',     t('shop.sortDefault')],
+            ['bestselling', t('shop.sortBestselling')],
+            ['price_asc',   t('shop.sortPriceAsc')],
+            ['price_desc',  t('shop.sortPriceDesc')],
+          ] as [SortOption, string][]).map(([value, label]) => (
+            <button
+              key={value}
+              onClick={() => setSort(value)}
+              className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${sort === value ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
         {/* Clear all */}
         {hasFilters && (
