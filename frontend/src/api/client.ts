@@ -1,4 +1,4 @@
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, AnnouncementView, SiteAssetView, CollectionView } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, AnnouncementView, SiteAssetView, CollectionView, SalesStats } from '../types';
 
 interface LabelRequest { nameEn: string; nameFr: string; nameEs: string; }
 
@@ -44,6 +44,8 @@ export const api = {
   },
   items: {
     list: () => request<ItemView[]>('/public/items'),
+    trending: () => request<ItemView[]>('/public/items/trending'),
+    bestselling: () => request<ItemView[]>('/public/items/bestselling'),
     get: (id: number) => request<ItemView>(`/public/items/${id}`),
     byCategory: (category: string) => request<ItemView[]>(`/public/items/category/${category}`),
     byLabel: (labelId: number) => request<ItemView[]>(`/public/items/label/${labelId}`),
@@ -91,6 +93,7 @@ export const api = {
   admin: {
     items: {
       listVerbose: () => request<ItemViewVerbose[]>(`/${ADMIN}/items`),
+      salesStats: () => request<SalesStats>(`/${ADMIN}/items/salesstats`),
       create: (data: ItemRequest) =>
         request<ItemView>(`/${ADMIN}/items`, { method: 'POST', body: JSON.stringify(data) }),
       update: (id: number, data: ItemRequest) =>

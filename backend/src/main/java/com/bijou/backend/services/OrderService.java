@@ -158,8 +158,15 @@ public class OrderService {
                 log.warn("item {} no longer exists, skipping sales update", orderItem.getItem().getId());
                 return;
             }
+
+            //here we update all sales stats
             item.setNbSold(orderItem.getQuantity() + item.getNbSold());
+            item.setNbSoldMonth(orderItem.getQuantity() + item.getNbSoldMonth());
             BigDecimal totalSold = orderItem.getUnitPrice().multiply(BigDecimal.valueOf(orderItem.getQuantity()));
+            item.setTotalSalesWeek(totalSold.add(item.getTotalSalesWeek()));
+            item.setTotalSalesMonth(totalSold.add(item.getTotalSalesMonth()));
+            item.setTotalSalesQuarter(totalSold.add(item.getTotalSalesQuarter()));
+            item.setTotalSalesYear(totalSold.add(item.getTotalSalesYear()));
             item.setTotalSales(totalSold.add(item.getTotalSales()));
         });
 

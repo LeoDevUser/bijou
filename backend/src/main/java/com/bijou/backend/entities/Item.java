@@ -53,6 +53,16 @@ public class Item {
     @Builder.Default
     private int nbSold = 0;
     @Builder.Default
+    private int nbSoldMonth = 0;
+    @Builder.Default
+    private BigDecimal totalSalesWeek = BigDecimal.ZERO;
+    @Builder.Default
+    private BigDecimal totalSalesMonth = BigDecimal.ZERO;
+    @Builder.Default
+    private BigDecimal totalSalesQuarter = BigDecimal.ZERO;
+    @Builder.Default
+    private BigDecimal totalSalesYear = BigDecimal.ZERO;
+    @Builder.Default
     private BigDecimal totalSales = BigDecimal.ZERO;
     @Builder.Default
     private boolean active = true;

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.bijou.backend.entities.Category;
+import com.bijou.backend.repositories.SalesStats;
 import com.bijou.backend.services.CloudinaryService;
 import com.bijou.backend.services.ItemRequest;
 import com.bijou.backend.services.ItemService;
@@ -35,6 +36,16 @@ public class ItemController {
     @GetMapping("/public/items")
     public ResponseEntity<List<ItemView>> getItems() {
         return ResponseEntity.ok(itemService.getAllItems());
+    }
+
+    @GetMapping("/public/items/trending")
+    public ResponseEntity<List<ItemView>> getTrendingItems() {
+        return ResponseEntity.ok(itemService.getMonthTrendingItems());
+    }
+
+    @GetMapping("/public/items/bestselling")
+    public ResponseEntity<List<ItemView>> getItemsBySales() {
+        return ResponseEntity.ok(itemService.getAllItemsSortedBySalesVolume());
     }
 
     @GetMapping("/public/items/category/{category}")
@@ -118,5 +129,10 @@ public class ItemController {
     @GetMapping("/${ADMIN_PAGE}/items")
     public ResponseEntity<List<ItemViewVerbose>> getItemsVerbose() {
         return ResponseEntity.ok(itemService.getItemsVerbose());
+    }
+
+    @GetMapping("/${ADMIN_PAGE}/items/salesstats")
+    public ResponseEntity<SalesStats> getSalesStats() {
+        return ResponseEntity.ok(itemService.getSalesStats());
     }
 }

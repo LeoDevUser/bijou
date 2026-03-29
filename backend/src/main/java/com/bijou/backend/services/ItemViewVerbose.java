@@ -20,7 +20,12 @@ public record ItemViewVerbose(
         String imageUrl,
         String imageId,
         int nbSold,
+        int nbSoldMonth,
         BigDecimal totalSales,
+        BigDecimal totalSalesWeek,
+        BigDecimal totalSalesMonth,
+        BigDecimal totalSalesQuarter,
+        BigDecimal totalSalesYear,
         boolean active,
         Integer discountPercent
 ) {}

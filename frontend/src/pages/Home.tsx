@@ -40,11 +40,11 @@ function SlotMedia({ entry, alt, className }: { entry: AssetEntry; alt: string; 
 
 export default function Home() {
   const { t, i18n } = useTranslation();
-  const [items, setItems] = useState<ItemView[]>([]);
+  const [trending, setTrending] = useState<ItemView[]>([]);
   const [assetMap, setAssetMap] = useState<Record<string, AssetEntry>>({});
 
   useEffect(() => {
-    api.items.list().then(setItems).catch(console.error);
+    api.items.trending().then(setTrending).catch(console.error);
     api.siteAssets.list()
       .then((list: SiteAssetView[]) => {
         const map: Record<string, AssetEntry> = {};
@@ -111,7 +111,7 @@ export default function Home() {
       </section>
 
       {/* Trending Now */}
-      {items.length > 0 && (
+      {trending.length > 0 && (
         <section className="max-w-7xl mx-auto px-6 pb-16">
           <div className="flex items-center justify-between mb-10">
             <h2 className="font-serif text-3xl font-light">{t('home.trending.title')}</h2>
@@ -123,7 +123,7 @@ export default function Home() {
             </Link>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {items.slice(0, 8).map(item => (
+            {trending.map(item => (
               <ProductCard key={item.id} item={item} />
             ))}
           </div>

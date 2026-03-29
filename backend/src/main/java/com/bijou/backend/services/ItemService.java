@@ -1,6 +1,7 @@
 package com.bijou.backend.services;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -12,6 +13,7 @@ import com.bijou.backend.exception.AppException;
 import com.bijou.backend.entities.Item;
 import com.bijou.backend.repositories.ItemRepository;
 import com.bijou.backend.repositories.LabelRepository;
+import com.bijou.backend.repositories.SalesStats;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +61,9 @@ public class ItemService {
                 item.getPrice(), toLabelViews(item.getLabels()), item.getCategory(),
                 item.getDescriptionEn(), item.getDescriptionFr(), item.getDescriptionEs(),
                 item.getImageUrl(), item.getImageId(),
-                item.getNbSold(), item.getTotalSales(), item.isActive(),
+                item.getNbSold(), item.getNbSoldMonth(), item.getTotalSales(),
+                item.getTotalSalesWeek(), item.getTotalSalesMonth(), item.getTotalSalesQuarter(),
+                item.getTotalSalesYear(), item.isActive(),
                 item.getDiscountPercent()
             );
     }
@@ -175,6 +179,24 @@ public class ItemService {
 
     public List<ItemView> getAllItems() {
         return itemRepository.findByActiveTrue().stream()
+            .map(this::toItemView)
+            .toList();
+    }
+
+    public List<ItemView> getAllItemsSortedBySalesVolume() {
+        return itemRepository.findByActiveTrue().stream()
+            .sorted(Comparator.comparing(Item::getTotalSales).reversed())
+            .map(this::toItemView)
+            .toList();
+    }
+
+    public SalesStats getSalesStats(){
+        return itemRepository.getCombinedSalesStats();
+    }
+
+    public List<ItemView> getMonthTrendingItems() {
+        return itemRepository.findByActiveTrue().stream()
+            .sorted(Comparator.comparing(Item::getNbSoldMonth).reversed())
             .map(this::toItemView)
             .toList();
     }

@@ -24,8 +24,21 @@ export interface ItemView {
 
 export interface ItemViewVerbose extends ItemView {
   nbSold: number;
+  nbSoldMonth: number;
   totalSales: number;
+  totalSalesWeek: number;
+  totalSalesMonth: number;
+  totalSalesQuarter: number;
+  totalSalesYear: number;
   active: boolean;
+}
+
+export interface SalesStats {
+  total: number;
+  week: number;
+  month: number;
+  quarter: number;
+  year: number;
 }
 
 export interface OrderItemView {

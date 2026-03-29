@@ -135,7 +135,8 @@
       "products": "Products",
       "users": "Users",
       "admins": "Admins",
-      "site": "Site"
+      "site": "Site",
+      "stats": "Sales"
     },
     "search": {
       "orderPlaceholder": "Search by order ID or email...",
@@ -164,11 +165,13 @@
     },
     "products": {
       "sortBySold": "By Units Sold",
+      "sortBySoldMonth": "By This Month",
       "sortBySales": "By Total Sales",
       "addProduct": "+ Add Product",
       "empty": "No products yet.",
       "inStock": "in stock",
       "sold": "sold",
+      "thisMonth": "this month",
       "total": "total",
       "inactive": "Inactive",
       "incomplete": "Incomplete",
@@ -179,6 +182,19 @@
       "delete": "Delete",
       "deleteConfirm": "Delete this product? This cannot be undone.",
       "saveError": "Failed to save. Please try again."
+    },
+    "stats": {
+      "overallTitle": "Overall Revenue",
+      "itemBreakdown": "Revenue by Product",
+      "week": "This Week",
+      "month": "This Month",
+      "quarter": "This Quarter",
+      "year": "This Year",
+      "allTime": "All Time",
+      "item": "Product",
+      "unitsSoldMonth": "sold this month",
+      "unitsSoldTotal": "sold total",
+      "noData": "No sales data yet."
     },
     "modal": {
       "editTitle": "Edit Product",

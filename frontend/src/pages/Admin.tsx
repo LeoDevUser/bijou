@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, Category, VerboseClient, LabelView, AnnouncementView, SiteAssetView, CollectionView } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, Category, VerboseClient, LabelView, AnnouncementView, SiteAssetView, CollectionView, SalesStats } from '../types';
 import { pickLocale, isItemIncomplete, isLabelIncomplete } from '../types';
 
 const CATEGORIES: Category[] = ['NECKLACE', 'RING', 'EARRING', 'MISC'];
@@ -403,7 +403,7 @@ function ItemModal({ item, allLabels, onClose, onSaved }: ItemModalProps) {
 
 // ── Products ──────────────────────────────────────────────────────────────────
 
-type ProductSort = 'default' | 'sold' | 'sales';
+type ProductSort = 'default' | 'sold' | 'soldMonth' | 'sales';
 
 function AdminProducts() {
   const { t } = useTranslation();
@@ -465,6 +465,7 @@ function AdminProducts() {
     })
     .sort((a, b) => {
       if (sort === 'sold') return b.nbSold - a.nbSold;
+      if (sort === 'soldMonth') return b.nbSoldMonth - a.nbSoldMonth;
       if (sort === 'sales') return b.totalSales - a.totalSales;
       return 0;
     });
@@ -486,6 +487,7 @@ function AdminProducts() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {sortBtn(t('admin.products.sortBySold'), 'sold')}
+            {sortBtn(t('admin.products.sortBySoldMonth'), 'soldMonth')}
             {sortBtn(t('admin.products.sortBySales'), 'sales')}
           </div>
           <button
@@ -530,7 +532,9 @@ function AdminProducts() {
                   {!!item.discountPercent && <span className="text-[10px] uppercase tracking-widest border border-gold text-gold px-1.5 py-0.5">-{item.discountPercent}%</span>}
                 </div>
                 <p className="text-xs text-muted">{item.category} · {item.discountPercent ? `$${(Number(item.price) * (1 - item.discountPercent / 100)).toFixed(2)} ` : ''}<span className={item.discountPercent ? 'line-through' : ''}>${Number(item.price).toFixed(2)}</span> · {item.stock} {t('admin.products.inStock')}</p>
-                <p className="text-xs text-muted">{item.nbSold} {t('admin.products.sold')} · ${Number(item.totalSales).toFixed(2)} {t('admin.products.total')}</p>
+                <p className="text-xs text-muted">
+                  {item.nbSold} {t('admin.products.sold')} ({item.nbSoldMonth} {t('admin.products.thisMonth')}) · ${Number(item.totalSales).toFixed(2)} {t('admin.products.total')} (${Number(item.totalSalesMonth).toFixed(2)} {t('admin.products.thisMonth')})
+                </p>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
                 <button onClick={() => setModal(item)} className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors">
@@ -1480,9 +1484,118 @@ function AdminSite() {
   );
 }
 
+// ── Sales Stats ───────────────────────────────────────────────────────────────
+
+function AdminStats() {
+  const { t } = useTranslation();
+  const [stats, setStats] = useState<SalesStats | null>(null);
+  const [items, setItems] = useState<ItemViewVerbose[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [sort, setSort] = useState<'month' | 'quarter' | 'year' | 'total'>('month');
+
+  useEffect(() => {
+    Promise.all([api.admin.items.salesStats(), api.admin.items.listVerbose()])
+      .then(([s, i]) => { setStats(s); setItems(i); })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const sorted = [...items]
+    .filter(i => i.active)
+    .sort((a, b) => {
+      if (sort === 'month') return b.totalSalesMonth - a.totalSalesMonth;
+      if (sort === 'quarter') return b.totalSalesQuarter - a.totalSalesQuarter;
+      if (sort === 'year') return b.totalSalesYear - a.totalSalesYear;
+      return b.totalSales - a.totalSales;
+    });
+
+  const statCards = stats ? [
+    { label: t('admin.stats.week'),    value: stats.week },
+    { label: t('admin.stats.month'),   value: stats.month },
+    { label: t('admin.stats.quarter'), value: stats.quarter },
+    { label: t('admin.stats.year'),    value: stats.year },
+    { label: t('admin.stats.allTime'), value: stats.total },
+  ] : [];
+
+  const sortBtn = (label: string, value: typeof sort) => (
+    <button
+      onClick={() => setSort(value)}
+      className={`text-xs uppercase tracking-widest px-4 py-2 border transition-colors ${
+        sort === value ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'
+      }`}
+    >
+      {label}
+    </button>
+  );
+
+  if (loading) return <div className="space-y-2">{[...Array(3)].map((_, i) => <div key={i} className="h-16 bg-[#F0EDE8] animate-pulse" />)}</div>;
+
+  return (
+    <div className="space-y-10">
+      {/* Overall stats */}
+      <div>
+        <p className="text-xs uppercase tracking-widest text-muted mb-4">{t('admin.stats.overallTitle')}</p>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          {statCards.map(card => (
+            <div key={card.label} className="border border-border px-5 py-4">
+              <p className="text-xs uppercase tracking-widest text-muted mb-1">{card.label}</p>
+              <p className="font-serif text-2xl font-light">${Number(card.value).toFixed(2)}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Per-item breakdown */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-xs uppercase tracking-widest text-muted">{t('admin.stats.itemBreakdown')}</p>
+          <div className="flex gap-2">
+            {sortBtn(t('admin.stats.month'), 'month')}
+            {sortBtn(t('admin.stats.quarter'), 'quarter')}
+            {sortBtn(t('admin.stats.year'), 'year')}
+            {sortBtn(t('admin.stats.allTime'), 'total')}
+          </div>
+        </div>
+        <div className="border border-border divide-y divide-border">
+          <div className="grid grid-cols-6 px-4 py-2 text-xs uppercase tracking-widest text-muted">
+            <span className="col-span-2">{t('admin.stats.item')}</span>
+            <span>{t('admin.stats.week')}</span>
+            <span>{t('admin.stats.month')}</span>
+            <span>{t('admin.stats.year')}</span>
+            <span>{t('admin.stats.allTime')}</span>
+          </div>
+          {sorted.length === 0 ? (
+            <p className="text-center text-sm text-muted py-8">{t('admin.stats.noData')}</p>
+          ) : sorted.map(item => {
+            const name = item.nameEn || item.nameFr || item.nameEs || `#${item.id}`;
+            return (
+              <div key={item.id} className="grid grid-cols-6 px-4 py-3 text-sm items-center">
+                <div className="col-span-2 flex items-center gap-3 min-w-0">
+                  {item.imageUrl
+                    ? <img src={item.imageUrl} alt={name} className="w-8 h-8 object-cover flex-shrink-0" />
+                    : <div className="w-8 h-8 bg-[#F0EDE8] flex-shrink-0" />
+                  }
+                  <div className="min-w-0">
+                    <p className="truncate">{name}</p>
+                    <p className="text-xs text-muted">{item.nbSoldMonth} {t('admin.stats.unitsSoldMonth')} · {item.nbSold} {t('admin.stats.unitsSoldTotal')}</p>
+                  </div>
+                </div>
+                <span>${Number(item.totalSalesWeek).toFixed(2)}</span>
+                <span>${Number(item.totalSalesMonth).toFixed(2)}</span>
+                <span>${Number(item.totalSalesYear).toFixed(2)}</span>
+                <span>${Number(item.totalSales).toFixed(2)}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-type Tab = 'orders' | 'products' | 'users' | 'admins' | 'site';
+type Tab = 'orders' | 'products' | 'stats' | 'users' | 'admins' | 'site';
 
 export default function Admin() {
   const { t } = useTranslation();
@@ -1491,6 +1604,7 @@ export default function Admin() {
   const TABS: { key: Tab; label: string }[] = [
     { key: 'orders', label: t('admin.tabs.orders') },
     { key: 'products', label: t('admin.tabs.products') },
+    { key: 'stats', label: t('admin.tabs.stats') },
     { key: 'users', label: t('admin.tabs.users') },
     { key: 'admins', label: t('admin.tabs.admins') },
     { key: 'site', label: t('admin.tabs.site') },
@@ -1517,6 +1631,7 @@ export default function Admin() {
 
       {tab === 'orders' && <AdminOrders />}
       {tab === 'products' && <AdminProducts />}
+      {tab === 'stats' && <AdminStats />}
       {tab === 'users' && <AdminUsers />}
       {tab === 'admins' && <AdminAdmins />}
       {tab === 'site' && <AdminSite />}
