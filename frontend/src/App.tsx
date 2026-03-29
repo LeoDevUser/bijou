@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { CartProvider } from './context/CartContext'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { CurrencyProvider } from './context/CurrencyContext'
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
 import Home from './pages/Home'
@@ -38,6 +39,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <CurrencyProvider>
         <CartProvider>
           <div className="flex flex-col min-h-screen">
             <Navbar />
@@ -66,6 +68,7 @@ function App() {
             <Footer />
           </div>
         </CartProvider>
+        </CurrencyProvider>
       </AuthProvider>
     </BrowserRouter>
   )

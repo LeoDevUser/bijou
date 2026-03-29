@@ -86,7 +86,8 @@
     "placeOrder": "Place Order",
     "processing": "Processing...",
     "orderSummary": "Order Summary",
-    "error": "Something went wrong. Please try again."
+    "error": "Something went wrong. Please try again.",
+    "currencyNotice": "Prices in USD and CAD are estimates. All transactions are processed in MXN at the exchange rate applied by Stripe at the time of payment. Your bank may charge additional foreign transaction fees."
   },
   "payment": {
     "title": "Payment",
@@ -317,7 +318,7 @@
     "q1": { "q": "Where do you ship?", "a": "We currently ship to Mexico, the United States, and Canada. We are working on expanding to more countries in the future." },
     "q2": { "q": "How long does delivery take?", "a": "Delivery to Mexico takes 3–7 business days. To the United States, 7–14 business days. To Canada, 10–18 business days. These are estimates and may vary depending on your location and carrier." },
     "q3": { "q": "How can I track my order?", "a": "Once your order has shipped, you will receive a tracking number by email. You can also view your order status at any time from the My Orders section of your account." },
-    "q4": { "q": "What payment methods do you accept?", "a": "We accept all major credit and debit cards (Visa, Mastercard, American Express) through our secure payment provider, Stripe. We do not store any card information on our servers." },
+    "q4": { "q": "What payment methods do you accept?", "a": "We accept all major credit and debit cards (Visa, Mastercard, American Express) through our secure payment provider, Stripe. We do not store any card information on our servers. All transactions are processed in Mexican Pesos (MXN). If you select USD or CAD at checkout, the displayed price is an estimate — your bank will apply the exchange rate at the time of the charge and may add foreign transaction fees." },
     "q5": { "q": "Can I return or exchange an item?", "a": "Yes. We accept returns within 30 days of delivery for items in their original, unworn condition. Please visit our Returns page for the full process." },
     "q6": { "q": "Are the materials used in your jewelry safe?", "a": "All of our jewelry is made with high-quality, hypoallergenic materials. If you have specific sensitivities, please contact us before purchasing and we will be happy to help." },
     "q7": { "q": "How do I care for my jewelry?", "a": "We recommend storing your jewelry in a dry place away from direct sunlight. Avoid contact with perfumes, lotions, and water. Clean gently with a soft dry cloth." },
@@ -433,7 +434,7 @@
     },
     "s2": {
       "title": "Products and Pricing",
-      "body": "All prices are displayed in the currency selected at checkout (MXN, USD, or CAD) and are inclusive of applicable taxes where required. We reserve the right to modify prices at any time. The price confirmed at the time of your order is the price you will be charged."
+      "body": "All prices are displayed in the currency selected at checkout (MXN, USD, or CAD) for your convenience. All transactions are processed in Mexican Pesos (MXN). If you pay in USD or CAD, the final charge will be converted to MXN at the exchange rate applied by Stripe at the time of payment. Your bank may also apply additional foreign transaction fees. Bijou Monde is not responsible for exchange rate fluctuations or bank-imposed fees. We reserve the right to modify prices at any time."
     },
     "s3": {
       "title": "Orders and Payment",

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useCart } from '../../context/CartContext';
+import { useCurrency } from '../../context/CurrencyContext';
 import type { ItemView } from '../../types';
 import { pickLocale } from '../../types';
 
@@ -12,6 +13,7 @@ function effectivePrice(price: number, discountPercent: number | null): number {
 export default function ProductCard({ item }: { item: ItemView }) {
   const { t, i18n } = useTranslation();
   const { addItem } = useCart();
+  const { format } = useCurrency();
   const name = pickLocale(item.nameEn, item.nameFr, item.nameEs, i18n.language);
   const salePrice = effectivePrice(Number(item.price), item.discountPercent);
   const hasDiscount = !!item.discountPercent;
@@ -47,12 +49,12 @@ export default function ProductCard({ item }: { item: ItemView }) {
       <p className="text-sm tracking-wide">{name}</p>
       {hasDiscount ? (
         <p className="text-sm mt-0.5 flex items-center gap-2">
-          <span>${salePrice.toFixed(2)}</span>
-          <span className="line-through text-muted">${Number(item.price).toFixed(2)}</span>
+          <span>{format(salePrice)}</span>
+          <span className="line-through text-muted">{format(Number(item.price))}</span>
           <span className="text-xs text-gold">-{item.discountPercent}%</span>
         </p>
       ) : (
-        <p className="text-sm text-muted mt-0.5">${Number(item.price).toFixed(2)}</p>
+        <p className="text-sm text-muted mt-0.5">{format(Number(item.price))}</p>
       )}
     </Link>
   );

@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import type { Country, Currency } from '../types';
+import { useCurrency } from '../context/CurrencyContext';
+import type { Country } from '../types';
 
 const COUNTRIES: { value: Country; label: string }[] = [
   { value: 'CANADA', label: 'Canada' },
@@ -12,23 +13,17 @@ const COUNTRIES: { value: Country; label: string }[] = [
   { value: 'MEXICO', label: 'Mexico' },
 ];
 
-const CURRENCIES: { value: Currency; label: string }[] = [
-  { value: 'CAD', label: 'CAD — Canadian Dollar' },
-  { value: 'USD', label: 'USD — US Dollar' },
-  { value: 'MXN', label: 'MXN — Mexican Peso' },
-];
-
 export default function Checkout() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { items, total } = useCart();
   const { isAuthenticated } = useAuth();
+  const { currency, format } = useCurrency();
 
   const [address, setAddress] = useState('');
   const [savedAddress, setSavedAddress] = useState<string | null>(null);
   const [useSaved, setUseSaved] = useState(false);
   const [country, setCountry] = useState<Country>('CANADA');
-  const [currency, setCurrency] = useState<Currency>('CAD');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -130,18 +125,11 @@ export default function Checkout() {
               ))}
             </select>
           </div>
-          <div>
-            <label className={labelClass}>{t('checkout.currency')}</label>
-            <select
-              value={currency}
-              onChange={e => setCurrency(e.target.value as Currency)}
-              className={`${inputClass} appearance-none cursor-pointer`}
-            >
-              {CURRENCIES.map(c => (
-                <option key={c.value} value={c.value}>{c.label}</option>
-              ))}
-            </select>
-          </div>
+          {currency !== 'MXN' && (
+            <p className="text-xs text-muted border border-border px-4 py-3 leading-relaxed">
+              {t('checkout.currencyNotice')}
+            </p>
+          )}
 
           {error && <p className="text-red-500 text-sm">{error}</p>}
 
@@ -162,13 +150,13 @@ export default function Checkout() {
               {items.map(item => (
                 <div key={item.id} className="flex justify-between text-sm">
                   <span className="text-muted">{item.name} × {item.quantity}</span>
-                  <span>${(item.price * item.quantity).toFixed(2)}</span>
+                  <span>{format(item.price * item.quantity)}</span>
                 </div>
               ))}
             </div>
             <div className="border-t border-border pt-4 flex justify-between text-sm font-medium">
               <span>{t('cart.total')}</span>
-              <span>${total.toFixed(2)}</span>
+              <span>{format(total)}</span>
             </div>
           </div>
         </div>

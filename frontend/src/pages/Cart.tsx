@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useCart } from '../context/CartContext';
+import { useCurrency } from '../context/CurrencyContext';
 
 export default function Cart() {
   const { t } = useTranslation();
   const { items, removeItem, updateQuantity, total, count } = useCart();
+  const { format } = useCurrency();
 
   if (items.length === 0) {
     return (
@@ -39,7 +41,7 @@ export default function Cart() {
               <div className="flex-1 flex flex-col justify-between">
                 <div className="flex justify-between">
                   <p className="text-sm tracking-wide">{item.name}</p>
-                  <p className="text-sm">${(item.price * item.quantity).toFixed(2)}</p>
+                  <p className="text-sm">{format(item.price * item.quantity)}</p>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center border border-border">
@@ -75,7 +77,7 @@ export default function Cart() {
             <h2 className="text-xs uppercase tracking-widest mb-6">{t('cart.summary')}</h2>
             <div className="flex justify-between text-sm mb-3">
               <span>{t('cart.subtotal')}</span>
-              <span>${total.toFixed(2)}</span>
+              <span>{format(total)}</span>
             </div>
             <div className="flex justify-between text-sm mb-6 text-muted">
               <span>{t('cart.shipping')}</span>
@@ -83,7 +85,7 @@ export default function Cart() {
             </div>
             <div className="border-t border-border pt-4 flex justify-between text-sm font-medium mb-6">
               <span>{t('cart.total')}</span>
-              <span>${total.toFixed(2)}</span>
+              <span>{format(total)}</span>
             </div>
             <Link
               to="/checkout"

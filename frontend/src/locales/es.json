@@ -86,7 +86,8 @@
     "placeOrder": "Realizar Pedido",
     "processing": "Procesando...",
     "orderSummary": "Resumen del Pedido",
-    "error": "Algo salió mal. Por favor, intenta de nuevo."
+    "error": "Algo salió mal. Por favor, intenta de nuevo.",
+    "currencyNotice": "Los precios en USD y CAD son estimados. Todas las transacciones se procesan en MXN al tipo de cambio aplicado por Stripe al momento del pago. Tu banco puede cobrar comisiones adicionales por transacciones internacionales."
   },
   "payment": {
     "title": "Pago",
@@ -317,7 +318,7 @@
     "q1": { "q": "¿A qué países envían?", "a": "Actualmente enviamos a México, Estados Unidos y Canadá. Estamos trabajando para ampliar nuestra cobertura a más países en el futuro." },
     "q2": { "q": "¿Cuánto tarda la entrega?", "a": "La entrega en México tarda de 3 a 7 días hábiles. A Estados Unidos, de 7 a 14 días hábiles. A Canadá, de 10 a 18 días hábiles. Estos son estimados y pueden variar según tu ubicación y el transportista." },
     "q3": { "q": "¿Cómo puedo rastrear mi pedido?", "a": "Una vez que tu pedido haya sido enviado, recibirás un número de rastreo por correo electrónico. También puedes consultar el estado de tu pedido en cualquier momento desde la sección Mis Pedidos de tu cuenta." },
-    "q4": { "q": "¿Qué métodos de pago aceptan?", "a": "Aceptamos todas las principales tarjetas de crédito y débito (Visa, Mastercard, American Express) a través de nuestro proveedor de pagos seguro, Stripe. No almacenamos ningún dato de tarjeta en nuestros servidores." },
+    "q4": { "q": "¿Qué métodos de pago aceptan?", "a": "Aceptamos todas las principales tarjetas de crédito y débito (Visa, Mastercard, American Express) a través de nuestro proveedor de pagos seguro, Stripe. No almacenamos ningún dato de tarjeta en nuestros servidores. Todas las transacciones se procesan en Pesos Mexicanos (MXN). Si seleccionas USD o CAD al finalizar tu compra, el monto mostrado es un estimado — tu banco aplicará el tipo de cambio al momento del cargo y puede agregar comisiones por transacción internacional." },
     "q5": { "q": "¿Puedo devolver o cambiar un artículo?", "a": "Sí. Aceptamos devoluciones dentro de los 30 días posteriores a la entrega para artículos en su condición original, sin usar. Visita nuestra página de Devoluciones para conocer el proceso completo." },
     "q6": { "q": "¿Los materiales de sus joyas son seguros?", "a": "Todas nuestras joyas están fabricadas con materiales de alta calidad e hipoalergénicos. Si tienes sensibilidades específicas, contáctanos antes de comprar y con gusto te ayudaremos." },
     "q7": { "q": "¿Cómo cuido mis joyas?", "a": "Recomendamos guardar tus joyas en un lugar seco alejado de la luz solar directa. Evita el contacto con perfumes, lociones y agua. Limpia suavemente con un paño suave y seco." },
@@ -433,7 +434,7 @@
     },
     "s2": {
       "title": "Productos y Precios",
-      "body": "Todos los precios se muestran en la moneda seleccionada al momento del pago (MXN, USD o CAD). Nos reservamos el derecho de modificar los precios en cualquier momento. El precio confirmado al momento de tu pedido es el que se te cobrará."
+      "body": "Los precios se muestran en la moneda seleccionada (MXN, USD o CAD) como referencia. Todas las transacciones se procesan en Pesos Mexicanos (MXN). Si pagas en USD o CAD, el cargo final se convertirá a MXN al tipo de cambio aplicado por Stripe al momento del pago. Tu banco también puede aplicar comisiones adicionales por transacciones internacionales. Bijou Monde no se hace responsable de las fluctuaciones del tipo de cambio ni de los cargos bancarios. Nos reservamos el derecho de modificar los precios en cualquier momento."
     },
     "s3": {
       "title": "Pedidos y Pago",

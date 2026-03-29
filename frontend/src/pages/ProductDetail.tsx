@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import { useCart } from '../context/CartContext';
+import { useCurrency } from '../context/CurrencyContext';
 import type { ItemView } from '../types';
 import { pickLocale } from '../types';
 
@@ -10,6 +11,7 @@ export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const { t, i18n } = useTranslation();
   const { addItem } = useCart();
+  const { format } = useCurrency();
   const [item, setItem] = useState<ItemView | null>(null);
   const [loading, setLoading] = useState(true);
   const [added, setAdded] = useState(false);
@@ -72,12 +74,12 @@ export default function ProductDetail() {
           <h1 className="font-serif text-4xl md:text-5xl font-light mb-4">{name}</h1>
           {hasDiscount ? (
             <div className="flex items-center gap-3 mb-6">
-              <p className="text-xl">${salePrice.toFixed(2)}</p>
-              <p className="text-lg line-through text-muted">${Number(item.price).toFixed(2)}</p>
+              <p className="text-xl">{format(salePrice)}</p>
+              <p className="text-lg line-through text-muted">{format(Number(item.price))}</p>
               <span className="text-xs uppercase tracking-widest border border-gold text-gold px-2 py-0.5">-{item.discountPercent}%</span>
             </div>
           ) : (
-            <p className="text-xl mb-6">${Number(item.price).toFixed(2)}</p>
+            <p className="text-xl mb-6">{format(Number(item.price))}</p>
           )}
 
           {item.labels?.length > 0 && (

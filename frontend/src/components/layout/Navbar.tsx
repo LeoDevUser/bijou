@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
+import { useCurrency, CURRENCIES } from '../../context/CurrencyContext';
 import AnnouncementBar from './AnnouncementBar';
 
 //TODO
@@ -17,14 +18,15 @@ export default function Navbar() {
   const { t, i18n } = useTranslation();
   const { count } = useCart();
   const { isAuthenticated, logout } = useAuth();
+  const { currency, setCurrency } = useCurrency();
   const navigate = useNavigate();
 
   return (
     <header className="sticky top-0 z-50 bg-cream">
       <AnnouncementBar />
       <div className="border-b border-border">
+        {/* Row 1: nav links | logo | account + cart */}
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center relative">
-          {/* Left: Nav links */}
           <nav className="hidden md:flex items-center gap-8">
             {NAV_LINKS.map(link => (
               <Link
@@ -37,7 +39,6 @@ export default function Navbar() {
             ))}
           </nav>
 
-          {/* Center: Logo */}
           <Link
             to="/"
             className="absolute left-1/2 -translate-x-1/2 font-serif text-2xl tracking-[0.22em] text-dark"
@@ -45,59 +46,16 @@ export default function Navbar() {
             BIJOU MONDE
           </Link>
 
-          {/* Right: Language + account + cart */}
           <div className="flex items-center gap-5 ml-auto">
-            {/* Language switcher */}
-            <div className="hidden md:flex items-center gap-1.5">
-              {LANGUAGES.map((lang, idx) => (
-                <span key={lang} className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => i18n.changeLanguage(lang)}
-                    className={`text-xs uppercase tracking-wider transition-colors cursor-pointer ${
-                      i18n.language === lang ? 'text-dark font-medium' : 'text-muted'
-                    }`}
-                  >
-                    {lang}
-                  </button>
-                  {idx < LANGUAGES.length - 1 && (
-                    <span className="text-muted text-xs">|</span>
-                  )}
-                </span>
-              ))}
-            </div>
-
-            {/* Account / orders / logout */}
             {isAuthenticated ? (
               <>
-                <Link
-                  to="/account"
-                  className="hidden md:block text-xs uppercase tracking-wider text-dark hover:text-gold transition-colors"
-                >
-                  {t('nav.account')}
-                </Link>
-                <Link
-                  to="/orders"
-                  className="hidden md:block text-xs uppercase tracking-wider text-dark hover:text-gold transition-colors"
-                >
-                  {t('nav.orders')}
-                </Link>
-                <button
-                  onClick={() => { logout(); navigate('/'); }}
-                  className="hidden md:block text-xs uppercase tracking-wider text-dark hover:text-gold transition-colors cursor-pointer"
-                >
-                  {t('nav.logout')}
-                </button>
+                <Link to="/account" className="hidden md:block text-xs uppercase tracking-wider text-dark hover:text-gold transition-colors">{t('nav.account')}</Link>
+                <Link to="/orders" className="hidden md:block text-xs uppercase tracking-wider text-dark hover:text-gold transition-colors">{t('nav.orders')}</Link>
+                <button onClick={() => { logout(); navigate('/'); }} className="hidden md:block text-xs uppercase tracking-wider text-dark hover:text-gold transition-colors cursor-pointer">{t('nav.logout')}</button>
               </>
             ) : (
-              <Link
-                to="/login"
-                className="hidden md:block text-xs uppercase tracking-wider text-dark hover:text-gold transition-colors"
-              >
-                {t('nav.account')}
-              </Link>
+              <Link to="/login" className="hidden md:block text-xs uppercase tracking-wider text-dark hover:text-gold transition-colors">{t('nav.account')}</Link>
             )}
-
-            {/* Cart icon */}
             <Link to="/cart" className="relative text-dark hover:text-gold transition-colors">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
@@ -110,6 +68,40 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
+          </div>
+        </div>
+
+        {/* Row 2: language (left) + currency (right) */}
+        <div className="hidden md:flex justify-between items-center border-t border-border py-1.5 max-w-7xl mx-auto px-6 w-full">
+          <div className="flex items-center gap-1.5">
+            {LANGUAGES.map((lang, idx) => (
+              <span key={lang} className="flex items-center gap-1.5">
+                <button
+                  onClick={() => i18n.changeLanguage(lang)}
+                  className={`text-[11px] uppercase tracking-wider transition-colors cursor-pointer ${
+                    i18n.language === lang ? 'text-dark font-medium' : 'text-muted'
+                  }`}
+                >
+                  {lang}
+                </button>
+                {idx < LANGUAGES.length - 1 && <span className="text-muted text-xs">|</span>}
+              </span>
+            ))}
+          </div>
+          <div className="flex items-center gap-1.5">
+            {CURRENCIES.map((c, idx) => (
+              <span key={c} className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setCurrency(c)}
+                  className={`text-[11px] uppercase tracking-wider transition-colors cursor-pointer ${
+                    currency === c ? 'text-dark font-medium' : 'text-muted'
+                  }`}
+                >
+                  {c}
+                </button>
+                {idx < CURRENCIES.length - 1 && <span className="text-muted text-xs">|</span>}
+              </span>
+            ))}
           </div>
         </div>
       </div>

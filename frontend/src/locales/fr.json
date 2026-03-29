@@ -86,7 +86,8 @@
     "placeOrder": "Confirmer la Commande",
     "processing": "Traitement en cours...",
     "orderSummary": "Résumé de la Commande",
-    "error": "Une erreur est survenue. Veuillez réessayer."
+    "error": "Une erreur est survenue. Veuillez réessayer.",
+    "currencyNotice": "Les prix en USD et CAD sont des estimations. Toutes les transactions sont traitées en MXN au taux de change appliqué par Stripe au moment du paiement. Votre banque peut facturer des frais de transaction supplémentaires."
   },
   "payment": {
     "title": "Paiement",
@@ -317,7 +318,7 @@
     "q1": { "q": "Vers quels pays livrez-vous ?", "a": "Nous livrons actuellement au Mexique, aux États-Unis et au Canada. Nous travaillons à étendre notre couverture à d'autres pays dans le futur." },
     "q2": { "q": "Quels sont les délais de livraison ?", "a": "La livraison au Mexique prend 3 à 7 jours ouvrables. Aux États-Unis, 7 à 14 jours ouvrables. Au Canada, 10 à 18 jours ouvrables. Ces estimations peuvent varier selon votre localisation et le transporteur." },
     "q3": { "q": "Comment suivre ma commande ?", "a": "Une fois votre commande expédiée, vous recevrez un numéro de suivi par e-mail. Vous pouvez également consulter l'état de votre commande à tout moment depuis la section Mes Commandes de votre compte." },
-    "q4": { "q": "Quels modes de paiement acceptez-vous ?", "a": "Nous acceptons toutes les principales cartes de crédit et de débit (Visa, Mastercard, American Express) via notre prestataire de paiement sécurisé, Stripe. Aucune information bancaire n'est stockée sur nos serveurs." },
+    "q4": { "q": "Quels modes de paiement acceptez-vous ?", "a": "Nous acceptons toutes les principales cartes de crédit et de débit (Visa, Mastercard, American Express) via notre prestataire de paiement sécurisé, Stripe. Aucune information bancaire n'est stockée sur nos serveurs. Toutes les transactions sont traitées en Pesos Mexicains (MXN). Si vous sélectionnez USD ou CAD lors du paiement, le montant affiché est une estimation — votre banque appliquera le taux de change au moment du débit et peut ajouter des frais de transaction." },
     "q5": { "q": "Puis-je retourner ou échanger un article ?", "a": "Oui. Nous acceptons les retours dans les 30 jours suivant la livraison pour les articles dans leur état d'origine, non portés. Consultez notre page Retours pour connaître la procédure complète." },
     "q6": { "q": "Les matériaux utilisés dans vos bijoux sont-ils sûrs ?", "a": "Tous nos bijoux sont fabriqués avec des matériaux de haute qualité et hypoallergéniques. Si vous avez des sensibilités particulières, contactez-nous avant d'acheter et nous serons heureux de vous aider." },
     "q7": { "q": "Comment entretenir mes bijoux ?", "a": "Nous recommandons de ranger vos bijoux dans un endroit sec à l'abri de la lumière directe du soleil. Évitez le contact avec les parfums, les lotions et l'eau. Nettoyez délicatement avec un chiffon doux et sec." },
@@ -433,7 +434,7 @@
     },
     "s2": {
       "title": "Produits et Tarification",
-      "body": "Tous les prix sont affichés dans la devise sélectionnée lors du paiement (MXN, USD ou CAD). Nous nous réservons le droit de modifier les prix à tout moment. Le prix confirmé au moment de votre commande est celui qui vous sera facturé."
+      "body": "Les prix sont affichés dans la devise sélectionnée (MXN, USD ou CAD) à titre indicatif. Toutes les transactions sont traitées en Pesos Mexicains (MXN). Si vous payez en USD ou CAD, le montant final sera converti en MXN au taux de change appliqué par Stripe au moment du paiement. Votre banque peut également appliquer des frais de transaction supplémentaires. Bijou Monde n'est pas responsable des fluctuations de taux de change ni des frais bancaires. Nous nous réservons le droit de modifier les prix à tout moment."
     },
     "s3": {
       "title": "Commandes et Paiement",

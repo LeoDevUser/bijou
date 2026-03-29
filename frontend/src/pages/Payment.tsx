@@ -70,7 +70,7 @@ export default function Payment() {
       <h1 className="font-serif text-4xl font-light mb-2">{t('payment.title')}</h1>
       {state.total != null && (
         <p className="text-muted text-sm mb-10">
-          {t('payment.orderTotal')}: <span className="text-dark font-medium">${Number(state.total).toFixed(2)}</span>
+          {t('payment.orderTotal')}: <span className="text-dark font-medium">${Number(state.total).toFixed(2)} MXN</span>
         </p>
       )}
       <Elements
