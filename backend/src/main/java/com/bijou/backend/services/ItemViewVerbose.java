@@ -21,5 +21,6 @@ public record ItemViewVerbose(
         String imageId,
         int nbSold,
         BigDecimal totalSales,
-        boolean active
+        boolean active,
+        Integer discountPercent
 ) {}

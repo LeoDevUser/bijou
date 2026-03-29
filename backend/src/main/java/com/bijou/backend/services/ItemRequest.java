@@ -14,5 +14,6 @@ public record ItemRequest(
     Category category,
     String descriptionEn,
     String descriptionFr,
-    String descriptionEs
+    String descriptionEs,
+    Integer discountPercent
 ) {}

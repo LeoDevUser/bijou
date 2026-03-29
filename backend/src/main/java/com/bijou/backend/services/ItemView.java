@@ -18,5 +18,6 @@ public record ItemView(
         String descriptionFr,
         String descriptionEs,
         String imageUrl,
-        String imageId
+        String imageId,
+        Integer discountPercent
 ) {}

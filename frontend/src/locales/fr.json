@@ -188,6 +188,7 @@
       "labels": "Étiquettes",
       "labelsHint": "(séparées par des virgules)",
       "labelsPlaceholder": "or, argent sterling",
+      "discount": "Remise %",
       "image": "Image",
       "save": "Enregistrer",
       "cancel": "Annuler"

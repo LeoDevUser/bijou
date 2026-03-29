@@ -188,6 +188,7 @@
       "labels": "Labels",
       "labelsHint": "(comma separated)",
       "labelsPlaceholder": "gold, sterling silver",
+      "discount": "Discount %",
       "image": "Image",
       "save": "Save",
       "cancel": "Cancel"

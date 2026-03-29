@@ -212,6 +212,7 @@ interface ItemFormData {
   descriptionEn: string; descriptionFr: string; descriptionEs: string;
   price: string;
   stock: string;
+  discountPercent: string;
   category: Category;
   labelIds: number[];
 }
@@ -219,7 +220,7 @@ interface ItemFormData {
 const emptyForm: ItemFormData = {
   nameEn: '', nameFr: '', nameEs: '',
   descriptionEn: '', descriptionFr: '', descriptionEs: '',
-  price: '', stock: '', category: 'NECKLACE', labelIds: [],
+  price: '', stock: '', discountPercent: '', category: 'NECKLACE', labelIds: [],
 };
 
 interface ItemModalProps {
@@ -237,6 +238,7 @@ function ItemModal({ item, allLabels, onClose, onSaved }: ItemModalProps) {
           nameEn: item.nameEn ?? '', nameFr: item.nameFr ?? '', nameEs: item.nameEs ?? '',
           descriptionEn: item.descriptionEn ?? '', descriptionFr: item.descriptionFr ?? '', descriptionEs: item.descriptionEs ?? '',
           price: String(item.price), stock: String(item.stock),
+          discountPercent: item.discountPercent != null ? String(item.discountPercent) : '',
           category: item.category as Category, labelIds: item.labels.map(l => l.id),
         }
       : emptyForm
@@ -258,6 +260,7 @@ function ItemModal({ item, allLabels, onClose, onSaved }: ItemModalProps) {
         descriptionEn: form.descriptionEn, descriptionFr: form.descriptionFr, descriptionEs: form.descriptionEs,
         price: parseFloat(form.price),
         stock: parseInt(form.stock),
+        discountPercent: form.discountPercent ? parseInt(form.discountPercent) : null,
         category: form.category,
         labelIds: form.labelIds,
       };
@@ -311,6 +314,10 @@ function ItemModal({ item, allLabels, onClose, onSaved }: ItemModalProps) {
             <div>
               <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.stock')}</label>
               <input type="number" min="0" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} required className={inputClass} />
+            </div>
+            <div>
+              <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.discount')}</label>
+              <input type="number" min="0" max="100" placeholder="0" value={form.discountPercent} onChange={e => setForm(f => ({ ...f, discountPercent: e.target.value }))} className={inputClass} />
             </div>
           </div>
           <div>
@@ -491,8 +498,9 @@ function AdminProducts() {
                   <p className="text-sm font-medium">{displayName}</p>
                   {!item.active && <span className="text-[10px] uppercase tracking-widest border border-muted text-muted px-1.5 py-0.5">{t('admin.products.inactive')}</span>}
                   {incomplete && <span className="text-[10px] uppercase tracking-widest border border-amber-400 text-amber-600 px-1.5 py-0.5">{t('admin.products.incomplete')}</span>}
+                  {!!item.discountPercent && <span className="text-[10px] uppercase tracking-widest border border-gold text-gold px-1.5 py-0.5">-{item.discountPercent}%</span>}
                 </div>
-                <p className="text-xs text-muted">{item.category} · ${item.price.toFixed(2)} · {item.stock} {t('admin.products.inStock')}</p>
+                <p className="text-xs text-muted">{item.category} · {item.discountPercent ? `$${(Number(item.price) * (1 - item.discountPercent / 100)).toFixed(2)} ` : ''}<span className={item.discountPercent ? 'line-through' : ''}>${Number(item.price).toFixed(2)}</span> · {item.stock} {t('admin.products.inStock')}</p>
                 <p className="text-xs text-muted">{item.nbSold} {t('admin.products.sold')} · ${Number(item.totalSales).toFixed(2)} {t('admin.products.total')}</p>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">

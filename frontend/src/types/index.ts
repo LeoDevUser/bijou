@@ -19,6 +19,7 @@ export interface ItemView {
   descriptionEs: string | null;
   imageUrl: string | null;
   imageId: string | null;
+  discountPercent: number | null;
 }
 
 export interface ItemViewVerbose extends ItemView {
@@ -70,6 +71,7 @@ export interface ItemRequest {
   stock: number;
   category: Category;
   labelIds: number[];
+  discountPercent: number | null;
 }
 
 export interface VerboseClient {

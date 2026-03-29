@@ -47,7 +47,8 @@ public class ItemService {
                 item.getNameEn(), item.getNameFr(), item.getNameEs(),
                 item.getPrice(), toLabelViews(item.getLabels()), item.getCategory(),
                 item.getDescriptionEn(), item.getDescriptionFr(), item.getDescriptionEs(),
-                item.getImageUrl(), item.getImageId()
+                item.getImageUrl(), item.getImageId(),
+                item.getDiscountPercent()
             );
     }
 
@@ -58,7 +59,8 @@ public class ItemService {
                 item.getPrice(), toLabelViews(item.getLabels()), item.getCategory(),
                 item.getDescriptionEn(), item.getDescriptionFr(), item.getDescriptionEs(),
                 item.getImageUrl(), item.getImageId(),
-                item.getNbSold(), item.getTotalSales(), item.isActive()
+                item.getNbSold(), item.getTotalSales(), item.isActive(),
+                item.getDiscountPercent()
             );
     }
 
@@ -79,6 +81,7 @@ public class ItemService {
             .descriptionEn(req.descriptionEn())
             .descriptionFr(req.descriptionFr())
             .descriptionEs(req.descriptionEs())
+            .discountPercent(req.discountPercent())
             .build();
         itemRepository.save(item);
         return toItemView(item);
@@ -96,6 +99,7 @@ public class ItemService {
         item.setDescriptionEn(req.descriptionEn());
         item.setDescriptionFr(req.descriptionFr());
         item.setDescriptionEs(req.descriptionEs());
+        item.setDiscountPercent(req.discountPercent());
         itemRepository.save(item);
         return toItemView(item);
     }

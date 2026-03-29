@@ -188,6 +188,7 @@
       "labels": "Etiquetas",
       "labelsHint": "(separadas por comas)",
       "labelsPlaceholder": "oro, plata esterlina",
+      "discount": "Descuento %",
       "image": "Imagen",
       "save": "Guardar",
       "cancel": "Cancelar"

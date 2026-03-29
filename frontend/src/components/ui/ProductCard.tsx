@@ -4,14 +4,21 @@ import { useCart } from '../../context/CartContext';
 import type { ItemView } from '../../types';
 import { pickLocale } from '../../types';
 
+function effectivePrice(price: number, discountPercent: number | null): number {
+  if (!discountPercent) return price;
+  return price * (1 - discountPercent / 100);
+}
+
 export default function ProductCard({ item }: { item: ItemView }) {
   const { t, i18n } = useTranslation();
   const { addItem } = useCart();
   const name = pickLocale(item.nameEn, item.nameFr, item.nameEs, i18n.language);
+  const salePrice = effectivePrice(Number(item.price), item.discountPercent);
+  const hasDiscount = !!item.discountPercent;
 
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault();
-    addItem({ id: item.id, name, price: item.price, quantity: 1, imageUrl: item.imageUrl });
+    addItem({ id: item.id, name, price: salePrice, quantity: 1, imageUrl: item.imageUrl });
   }
 
   return (
@@ -38,7 +45,15 @@ export default function ProductCard({ item }: { item: ItemView }) {
         </button>
       </div>
       <p className="text-sm tracking-wide">{name}</p>
-      <p className="text-sm text-muted mt-0.5">${Number(item.price).toFixed(2)}</p>
+      {hasDiscount ? (
+        <p className="text-sm mt-0.5 flex items-center gap-2">
+          <span>${salePrice.toFixed(2)}</span>
+          <span className="line-through text-muted">${Number(item.price).toFixed(2)}</span>
+          <span className="text-xs text-gold">-{item.discountPercent}%</span>
+        </p>
+      ) : (
+        <p className="text-sm text-muted mt-0.5">${Number(item.price).toFixed(2)}</p>
+      )}
     </Link>
   );
 }

@@ -25,9 +25,12 @@ export default function ProductDetail() {
   const name = item ? pickLocale(item.nameEn, item.nameFr, item.nameEs, i18n.language) : '';
   const description = item ? pickLocale(item.descriptionEn, item.descriptionFr, item.descriptionEs, i18n.language) : '';
 
+  const hasDiscount = !!item?.discountPercent;
+  const salePrice = item ? (hasDiscount ? Number(item.price) * (1 - item.discountPercent! / 100) : Number(item.price)) : 0;
+
   function handleAddToCart() {
     if (!item) return;
-    addItem({ id: item.id, name, price: item.price, quantity: 1, imageUrl: item.imageUrl });
+    addItem({ id: item.id, name, price: salePrice, quantity: 1, imageUrl: item.imageUrl });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   }
@@ -67,7 +70,15 @@ export default function ProductDetail() {
         <div className="flex flex-col justify-center">
           <p className="text-xs uppercase tracking-widest text-muted mb-2">{item.category}</p>
           <h1 className="font-serif text-4xl md:text-5xl font-light mb-4">{name}</h1>
-          <p className="text-xl mb-6">${Number(item.price).toFixed(2)}</p>
+          {hasDiscount ? (
+            <div className="flex items-center gap-3 mb-6">
+              <p className="text-xl">${salePrice.toFixed(2)}</p>
+              <p className="text-lg line-through text-muted">${Number(item.price).toFixed(2)}</p>
+              <span className="text-xs uppercase tracking-widest border border-gold text-gold px-2 py-0.5">-{item.discountPercent}%</span>
+            </div>
+          ) : (
+            <p className="text-xl mb-6">${Number(item.price).toFixed(2)}</p>
+          )}
 
           {item.labels?.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-6">

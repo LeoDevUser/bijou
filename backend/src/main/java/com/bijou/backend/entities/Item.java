@@ -60,4 +60,5 @@ public class Item {
     private String descriptionFr;
     private String descriptionEs;
     private String imageId;
+    private Integer discountPercent;
 }
