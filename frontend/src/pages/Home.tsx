@@ -33,7 +33,7 @@ function ctaHref(entry: AssetEntry | undefined): string {
 function SlotMedia({ entry, alt, className }: { entry: AssetEntry; alt: string; className: string }) {
   if (!entry.url) return null;
   if (entry.resourceType === 'video') {
-    return <video src={entry.url} className={className} autoPlay muted loop playsInline />;
+    return <video src={entry.url} className={`${className} object-top md:object-center`} autoPlay muted loop playsInline />;
   }
   return <img src={entry.url} alt={alt} className={className} />;
 }
@@ -63,7 +63,7 @@ export default function Home() {
   return (
     <div>
       {/* Hero */}
-      <section className="relative w-full h-[85vh] bg-[#D8D4CC] flex items-end overflow-hidden">
+      <section className="relative w-full h-[55vh] md:h-[85vh] bg-[#D8D4CC] flex items-end overflow-hidden">
         <div className="absolute inset-0">
           {hero?.url
             ? <SlotMedia entry={hero} alt="Hero" className="w-full h-full object-cover" />

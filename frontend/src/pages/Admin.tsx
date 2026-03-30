@@ -819,7 +819,7 @@ function AdminCollections({ labels }: { labels: LabelView[] }) {
 
   return (
     <div className="mt-10 pt-6 border-t border-border">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <p className="text-xs uppercase tracking-widest">{t('admin.collections.title')}</p>
         <button
           onClick={() => setModal('new')}
@@ -837,16 +837,18 @@ function AdminCollections({ labels }: { labels: LabelView[] }) {
             const labelName = pickLocale(c.labelNameEn, c.labelNameFr, c.labelNameEs, i18n.language) || `#${c.labelId}`;
             const header = pickLocale(c.headerEn, c.headerFr, c.headerEs, i18n.language);
             return (
-              <div key={c.id} className="border border-border flex items-center gap-4 px-5 py-4">
-                {c.imageUrl
-                  ? <img src={c.imageUrl} alt={header || labelName} className="w-16 h-12 object-cover flex-shrink-0" />
-                  : <div className="w-16 h-12 bg-[#F0EDE8] flex-shrink-0" />
-                }
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">{header || labelName}</p>
-                  <p className="text-xs text-muted">{labelName}</p>
+              <div key={c.id} className="border border-border px-5 py-4">
+                <div className="flex items-center gap-4">
+                  {c.imageUrl
+                    ? <img src={c.imageUrl} alt={header || labelName} className="w-16 h-12 object-cover flex-shrink-0" />
+                    : <div className="w-16 h-12 bg-[#F0EDE8] flex-shrink-0" />
+                  }
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{header || labelName}</p>
+                    <p className="text-xs text-muted">{labelName}</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex flex-wrap gap-2 mt-3">
                   <button
                     onClick={() => setModal(c)}
                     className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors"
@@ -908,13 +910,13 @@ function VerboseRow({
         className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[#F7F5F0] transition-colors"
         onClick={onToggle}
       >
-        <div className="flex items-center gap-8 min-w-0">
-          <span className="text-xs text-muted w-10 flex-shrink-0">#{u.id}</span>
-          <span className="text-sm flex-shrink-0">{u.firstName} {u.lastName}</span>
+        <div className="flex items-center gap-4 min-w-0 flex-1">
+          <span className="text-xs text-muted w-8 flex-shrink-0">#{u.id}</span>
+          <span className="text-sm truncate">{u.firstName} {u.lastName}</span>
           <span className="text-sm text-muted hidden md:block truncate max-w-[180px]" title={u.email}>{u.email}</span>
         </div>
-        <div className="flex items-center gap-6 text-sm text-muted">
-          <span>${Number(u.moneySpent).toFixed(2)}</span>
+        <div className="flex items-center gap-3 flex-shrink-0 text-sm text-muted">
+          <span className="hidden sm:block">${Number(u.moneySpent).toFixed(2)}</span>
           <span>{u.nbSuccessfulOrders} {t('admin.users.ordersCount')}</span>
           <span className="text-xs">{expanded ? '▲' : '▼'}</span>
         </div>
@@ -1242,25 +1244,27 @@ function AdminSiteAssets() {
       {assets.map(asset => (
         <div key={asset.slot} className="border border-border">
           {/* Main row */}
-          <div className="p-4 flex items-center gap-4">
-            <div className="w-20 h-14 bg-[#F0EDE8] shrink-0 overflow-hidden flex items-center justify-center">
-              {asset.imageUrl
-                ? asset.resourceType === 'video'
-                  ? <video src={asset.imageUrl} className="w-full h-full object-cover" muted />
-                  : <img src={asset.imageUrl} alt={asset.slot} className="w-full h-full object-cover" />
-                : <span className="text-muted text-xs">—</span>
-              }
+          <div className="p-4">
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-14 bg-[#F0EDE8] shrink-0 overflow-hidden flex items-center justify-center">
+                {asset.imageUrl
+                  ? asset.resourceType === 'video'
+                    ? <video src={asset.imageUrl} className="w-full h-full object-cover" muted />
+                    : <img src={asset.imageUrl} alt={asset.slot} className="w-full h-full object-cover" />
+                  : <span className="text-muted text-xs">—</span>
+                }
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">{t(SLOT_LABEL_KEYS[asset.slot] ?? asset.slot)}</p>
+                {(asset.headerEn || asset.subheaderEn) && (
+                  <p className="text-xs text-muted truncate mt-0.5">
+                    {[asset.headerEn, asset.subheaderEn].filter(Boolean).join(' · ')}
+                    {asset.color && <span className="ml-2" style={{ color: asset.color }}>■</span>}
+                  </p>
+                )}
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium">{t(SLOT_LABEL_KEYS[asset.slot] ?? asset.slot)}</p>
-              {(asset.headerEn || asset.subheaderEn) && (
-                <p className="text-xs text-muted truncate mt-0.5">
-                  {[asset.headerEn, asset.subheaderEn].filter(Boolean).join(' · ')}
-                  {asset.color && <span className="ml-2" style={{ color: asset.color }}>■</span>}
-                </p>
-              )}
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-wrap items-center gap-2 mt-3">
               <button
                 onClick={() => editing === asset.slot ? setEditing(null) : openEdit(asset)}
                 className={`text-xs uppercase tracking-widest border px-3 py-1.5 transition-colors ${editing === asset.slot ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
@@ -1455,14 +1459,12 @@ function AdminSite() {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm">{a.textEn || <span className="text-muted italic">—</span>}</p>
-                    {(a.textFr || a.textEs) && (
-                      <p className="text-xs text-muted mt-1">{a.textFr}{a.textFr && a.textEs ? ' · ' : ''}{a.textEs}</p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
+                <div>
+                  <p className="text-sm">{a.textEn || <span className="text-muted italic">—</span>}</p>
+                  {(a.textFr || a.textEs) && (
+                    <p className="text-xs text-muted mt-1 truncate">{a.textFr}{a.textFr && a.textEs ? ' · ' : ''}{a.textEs}</p>
+                  )}
+                  <div className="flex flex-wrap items-center gap-2 mt-3">
                     <button onClick={() => handleMove(a.id, 'up')} disabled={idx === 0} className="text-xs border border-border px-2 py-1 hover:border-dark transition-colors disabled:opacity-30">↑</button>
                     <button onClick={() => handleMove(a.id, 'down')} disabled={idx === announcements.length - 1} className="text-xs border border-border px-2 py-1 hover:border-dark transition-colors disabled:opacity-30">↓</button>
                     <button onClick={() => openEdit(a)} className="text-xs uppercase tracking-widest border border-border px-3 py-1 hover:border-dark transition-colors">{t('admin.site.edit')}</button>
