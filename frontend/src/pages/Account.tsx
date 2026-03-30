@@ -108,7 +108,7 @@ export default function Account() {
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-12">
-      <div className="flex items-start justify-between mb-2">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-2">
         <h1 className="font-serif text-4xl font-light">{t('account.title')}</h1>
         {isAdmin && (
           <Link

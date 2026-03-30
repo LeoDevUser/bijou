@@ -65,7 +65,7 @@ export default function Orders() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-12">
+    <div className="max-w-4xl mx-auto px-4 md:px-6 py-12">
       <h1 className="font-serif text-4xl font-light mb-10">{t('orders.title')}</h1>
 
       {loading ? (
@@ -79,8 +79,8 @@ export default function Orders() {
       ) : (
         <div className="space-y-4">
           {orders.map(order => (
-            <div key={order.id} className="border border-border p-6">
-              <div className="flex items-start justify-between">
+            <div key={order.id} className="border border-border p-4 md:p-6">
+              <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs uppercase tracking-widest text-muted mb-1">
                     {t('orders.order')} #{order.id}

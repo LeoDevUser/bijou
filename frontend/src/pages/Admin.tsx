@@ -122,17 +122,17 @@ function AdminOrders() {
                 className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[#F7F5F0] transition-colors"
                 onClick={() => setExpanded(expanded === o.id ? null : o.id)}
               >
-                <div className="flex items-center gap-8 min-w-0">
-                  <span className="text-xs text-muted w-10 flex-shrink-0">#{o.id}</span>
-                  <span className="text-sm flex-shrink-0">{o.firstName} {o.lastName}</span>
+                <div className="flex items-center gap-4 min-w-0">
+                  <span className="text-xs text-muted w-8 flex-shrink-0">#{o.id}</span>
+                  <span className="text-sm flex-shrink-0 truncate max-w-[120px] sm:max-w-none">{o.firstName} {o.lastName}</span>
                   <span className="text-sm text-muted hidden md:block truncate max-w-[180px]" title={o.email}>{o.email}</span>
                 </div>
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-3 flex-shrink-0">
                   <span className={`text-xs uppercase tracking-wider ${STATUS_COLOR[o.status]}`}>
                     {o.status.replace('_', ' ')}
                   </span>
                   <span className="text-sm">${o.total.toFixed(2)}</span>
-                  <span className="text-xs text-muted">{new Date(o.createdAt).toLocaleDateString()}</span>
+                  <span className="text-xs text-muted hidden sm:block">{new Date(o.createdAt).toLocaleDateString()}</span>
                 </div>
               </button>
 
@@ -166,13 +166,13 @@ function AdminOrders() {
                     </div>
                   </div>
                   {o.status !== 'DELIVERED' && (
-                    <div className="mt-4 flex items-center gap-3">
+                    <div className="mt-4 flex flex-wrap items-center gap-3">
                       <p className="text-xs uppercase tracking-widest text-muted">{t('admin.orders.setTracking')}</p>
                       <input
                         value={trackingInput[o.id] ?? o.tracking ?? ''}
                         onChange={e => setTrackingInput(prev => ({ ...prev, [o.id]: e.target.value }))}
                         placeholder={t('admin.orders.trackingPlaceholder')}
-                        className="border border-border bg-cream px-3 py-1.5 text-xs outline-none focus:border-dark transition-colors"
+                        className="border border-border bg-cream px-3 py-1.5 text-xs outline-none focus:border-dark transition-colors flex-1 min-w-[140px]"
                       />
                       <button
                         onClick={async () => {
@@ -484,15 +484,15 @@ function AdminProducts() {
   return (
     <div>
       <div className="flex flex-col gap-3 mb-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap gap-2">
             {sortBtn(t('admin.products.sortBySold'), 'sold')}
             {sortBtn(t('admin.products.sortBySoldMonth'), 'soldMonth')}
             {sortBtn(t('admin.products.sortBySales'), 'sales')}
           </div>
           <button
             onClick={() => setModal('new')}
-            className="bg-dark text-white text-xs uppercase tracking-widest px-6 py-3 hover:bg-gold transition-colors"
+            className="bg-dark text-white text-xs uppercase tracking-widest px-6 py-3 hover:bg-gold transition-colors sm:flex-shrink-0"
           >
             {t('admin.products.addProduct')}
           </button>
@@ -517,26 +517,28 @@ function AdminProducts() {
             const displayName = item.nameEn || item.nameFr || item.nameEs || `#${item.id}`;
             const incomplete = isItemIncomplete(item);
             return (
-            <div key={item.id} className={`border flex items-center gap-4 px-5 py-4 ${
+            <div key={item.id} className={`border px-5 py-4 ${
               !item.active ? 'border-border opacity-60' : incomplete ? 'border-amber-400' : 'border-border'
             }`}>
-              {item.imageUrl
-                ? <img src={item.imageUrl} alt={displayName} className="w-12 h-12 object-cover flex-shrink-0" />
-                : <div className="w-12 h-12 bg-[#F0EDE8] flex-shrink-0" />
-              }
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium">{displayName}</p>
-                  {!item.active && <span className="text-[10px] uppercase tracking-widest border border-muted text-muted px-1.5 py-0.5">{t('admin.products.inactive')}</span>}
-                  {incomplete && <span className="text-[10px] uppercase tracking-widest border border-amber-400 text-amber-600 px-1.5 py-0.5">{t('admin.products.incomplete')}</span>}
-                  {!!item.discountPercent && <span className="text-[10px] uppercase tracking-widest border border-gold text-gold px-1.5 py-0.5">-{item.discountPercent}%</span>}
+              <div className="flex items-center gap-4">
+                {item.imageUrl
+                  ? <img src={item.imageUrl} alt={displayName} className="w-12 h-12 object-cover flex-shrink-0" />
+                  : <div className="w-12 h-12 bg-[#F0EDE8] flex-shrink-0" />
+                }
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-medium">{displayName}</p>
+                    {!item.active && <span className="text-[10px] uppercase tracking-widest border border-muted text-muted px-1.5 py-0.5">{t('admin.products.inactive')}</span>}
+                    {incomplete && <span className="text-[10px] uppercase tracking-widest border border-amber-400 text-amber-600 px-1.5 py-0.5">{t('admin.products.incomplete')}</span>}
+                    {!!item.discountPercent && <span className="text-[10px] uppercase tracking-widest border border-gold text-gold px-1.5 py-0.5">-{item.discountPercent}%</span>}
+                  </div>
+                  <p className="text-xs text-muted">{item.category} · {item.discountPercent ? `$${(Number(item.price) * (1 - item.discountPercent / 100)).toFixed(2)} ` : ''}<span className={item.discountPercent ? 'line-through' : ''}>${Number(item.price).toFixed(2)}</span> · {item.stock} {t('admin.products.inStock')}</p>
+                  <p className="text-xs text-muted">
+                    {item.nbSold} {t('admin.products.sold')} ({item.nbSoldMonth} {t('admin.products.thisMonth')}) · ${Number(item.totalSalesMonth).toFixed(2)} {t('admin.products.thisMonth')}
+                  </p>
                 </div>
-                <p className="text-xs text-muted">{item.category} · {item.discountPercent ? `$${(Number(item.price) * (1 - item.discountPercent / 100)).toFixed(2)} ` : ''}<span className={item.discountPercent ? 'line-through' : ''}>${Number(item.price).toFixed(2)}</span> · {item.stock} {t('admin.products.inStock')}</p>
-                <p className="text-xs text-muted">
-                  {item.nbSold} {t('admin.products.sold')} ({item.nbSoldMonth} {t('admin.products.thisMonth')}) · ${Number(item.totalSales).toFixed(2)} {t('admin.products.total')} (${Number(item.totalSalesMonth).toFixed(2)} {t('admin.products.thisMonth')})
-                </p>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+              <div className="flex flex-wrap gap-2 mt-3">
                 <button onClick={() => setModal(item)} className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors">
                   {t('admin.products.edit')}
                 </button>
@@ -1547,16 +1549,17 @@ function AdminStats() {
 
       {/* Per-item breakdown */}
       <div>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
           <p className="text-xs uppercase tracking-widest text-muted">{t('admin.stats.itemBreakdown')}</p>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {sortBtn(t('admin.stats.month'), 'month')}
             {sortBtn(t('admin.stats.quarter'), 'quarter')}
             {sortBtn(t('admin.stats.year'), 'year')}
             {sortBtn(t('admin.stats.allTime'), 'total')}
           </div>
         </div>
-        <div className="border border-border divide-y divide-border">
+        <div className="overflow-x-auto">
+        <div className="border border-border divide-y divide-border min-w-[520px]">
           <div className="grid grid-cols-6 px-4 py-2 text-xs uppercase tracking-widest text-muted">
             <span className="col-span-2">{t('admin.stats.item')}</span>
             <span>{t('admin.stats.week')}</span>
@@ -1588,6 +1591,7 @@ function AdminStats() {
             );
           })}
         </div>
+        </div>
       </div>
     </div>
   );
@@ -1611,16 +1615,16 @@ export default function Admin() {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-12">
+    <div className="max-w-5xl mx-auto px-4 md:px-6 py-12">
       <h1 className="font-serif text-4xl font-light mb-2">{t('admin.title')}</h1>
       <p className="text-muted text-sm mb-10">{t('admin.subtitle')}</p>
 
-      <div className="flex gap-8 border-b border-border mb-8">
+      <div className="flex gap-5 border-b border-border mb-8 overflow-x-auto whitespace-nowrap">
         {TABS.map(t => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`text-xs uppercase tracking-widest pb-3 border-b-2 transition-colors ${
+            className={`text-xs uppercase tracking-widest pb-3 border-b-2 transition-colors flex-shrink-0 ${
               tab === t.key ? 'border-dark text-dark' : 'border-transparent text-muted hover:text-dark'
             }`}
           >

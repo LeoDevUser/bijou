@@ -14,6 +14,9 @@ export default defineConfig(({ mode }) => {
         '/account/': 'http://localhost:8080',
         [`/${env.VITE_ADMIN_PAGE}/`]: 'http://localhost:8080',
       },
+        allowedHosts: [
+          'nonschematized-elaine-supersagacious.ngrok-free.dev'
+        ]
     },
   }
 })

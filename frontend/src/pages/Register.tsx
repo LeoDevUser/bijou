@@ -39,7 +39,7 @@ export default function Register() {
         <p className="text-center text-muted text-sm mb-10">{t('auth.registerSubtitle')}</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs uppercase tracking-widest mb-2">{t('auth.firstName')}</label>
               <input name="firstName" value={form.firstName} onChange={handleChange} required className={inputClass} />
