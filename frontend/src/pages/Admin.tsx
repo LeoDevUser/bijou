@@ -119,21 +119,17 @@ function AdminOrders() {
           {filtered.map(o => (
             <div key={o.id} className="border border-border">
               <button
-                className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[#F7F5F0] transition-colors"
+                className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-[#F7F5F0] transition-colors"
                 onClick={() => setExpanded(expanded === o.id ? null : o.id)}
               >
-                <div className="flex items-center gap-4 min-w-0">
-                  <span className="text-xs text-muted w-8 flex-shrink-0">#{o.id}</span>
-                  <span className="text-sm flex-shrink-0 truncate max-w-[120px] sm:max-w-none">{o.firstName} {o.lastName}</span>
-                  <span className="text-sm text-muted hidden md:block truncate max-w-[180px]" title={o.email}>{o.email}</span>
-                </div>
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  <span className={`text-xs uppercase tracking-wider ${STATUS_COLOR[o.status]}`}>
-                    {o.status.replace('_', ' ')}
-                  </span>
-                  <span className="text-sm">${o.total.toFixed(2)}</span>
-                  <span className="text-xs text-muted hidden sm:block">{new Date(o.createdAt).toLocaleDateString()}</span>
-                </div>
+                <span className="text-xs text-muted w-8 flex-shrink-0">#{o.id}</span>
+                <span className="text-sm truncate flex-1 min-w-0">{o.firstName} {o.lastName}</span>
+                <span className="text-sm text-muted hidden md:inline truncate max-w-[180px] flex-shrink-0" title={o.email}>{o.email}</span>
+                <span className={`text-xs uppercase tracking-wider flex-shrink-0 ${STATUS_COLOR[o.status]}`}>
+                  {o.status.replace('_', ' ')}
+                </span>
+                <span className="text-sm flex-shrink-0">${o.total.toFixed(2)}</span>
+                <span className="text-xs text-muted hidden sm:block flex-shrink-0">{new Date(o.createdAt).toLocaleDateString()}</span>
               </button>
 
               {expanded === o.id && (
