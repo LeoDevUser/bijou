@@ -218,6 +218,10 @@
       "labelsPlaceholder": "gold, sterling silver",
       "discount": "Discount %",
       "image": "Image",
+      "media": "Media",
+      "addMedia": "Upload",
+      "noAssets": "No media yet.",
+      "filesSelected": "file(s) selected — will upload on save",
       "save": "Save",
       "cancel": "Cancel"
     },

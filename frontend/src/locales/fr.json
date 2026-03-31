@@ -218,6 +218,10 @@
       "labelsPlaceholder": "or, argent sterling",
       "discount": "Remise %",
       "image": "Image",
+      "media": "Médias",
+      "addMedia": "Télécharger",
+      "noAssets": "Aucun média.",
+      "filesSelected": "fichier(s) sélectionné(s) — seront téléchargés lors de l'enregistrement",
       "save": "Enregistrer",
       "cancel": "Annuler"
     },

@@ -9,9 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.bijou.backend.entities.Category;
+import com.bijou.backend.entities.Item;
+import com.bijou.backend.entities.ItemAsset;
 import com.bijou.backend.entities.Label;
 import com.bijou.backend.exception.AppException;
-import com.bijou.backend.entities.Item;
 import com.bijou.backend.repositories.ItemRepository;
 import com.bijou.backend.repositories.LabelRepository;
 import com.bijou.backend.repositories.OrderRepository;
@@ -36,6 +37,13 @@ public class ItemService {
         return labels.stream().map(LabelService::toView).toList();
     }
 
+    private List<ItemAssetView> toAssetViews(List<ItemAsset> assets) {
+        if (assets == null) return List.of();
+        return assets.stream()
+            .map(a -> new ItemAssetView(a.getId(), a.getImageUrl(), a.getImageId(), a.getResourceType()))
+            .toList();
+    }
+
     private List<Label> resolveLabels(List<Long> labelIds) {
         if (labelIds == null || labelIds.isEmpty()) return List.of();
         return labelRepository.findAllById(labelIds);
@@ -53,7 +61,7 @@ public class ItemService {
                 item.getNameEn(), item.getNameFr(), item.getNameEs(),
                 item.getPrice(), toLabelViews(item.getLabels()), item.getCategory(),
                 item.getDescriptionEn(), item.getDescriptionFr(), item.getDescriptionEs(),
-                item.getImageUrl(), item.getImageId(),
+                toAssetViews(item.getAssets()),
                 item.getDiscountPercent()
             );
     }
@@ -64,7 +72,7 @@ public class ItemService {
                 item.getNameEn(), item.getNameFr(), item.getNameEs(),
                 item.getPrice(), toLabelViews(item.getLabels()), item.getCategory(),
                 item.getDescriptionEn(), item.getDescriptionFr(), item.getDescriptionEs(),
-                item.getImageUrl(), item.getImageId(),
+                toAssetViews(item.getAssets()),
                 item.getNbSold(), item.getNbSoldMonth(), item.getTotalSales(),
                 item.getTotalSalesWeek(), item.getTotalSalesMonth(), item.getTotalSalesQuarter(),
                 item.getTotalSalesYear(), item.isActive(),
@@ -114,27 +122,35 @@ public class ItemService {
         return toItemView(item);
     }
 
-    public ItemView updateItemImage(Long id, CloudinaryResponse res) {
-        Item item = findItemOrThrow(id);
-        if (item.getImageId() != null && !item.getImageId().isEmpty()) {
-            cloudinaryService.delete(item.getImageId());
-        }
-        item.setImageUrl(res.url());
-        item.setImageId(res.imageId());
+    public ItemView addAsset(Long itemId, CloudinaryResponse res, String resourceType) {
+        Item item = findAnyItemOrThrow(itemId);
+        int nextOrder = item.getAssets().size();
+        ItemAsset asset = ItemAsset.builder()
+            .item(item)
+            .imageUrl(res.url())
+            .imageId(res.imageId())
+            .resourceType(resourceType)
+            .sortOrder(nextOrder)
+            .build();
+        item.getAssets().add(asset);
         itemRepository.save(item);
-        log.info("updated image for item #{} ({})", id, displayName(item));
+        log.info("added {} asset to item #{} ({})", resourceType, itemId, displayName(item));
         return toItemView(item);
     }
 
-    public ItemView deleteImage(Long id) {
-        Item item = findItemOrThrow(id);
-        if (item.getImageId() != null && !item.getImageId().isEmpty()) {
-            cloudinaryService.delete(item.getImageId());
+    public ItemView deleteAsset(Long itemId, Long assetId) {
+        Item item = findAnyItemOrThrow(itemId);
+        ItemAsset asset = item.getAssets().stream()
+            .filter(a -> a.getId().equals(assetId))
+            .findFirst()
+            .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "ASSET_NOT_FOUND"));
+        cloudinaryService.delete(asset.getImageId(), asset.getResourceType());
+        item.getAssets().remove(asset);
+        for (int i = 0; i < item.getAssets().size(); i++) {
+            item.getAssets().get(i).setSortOrder(i);
         }
-        item.setImageUrl("");
-        item.setImageId("");
         itemRepository.save(item);
-        log.info("deleted image for item #{} ({})", id, displayName(item));
+        log.info("deleted asset #{} from item #{} ({})", assetId, itemId, displayName(item));
         return toItemView(item);
     }
 
@@ -154,7 +170,9 @@ public class ItemService {
 
     public void delete(Long id) {
         Item item = findAnyItemOrThrow(id);
-        if (item.getImageId() != null && !item.getImageId().isEmpty()) deleteImage(id);
+        for (ItemAsset asset : item.getAssets()) {
+            cloudinaryService.delete(asset.getImageId(), asset.getResourceType());
+        }
         itemRepository.deleteById(id);
         log.info("deleted {} from the database", displayName(item));
     }

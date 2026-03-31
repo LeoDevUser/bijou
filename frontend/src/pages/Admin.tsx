@@ -287,10 +287,21 @@ function ItemModal({ item, allLabels, onClose, onSaved }: ItemModalProps) {
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [currentAssets, setCurrentAssets] = useState(item?.assets ?? []);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const inputClass = 'w-full border border-border bg-cream px-4 py-3 text-sm outline-none focus:border-dark transition-colors';
+
+  async function handleDeleteAsset(assetId: number) {
+    if (!item) return;
+    try {
+      const updated = await api.admin.items.deleteAsset(item.id, assetId);
+      setCurrentAssets(updated.assets);
+    } catch {
+      setError(t('admin.products.saveError'));
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -306,18 +317,16 @@ function ItemModal({ item, allLabels, onClose, onSaved }: ItemModalProps) {
         category: form.category,
         labelIds: form.labelIds,
       };
-      if (imageFile) {
-        if (item) {
-          await api.admin.items.updateWithImage(item.id, payload, imageFile);
-        } else {
-          await api.admin.items.createWithImage(payload, imageFile);
-        }
+      let itemId: number;
+      if (item) {
+        await api.admin.items.update(item.id, payload);
+        itemId = item.id;
       } else {
-        if (item) {
-          await api.admin.items.update(item.id, payload);
-        } else {
-          await api.admin.items.create(payload);
-        }
+        const created = await api.admin.items.create(payload);
+        itemId = created.id;
+      }
+      for (const file of pendingFiles) {
+        await api.admin.items.addAsset(itemId, file);
       }
       onSaved();
     } catch {
@@ -393,11 +402,38 @@ function ItemModal({ item, allLabels, onClose, onSaved }: ItemModalProps) {
             )}
           </div>
           <div>
-            <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.image')}</label>
-            {item?.imageUrl && !imageFile && (
-              <img src={item.imageUrl} alt={item.nameEn ?? ''} className="w-20 h-20 object-cover mb-2" />
+            <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.media')}</label>
+            {currentAssets.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {currentAssets.map(asset => (
+                  <div key={asset.id} className="relative group w-20 h-20">
+                    {asset.resourceType === 'video' ? (
+                      <div className="w-20 h-20 bg-[#F0EDE8] flex items-center justify-center text-xs text-muted uppercase tracking-widest">video</div>
+                    ) : (
+                      <img src={asset.imageUrl ?? ''} alt="" className="w-20 h-20 object-cover" />
+                    )}
+                    {item && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteAsset(asset.id)}
+                        className="absolute top-0.5 right-0.5 bg-dark text-white text-xs w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                      >×</button>
+                    )}
+                  </div>
+                ))}
+              </div>
             )}
-            <input ref={fileRef} type="file" accept="image/*" onChange={e => setImageFile(e.target.files?.[0] ?? null)} className="text-sm text-muted" />
+            <input
+              ref={fileRef}
+              type="file"
+              multiple
+              accept="image/*,video/mp4,video/webm,video/quicktime"
+              onChange={e => setPendingFiles(Array.from(e.target.files ?? []))}
+              className="text-sm text-muted"
+            />
+            {pendingFiles.length > 0 && (
+              <p className="text-xs text-muted mt-1">{pendingFiles.length} {t('admin.modal.filesSelected')}</p>
+            )}
           </div>
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <div className="flex gap-3 pt-2">
@@ -461,11 +497,6 @@ function AdminProducts() {
   async function handleDelete(id: number) {
     if (!confirm(t('admin.products.deleteConfirm'))) return;
     await api.admin.items.delete(id);
-    load();
-  }
-
-  async function handleDeleteImage(id: number) {
-    await api.admin.items.deleteImage(id);
     load();
   }
 
@@ -534,8 +565,8 @@ function AdminProducts() {
               !item.active ? 'border-border opacity-60' : incomplete ? 'border-amber-400' : 'border-border'
             }`}>
               <div className="flex items-center gap-4">
-                {item.imageUrl
-                  ? <img src={item.imageUrl} alt={displayName} className="w-12 h-12 object-cover flex-shrink-0" />
+                {item.assets?.[0]?.imageUrl
+                  ? <img src={item.assets[0].imageUrl!} alt={displayName} className="w-12 h-12 object-cover flex-shrink-0" />
                   : <div className="w-12 h-12 bg-[#F0EDE8] flex-shrink-0" />
                 }
                 <div className="flex-1 min-w-0">
@@ -562,11 +593,6 @@ function AdminProducts() {
                 ) : (
                   <button onClick={() => api.admin.items.activate(item.id).then(load)} className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors">
                     {t('admin.products.activate')}
-                  </button>
-                )}
-                {item.imageUrl && (
-                  <button onClick={() => handleDeleteImage(item.id)} className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors">
-                    {t('admin.products.delImage')}
                   </button>
                 )}
                 <button onClick={() => handleDelete(item.id)} className="text-xs uppercase tracking-widest border border-red-300 text-red-500 px-3 py-1.5 hover:border-red-500 transition-colors">
@@ -1597,8 +1623,8 @@ function AdminStats() {
             return (
               <div key={item.id} className="grid grid-cols-6 px-4 py-3 text-sm items-center">
                 <div className="col-span-2 flex items-center gap-3 min-w-0">
-                  {item.imageUrl
-                    ? <img src={item.imageUrl} alt={name} className="w-8 h-8 object-cover flex-shrink-0" />
+                  {item.assets?.[0]?.imageUrl
+                    ? <img src={item.assets[0].imageUrl!} alt={name} className="w-8 h-8 object-cover flex-shrink-0" />
                     : <div className="w-8 h-8 bg-[#F0EDE8] flex-shrink-0" />
                   }
                   <div className="min-w-0">

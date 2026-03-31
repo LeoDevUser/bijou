@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.bijou.backend.entities.Category;
 import com.bijou.backend.repositories.SalesStats;
+import com.bijou.backend.services.CloudinaryResponse;
 import com.bijou.backend.services.CloudinaryService;
 import com.bijou.backend.services.ItemRequest;
 import com.bijou.backend.services.ItemService;
@@ -74,7 +75,7 @@ public class ItemController {
             @RequestPart(value = "file", required = false) MultipartFile file) {
         ItemView view = itemService.createItem(req);
         if (file != null && !file.isEmpty()) {
-            view = itemService.updateItemImage(view.id(), cloudinaryService.upload(file));
+            view = itemService.addAsset(view.id(), cloudinaryService.upload(file), "image");
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(view);
     }
@@ -91,21 +92,29 @@ public class ItemController {
             @RequestPart(value = "file", required = false) MultipartFile file) {
         ItemView view = itemService.updateItem(id, req);
         if (file != null && !file.isEmpty()) {
-            view = itemService.updateItemImage(view.id(), cloudinaryService.upload(file));
+            view = itemService.addAsset(view.id(), cloudinaryService.upload(file), "image");
         }
         return ResponseEntity.ok(view);
     }
 
-    @PatchMapping("/${ADMIN_PAGE}/items/image/{itemId}")
-    public ResponseEntity<ItemView> uploadImage(@PathVariable Long itemId, @RequestPart("file") MultipartFile file) {
-        ItemView view = itemService.updateItemImage(itemId, cloudinaryService.upload(file));
-        return ResponseEntity.status(HttpStatus.CREATED).body(view);
+    @PostMapping(value = "/${ADMIN_PAGE}/items/{itemId}/assets", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ItemView> addAsset(@PathVariable Long itemId, @RequestPart("file") MultipartFile file) {
+        String contentType = file.getContentType();
+        CloudinaryResponse res;
+        String resourceType;
+        if (contentType != null && contentType.startsWith("video/")) {
+            res = cloudinaryService.uploadVideo(file);
+            resourceType = "video";
+        } else {
+            res = cloudinaryService.upload(file);
+            resourceType = "image";
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(itemService.addAsset(itemId, res, resourceType));
     }
 
-    @PatchMapping("/${ADMIN_PAGE}/items/deleteimage/{itemId}")
-    public ResponseEntity<ItemView> deleteImage(@PathVariable Long itemId) {
-        ItemView view = itemService.deleteImage(itemId);
-        return ResponseEntity.status(HttpStatus.OK).body(view);
+    @DeleteMapping("/${ADMIN_PAGE}/items/{itemId}/assets/{assetId}")
+    public ResponseEntity<ItemView> deleteAsset(@PathVariable Long itemId, @PathVariable Long assetId) {
+        return ResponseEntity.ok(itemService.deleteAsset(itemId, assetId));
     }
 
     @DeleteMapping("/${ADMIN_PAGE}/items/{id}")

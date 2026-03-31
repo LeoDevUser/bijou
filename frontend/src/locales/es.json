@@ -218,6 +218,10 @@
       "labelsPlaceholder": "oro, plata esterlina",
       "discount": "Descuento %",
       "image": "Imagen",
+      "media": "Multimedia",
+      "addMedia": "Subir",
+      "noAssets": "Sin archivos multimedia.",
+      "filesSelected": "archivo(s) seleccionado(s) — se subirán al guardar",
       "save": "Guardar",
       "cancel": "Cancelar"
     },

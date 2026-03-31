@@ -1,4 +1,4 @@
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, AnnouncementView, SiteAssetView, CollectionView, SalesStats } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, AnnouncementView, SiteAssetView, CollectionView, SalesStats, ItemAssetView } from '../types';
 
 interface LabelRequest { nameEn: string; nameFr: string; nameEs: string; }
 
@@ -104,19 +104,19 @@ export const api = {
         request<void>(`/${ADMIN}/items/activate/${id}`, { method: 'PATCH' }),
       deactivate: (id: number) =>
         request<void>(`/${ADMIN}/items/deactivate/${id}`, { method: 'PATCH' }),
-      deleteImage: (id: number) =>
-        request<ItemView>(`/${ADMIN}/items/deleteimage/${id}`, { method: 'PATCH' }),
-      uploadImage: async (itemId: number, file: File): Promise<ItemView> => {
+      addAsset: async (itemId: number, file: File): Promise<ItemView> => {
         const form = new FormData();
         form.append('file', file);
-        const res = await fetch(`${BASE_URL}/${ADMIN}/items/image/${itemId}`, {
-          method: 'PATCH',
+        const res = await fetch(`${BASE_URL}/${ADMIN}/items/${itemId}/assets`, {
+          method: 'POST',
           headers: authHeaders(),
           body: form,
         });
         if (!res.ok) { const body = await res.json().catch(() => ({})); throw { status: res.status, ...body }; }
         return res.json();
       },
+      deleteAsset: (itemId: number, assetId: number) =>
+        request<ItemView>(`/${ADMIN}/items/${itemId}/assets/${assetId}`, { method: 'DELETE' }),
       createWithImage: async (data: ItemRequest, file: File): Promise<ItemView> => {
         const form = new FormData();
         form.append('item', new Blob([JSON.stringify(data)], { type: 'application/json' }));

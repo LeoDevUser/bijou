@@ -17,7 +17,6 @@ public record ItemView(
         String descriptionEn,
         String descriptionFr,
         String descriptionEs,
-        String imageUrl,
-        String imageId,
+        List<ItemAssetView> assets,
         Integer discountPercent
 ) {}

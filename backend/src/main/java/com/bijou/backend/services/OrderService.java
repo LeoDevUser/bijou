@@ -193,7 +193,7 @@ public class OrderService {
                         item.getNameEn(),
                         item.getNameFr(),
                         item.getNameEs(),
-                        item.getImageUrl(),
+                        item.getAssets().isEmpty() ? null : item.getAssets().get(0).getImageUrl(),
                         item.isActive()
                     );
                 }).toList(),

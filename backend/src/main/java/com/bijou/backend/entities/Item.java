@@ -1,5 +1,6 @@
 package com.bijou.backend.entities;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -7,6 +8,8 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,6 +17,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,7 +33,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Item {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) 
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(nullable=false)
     private Integer stock;
@@ -48,7 +52,10 @@ public class Item {
     @Enumerated(EnumType.STRING)
     @Column(nullable=false)
     private Category category;
-    private String imageUrl;
+    @OneToMany(mappedBy = "item", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sortOrder ASC")
+    @Builder.Default
+    private List<ItemAsset> assets = new ArrayList<>();
     @Column(nullable = false)
     @Builder.Default
     private int nbSold = 0;
@@ -69,6 +76,5 @@ public class Item {
     private String descriptionEn;
     private String descriptionFr;
     private String descriptionEs;
-    private String imageId;
     private Integer discountPercent;
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
@@ -15,14 +15,34 @@ export default function ProductDetail() {
   const [item, setItem] = useState<ItemView | null>(null);
   const [loading, setLoading] = useState(true);
   const [added, setAdded] = useState(false);
+  const [assetIndex, setAssetIndex] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (!id) return;
     api.items.get(Number(id))
-      .then(setItem)
+      .then(data => { setItem(data); setAssetIndex(0); })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [id]);
+
+  const assets = item?.assets ?? [];
+  const hasMultiple = assets.length > 1;
+  const currentAsset = assets[assetIndex] ?? null;
+
+  function resetInterval(len: number) {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (len <= 1) return;
+    intervalRef.current = setInterval(() => {
+      setAssetIndex(i => (i + 1) % len);
+    }, 10000);
+  }
+
+  useEffect(() => {
+    resetInterval(assets.length);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assets.length]);
 
   const name = item ? pickLocale(item.nameEn, item.nameFr, item.nameEs, i18n.language) : '';
   const description = item ? pickLocale(item.descriptionEn, item.descriptionFr, item.descriptionEs, i18n.language) : '';
@@ -30,9 +50,24 @@ export default function ProductDetail() {
   const hasDiscount = !!item?.discountPercent;
   const salePrice = item ? (hasDiscount ? Number(item.price) * (1 - item.discountPercent! / 100) : Number(item.price)) : 0;
 
+  function goTo(i: number) {
+    setAssetIndex(i);
+    resetInterval(assets.length);
+  }
+
+  function goPrev() {
+    setAssetIndex(i => (i - 1 + assets.length) % assets.length);
+    resetInterval(assets.length);
+  }
+
+  function goNext() {
+    setAssetIndex(i => (i + 1) % assets.length);
+    resetInterval(assets.length);
+  }
+
   function handleAddToCart() {
     if (!item) return;
-    addItem({ id: item.id, name, price: salePrice, quantity: 1, imageUrl: item.imageUrl });
+    addItem({ id: item.id, name, price: salePrice, quantity: 1, imageUrl: assets[0]?.imageUrl ?? null });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   }
@@ -57,13 +92,58 @@ export default function ProductDetail() {
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
       <div className="grid md:grid-cols-2 gap-12">
-        {/* Image */}
-        <div className="bg-[#F0EDE8] aspect-square overflow-hidden">
-          {item.imageUrl ? (
-            <img src={item.imageUrl} alt={name} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted text-sm uppercase tracking-widest">
-              {item.category}
+        {/* Carousel */}
+        <div className="flex flex-col gap-3 min-w-0">
+          <div className="relative bg-[#F0EDE8] aspect-square overflow-hidden">
+            {currentAsset ? (
+              currentAsset.resourceType === 'video' ? (
+                <video
+                  key={currentAsset.id}
+                  src={currentAsset.imageUrl ?? undefined}
+                  className="w-full h-full object-cover"
+                  controls
+                  muted
+                  playsInline
+                />
+              ) : (
+                <img src={currentAsset.imageUrl ?? ''} alt={name} className="w-full h-full object-cover" />
+              )
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-muted text-sm uppercase tracking-widest">
+                {item.category}
+              </div>
+            )}
+            {hasMultiple && (
+              <>
+                <button
+                  onClick={goPrev}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-dark w-9 h-9 flex items-center justify-center transition-colors cursor-pointer text-xl"
+                  aria-label="Previous"
+                >‹</button>
+                <button
+                  onClick={goNext}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-dark w-9 h-9 flex items-center justify-center transition-colors cursor-pointer text-xl"
+                  aria-label="Next"
+                >›</button>
+              </>
+            )}
+          </div>
+          {/* Thumbnail strip */}
+          {hasMultiple && (
+            <div className="flex gap-2 overflow-x-auto w-full min-w-0 pb-1">
+              {assets.map((asset, i) => (
+                <button
+                  key={asset.id}
+                  onClick={() => goTo(i)}
+                  className={`flex-shrink-0 w-16 h-16 bg-[#F0EDE8] overflow-hidden border-2 transition-colors cursor-pointer ${i === assetIndex ? 'border-dark' : 'border-transparent'}`}
+                >
+                  {asset.resourceType === 'video' ? (
+                    <div className="w-full h-full flex items-center justify-center text-[10px] text-muted uppercase tracking-widest">vid</div>
+                  ) : (
+                    <img src={asset.imageUrl ?? ''} alt="" className="w-full h-full object-cover" />
+                  )}
+                </button>
+              ))}
             </div>
           )}
         </div>

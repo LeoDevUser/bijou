@@ -5,6 +5,13 @@ export interface LabelView {
   nameEs: string | null;
 }
 
+export interface ItemAssetView {
+  id: number;
+  imageUrl: string | null;
+  imageId: string | null;
+  resourceType: string;
+}
+
 export interface ItemView {
   id: number;
   stock: number;
@@ -17,8 +24,7 @@ export interface ItemView {
   descriptionEn: string | null;
   descriptionFr: string | null;
   descriptionEs: string | null;
-  imageUrl: string | null;
-  imageId: string | null;
+  assets: ItemAssetView[];
   discountPercent: number | null;
 }
 
