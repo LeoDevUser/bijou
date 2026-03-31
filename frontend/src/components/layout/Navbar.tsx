@@ -152,7 +152,7 @@ export default function Navbar() {
               </div>
 
               {/* Language + Currency */}
-              <div className="flex items-center justify-between py-4">
+              <div className="flex flex-col gap-3 py-4">
                 <div className="flex items-center gap-3">
                   {LANGUAGES.map((lang, idx) => (
                     <span key={lang} className="flex items-center gap-3">
