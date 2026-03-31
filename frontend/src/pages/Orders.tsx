@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { pickLocale } from '../types';
 import type { OrderView } from '../types';
 
 
@@ -15,7 +16,7 @@ const STATUS_COLOR: Record<string, string> = {
 };
 
 export default function Orders() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -96,6 +97,27 @@ export default function Orders() {
                   <p className="font-medium">${Number(order.total).toFixed(2)}</p>
                   <p className="text-xs text-muted mt-1">{order.items.length} {t('orders.items')}</p>
                 </div>
+              </div>
+
+              <div className="flex flex-wrap gap-3 mt-4">
+                {order.items.map(item => {
+                  const name = pickLocale(item.nameEn, item.nameFr, item.nameEs, i18n.language) ?? item.nameEn ?? '';
+                  const content = (
+                    <div className="flex items-center gap-2">
+                      {item.imageUrl
+                        ? <img src={item.imageUrl} alt={name} className="w-10 h-10 object-cover bg-[#F0EDE8] flex-shrink-0" />
+                        : <div className="w-10 h-10 bg-[#F0EDE8] flex-shrink-0" />
+                      }
+                      <div>
+                        <p className="text-xs">{name}</p>
+                        <p className="text-xs text-muted">×{item.quantity}</p>
+                      </div>
+                    </div>
+                  );
+                  return item.active
+                    ? <Link key={item.itemId} to={`/shop/${item.itemId}`} className="hover:opacity-75 transition-opacity">{content}</Link>
+                    : <div key={item.itemId}>{content}</div>;
+                })}
               </div>
 
               {order.tracking && (

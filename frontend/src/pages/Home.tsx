@@ -7,10 +7,10 @@ import type { ItemView, SiteAssetView } from '../types';
 import { pickLocale } from '../types';
 
 const CATEGORIES = [
-  { key: 'home.categories.rings', value: 'RINGS', slot: 'ring' },
-  { key: 'home.categories.necklaces', value: 'NECKLACES', slot: 'necklace' },
-  { key: 'home.categories.earrings', value: 'EARRINGS', slot: 'earring' },
-  { key: 'home.categories.bracelets', value: 'BRACELETS', slot: 'bracelet' },
+  { key: 'home.categories.rings', value: 'RING', slot: 'ring' },
+  { key: 'home.categories.necklaces', value: 'NECKLACE', slot: 'necklace' },
+  { key: 'home.categories.earrings', value: 'EARRING', slot: 'earring' },
+  { key: 'home.categories.bracelets', value: 'MISC', slot: 'bracelet' },
 ] as const;
 
 type AssetEntry = {
@@ -78,7 +78,7 @@ export default function Home() {
             <p className="text-sm uppercase tracking-widest mb-4">{pickLocale(hero?.subheaderEn, hero?.subheaderFr, hero?.subheaderEs, i18n.language)}</p>
           )}
           <Link
-            to="/shop"
+            to={ctaHref(hero)}
             className="inline-block border px-10 py-3 text-xs uppercase tracking-widest hover:opacity-75 transition-opacity"
             style={hero?.color ? { borderColor: hero.color } : { borderColor: '#1C1C1C' }}
           >
@@ -95,8 +95,9 @@ export default function Home() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {CATEGORIES.map(cat => {
             const entry = assetMap[cat.slot];
+            const href = entry?.ctaCategory || entry?.ctaLabelId != null ? ctaHref(entry) : `/shop?category=${cat.value}`;
             return (
-              <Link key={cat.key} to={`/shop?category=${cat.value}`} className="group block">
+              <Link key={cat.key} to={href} className="group block">
                 <div className="bg-[#F0EDE8] aspect-square mb-3 overflow-hidden group-hover:bg-[#E8E4DC] transition-colors">
                   {entry?.url
                     ? <SlotMedia entry={entry} alt={t(cat.key)} className="w-full h-full object-cover" />

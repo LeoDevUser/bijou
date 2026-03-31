@@ -24,7 +24,8 @@ public class OrderCleanupJob {
     private final OrderService orderService;
     private final OrderRepository orderRepository;
 
-    @Scheduled(cron = "0 0 * * * *")
+    // Every day at Midnight (0 0 0 * * *)
+    @Scheduled(cron = "0 0 0 * * *")
     public void cleanupStaleOrders() {
         LocalDateTime cutoff = LocalDateTime.now().minusHours(24);
         List<Order> staleOrders = orderRepository.findByStatusAndCreatedAtBefore(Status.AWAITING_PAYMENT, cutoff);

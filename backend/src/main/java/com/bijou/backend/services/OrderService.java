@@ -184,13 +184,19 @@ public class OrderService {
                 client.getFirstName(),
                 client.getLastName(),
                 order.getOrderItems().stream()
-                .map(orderItem -> 
-                    new OrderItemView(
-                        orderItem.getItem().getId(),
+                .map(orderItem -> {
+                    var item = orderItem.getItem();
+                    return new OrderItemView(
+                        item.getId(),
                         orderItem.getUnitPrice(),
-                        orderItem.getQuantity()
-                    )
-                ).toList(),
+                        orderItem.getQuantity(),
+                        item.getNameEn(),
+                        item.getNameFr(),
+                        item.getNameEs(),
+                        item.getImageUrl(),
+                        item.isActive()
+                    );
+                }).toList(),
                 order.getTrackingNumber(),
                 order.getTotalPrice(),
                 order.getCreatedAt(),

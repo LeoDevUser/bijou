@@ -28,7 +28,7 @@ const searchClass = 'border border-border bg-cream px-3 py-2 text-sm outline-non
 // ── Orders ────────────────────────────────────────────────────────────────────
 
 function AdminOrders() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [orders, setOrders] = useState<OrderView[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
@@ -152,13 +152,25 @@ function AdminOrders() {
                   </div>
                   <div className="mt-4">
                     <p className="text-xs uppercase tracking-widest text-muted mb-2">{t('admin.detail.items')}</p>
-                    <div className="space-y-1">
-                      {o.items.map((item, i) => (
-                        <div key={i} className="flex justify-between text-sm">
-                          <span>{t('admin.detail.itemLine', { id: item.itemId, qty: item.quantity })}</span>
-                          <span>${(item.unitPrice * item.quantity).toFixed(2)}</span>
-                        </div>
-                      ))}
+                    <div className="space-y-2">
+                      {o.items.map((item, i) => {
+                        const name = pickLocale(item.nameEn, item.nameFr, item.nameEs, i18n.language) ?? item.nameEn ?? `#${item.itemId}`;
+                        return (
+                          <div key={i} className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2 min-w-0">
+                              {item.imageUrl
+                                ? <img src={item.imageUrl} alt={name} className="w-10 h-10 object-cover bg-[#F0EDE8] flex-shrink-0" />
+                                : <div className="w-10 h-10 bg-[#F0EDE8] flex-shrink-0" />
+                              }
+                              <div className="min-w-0">
+                                <p className="text-sm truncate">{name}</p>
+                                <p className="text-xs text-muted">×{item.quantity}</p>
+                              </div>
+                            </div>
+                            <span className="text-sm flex-shrink-0">${(item.unitPrice * item.quantity).toFixed(2)}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                   {o.status !== 'DELIVERED' && (

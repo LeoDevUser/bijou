@@ -45,6 +45,11 @@ export interface OrderItemView {
   itemId: number;
   unitPrice: number;
   quantity: number;
+  nameEn: string | null;
+  nameFr: string | null;
+  nameEs: string | null;
+  imageUrl: string | null;
+  active: boolean;
 }
 
 export type OrderStatus =
