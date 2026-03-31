@@ -8,6 +8,8 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
+
 import com.bijou.backend.entities.Category;
 import com.bijou.backend.entities.Item;
 import com.bijou.backend.entities.ItemAsset;
@@ -122,6 +124,7 @@ public class ItemService {
         return toItemView(item);
     }
 
+    @Transactional
     public ItemView addAsset(Long itemId, CloudinaryResponse res, String resourceType) {
         Item item = findAnyItemOrThrow(itemId);
         int nextOrder = item.getAssets().size();
@@ -138,18 +141,19 @@ public class ItemService {
         return toItemView(item);
     }
 
+    @Transactional
     public ItemView deleteAsset(Long itemId, Long assetId) {
         Item item = findAnyItemOrThrow(itemId);
         ItemAsset asset = item.getAssets().stream()
             .filter(a -> a.getId().equals(assetId))
             .findFirst()
             .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "ASSET_NOT_FOUND"));
-        cloudinaryService.delete(asset.getImageId(), asset.getResourceType());
         item.getAssets().remove(asset);
         for (int i = 0; i < item.getAssets().size(); i++) {
             item.getAssets().get(i).setSortOrder(i);
         }
-        itemRepository.save(item);
+        itemRepository.saveAndFlush(item);
+        cloudinaryService.delete(asset.getImageId(), asset.getResourceType());
         log.info("deleted asset #{} from item #{} ({})", assetId, itemId, displayName(item));
         return toItemView(item);
     }
@@ -168,12 +172,15 @@ public class ItemService {
         log.info("activated {} from the database", displayName(item));
     }
 
+    @Transactional
     public void delete(Long id) {
         Item item = findAnyItemOrThrow(id);
-        for (ItemAsset asset : item.getAssets()) {
+        List<ItemAsset> assets = List.copyOf(item.getAssets());
+        itemRepository.delete(item);
+        itemRepository.flush();
+        for (ItemAsset asset : assets) {
             cloudinaryService.delete(asset.getImageId(), asset.getResourceType());
         }
-        itemRepository.deleteById(id);
         log.info("deleted {} from the database", displayName(item));
     }
 

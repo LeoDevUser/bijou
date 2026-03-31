@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.transaction.Transactional;
+
 import com.bijou.backend.entities.Collection;
 import com.bijou.backend.entities.Label;
 import com.bijou.backend.exception.AppException;
@@ -75,38 +77,50 @@ public class CollectionService {
         return toView(collectionRepository.save(collection));
     }
 
+    @Transactional
     public CollectionView uploadMedia(Long id, MultipartFile file) {
         Collection collection = findOrThrow(id);
-        if (collection.getImageId() != null && !collection.getImageId().isEmpty()) {
-            cloudinaryService.delete(collection.getImageId(), collection.getResourceType());
-        }
+        String oldImageId = collection.getImageId();
+        String oldResourceType = collection.getResourceType();
         boolean isVideo = VIDEO_TYPES.contains(file.getContentType());
         CloudinaryResponse res = isVideo ? cloudinaryService.uploadVideo(file) : cloudinaryService.upload(file);
         collection.setImageUrl(res.url());
         collection.setImageId(res.imageId());
         collection.setResourceType(isVideo ? "video" : "image");
+        CollectionView view = toView(collectionRepository.saveAndFlush(collection));
+        if (oldImageId != null && !oldImageId.isEmpty()) {
+            cloudinaryService.delete(oldImageId, oldResourceType);
+        }
         log.info("uploaded {} for collection #{}", collection.getResourceType(), id);
-        return toView(collectionRepository.save(collection));
+        return view;
     }
 
+    @Transactional
     public CollectionView deleteMedia(Long id) {
         Collection collection = findOrThrow(id);
-        if (collection.getImageId() != null && !collection.getImageId().isEmpty()) {
-            cloudinaryService.delete(collection.getImageId(), collection.getResourceType());
-        }
+        String oldImageId = collection.getImageId();
+        String oldResourceType = collection.getResourceType();
         collection.setImageUrl(null);
         collection.setImageId(null);
         collection.setResourceType("image");
+        CollectionView view = toView(collectionRepository.saveAndFlush(collection));
+        if (oldImageId != null && !oldImageId.isEmpty()) {
+            cloudinaryService.delete(oldImageId, oldResourceType);
+        }
         log.info("deleted media for collection #{}", id);
-        return toView(collectionRepository.save(collection));
+        return view;
     }
 
+    @Transactional
     public void delete(Long id) {
         Collection collection = findOrThrow(id);
-        if (collection.getImageId() != null && !collection.getImageId().isEmpty()) {
-            cloudinaryService.delete(collection.getImageId(), collection.getResourceType());
-        }
+        String oldImageId = collection.getImageId();
+        String oldResourceType = collection.getResourceType();
         collectionRepository.delete(collection);
+        collectionRepository.flush();
+        if (oldImageId != null && !oldImageId.isEmpty()) {
+            cloudinaryService.delete(oldImageId, oldResourceType);
+        }
         log.info("deleted collection #{}", id);
     }
 
