@@ -4,7 +4,12 @@ import { api } from '../api/client';
 import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, Category, VerboseClient, LabelView, AnnouncementView, SiteAssetView, CollectionView, SalesStats } from '../types';
 import { pickLocale, isItemIncomplete, isLabelIncomplete } from '../types';
 
-const CATEGORIES: Category[] = ['NECKLACE', 'RING', 'EARRING', 'MISC'];
+const CATEGORIES: { value: Category; labelKey: string }[] = [
+  { value: 'NECKLACE', labelKey: 'home.categories.necklaces' },
+  { value: 'RING',     labelKey: 'home.categories.rings' },
+  { value: 'EARRING',  labelKey: 'home.categories.earrings' },
+  { value: 'MISC',     labelKey: 'shop.misc' },
+];
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
   AWAITING_PAYMENT: ['PROCESSING'],
@@ -360,7 +365,7 @@ function ItemModal({ item, allLabels, onClose, onSaved }: ItemModalProps) {
           <div>
             <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.category')}</label>
             <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value as Category }))} className={inputClass}>
-              {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              {CATEGORIES.map(c => <option key={c.value} value={c.value}>{t(c.labelKey)}</option>)}
             </select>
           </div>
           <div>
@@ -540,7 +545,7 @@ function AdminProducts() {
                     {incomplete && <span className="text-[10px] uppercase tracking-widest border border-amber-400 text-amber-600 px-1.5 py-0.5">{t('admin.products.incomplete')}</span>}
                     {!!item.discountPercent && <span className="text-[10px] uppercase tracking-widest border border-gold text-gold px-1.5 py-0.5">-{item.discountPercent}%</span>}
                   </div>
-                  <p className="text-xs text-muted">{item.category} · {item.discountPercent ? `$${(Number(item.price) * (1 - item.discountPercent / 100)).toFixed(2)} ` : ''}<span className={item.discountPercent ? 'line-through' : ''}>${Number(item.price).toFixed(2)}</span> · {item.stock} {t('admin.products.inStock')}</p>
+                  <p className="text-xs text-muted">{t(CATEGORIES.find(c => c.value === item.category)?.labelKey ?? 'shop.misc')} · {item.discountPercent ? `$${(Number(item.price) * (1 - item.discountPercent / 100)).toFixed(2)} ` : ''}<span className={item.discountPercent ? 'line-through' : ''}>${Number(item.price).toFixed(2)}</span> · {item.stock} {t('admin.products.inStock')}</p>
                   <p className="text-xs text-muted">
                     {item.nbSold} {t('admin.products.sold')} ({item.nbSoldMonth} {t('admin.products.thisMonth')}) · ${Number(item.totalSalesMonth).toFixed(2)} {t('admin.products.thisMonth')}
                   </p>
@@ -1521,12 +1526,17 @@ function AdminStats() {
       return b.totalSales - a.totalSales;
     });
 
+  const STRIPE_RATE = 0.036; // 3.6% — Stripe Mexico (MXN)
+  const STRIPE_FLAT = 3.00;  // MXN $3.00 flat fee per transaction
+  const stripeFee = (amount: number, orders: number) =>
+    amount * STRIPE_RATE + orders * STRIPE_FLAT;
+
   const statCards = stats ? [
-    { label: t('admin.stats.week'),    value: stats.week },
-    { label: t('admin.stats.month'),   value: stats.month },
-    { label: t('admin.stats.quarter'), value: stats.quarter },
-    { label: t('admin.stats.year'),    value: stats.year },
-    { label: t('admin.stats.allTime'), value: stats.total },
+    { label: t('admin.stats.week'),    value: stats.week,    orders: stats.ordersWeek },
+    { label: t('admin.stats.month'),   value: stats.month,   orders: stats.ordersMonth },
+    { label: t('admin.stats.quarter'), value: stats.quarter, orders: stats.ordersQuarter },
+    { label: t('admin.stats.year'),    value: stats.year,    orders: stats.ordersYear },
+    { label: t('admin.stats.allTime'), value: stats.total,   orders: stats.ordersTotal },
   ] : [];
 
   const sortBtn = (label: string, value: typeof sort) => (
@@ -1552,9 +1562,12 @@ function AdminStats() {
             <div key={card.label} className="border border-border px-5 py-4">
               <p className="text-xs uppercase tracking-widest text-muted mb-1">{card.label}</p>
               <p className="font-serif text-2xl font-light">${Number(card.value).toFixed(2)}</p>
+              <p className="text-xs text-muted mt-1">{t('admin.stats.stripeFee', { amount: stripeFee(Number(card.value), card.orders).toFixed(2) })}</p>
+              <p className="text-xs font-medium mt-0.5">{t('admin.stats.stripeNet', { amount: (Number(card.value) - stripeFee(Number(card.value), card.orders)).toFixed(2) })}</p>
             </div>
           ))}
         </div>
+        <p className="text-xs text-muted mt-2">{t('admin.stats.stripeNote')}</p>
       </div>
 
       {/* Per-item breakdown */}

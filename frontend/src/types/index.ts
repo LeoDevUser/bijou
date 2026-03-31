@@ -39,6 +39,11 @@ export interface SalesStats {
   month: number;
   quarter: number;
   year: number;
+  ordersTotal: number;
+  ordersWeek: number;
+  ordersMonth: number;
+  ordersQuarter: number;
+  ordersYear: number;
 }
 
 export interface OrderItemView {

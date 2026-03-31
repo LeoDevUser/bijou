@@ -1,6 +1,7 @@
 package com.bijou.backend.services;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 
@@ -13,6 +14,8 @@ import com.bijou.backend.exception.AppException;
 import com.bijou.backend.entities.Item;
 import com.bijou.backend.repositories.ItemRepository;
 import com.bijou.backend.repositories.LabelRepository;
+import com.bijou.backend.repositories.OrderRepository;
+import com.bijou.backend.repositories.RevenueStats;
 import com.bijou.backend.repositories.SalesStats;
 
 import lombok.RequiredArgsConstructor;
@@ -26,6 +29,7 @@ public class ItemService {
     private final CloudinaryService cloudinaryService;
     private final ItemRepository itemRepository;
     private final LabelRepository labelRepository;
+    private final OrderRepository orderRepository;
 
     private List<LabelView> toLabelViews(List<Label> labels) {
         if (labels == null) return List.of();
@@ -194,8 +198,21 @@ public class ItemService {
             .toList();
     }
 
-    public SalesStats getSalesStats(){
-        return itemRepository.getCombinedSalesStats();
+    public SalesStats getSalesStats() {
+        RevenueStats rev = itemRepository.getRevenueTotals();
+        LocalDateTime now = LocalDateTime.now();
+        return new SalesStats(
+            rev.total(),
+            rev.week(),
+            rev.month(),
+            rev.quarter(),
+            rev.year(),
+            orderRepository.countSuccessful(),
+            orderRepository.countSuccessfulSince(now.minusWeeks(1)),
+            orderRepository.countSuccessfulSince(now.minusMonths(1)),
+            orderRepository.countSuccessfulSince(now.minusMonths(3)),
+            orderRepository.countSuccessfulSince(now.minusYears(1))
+        );
     }
 
     public List<ItemView> getMonthTrendingItems() {

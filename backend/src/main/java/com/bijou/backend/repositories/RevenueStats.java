@@ -2,15 +2,10 @@ package com.bijou.backend.repositories;
 
 import java.math.BigDecimal;
 
-public record SalesStats(
+public record RevenueStats(
     BigDecimal total,
     BigDecimal week,
     BigDecimal month,
     BigDecimal quarter,
-    BigDecimal year,
-    long ordersTotal,
-    long ordersWeek,
-    long ordersMonth,
-    long ordersQuarter,
-    long ordersYear
+    BigDecimal year
 ) {}

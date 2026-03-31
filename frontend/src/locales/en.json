@@ -200,7 +200,10 @@
       "item": "Product",
       "unitsSoldMonth": "sold this month",
       "unitsSoldTotal": "sold total",
-      "noData": "No sales data yet."
+      "noData": "No sales data yet.",
+      "stripeFee": "Stripe ~${{amount}}",
+      "stripeNet": "Net ~${{amount}}",
+      "stripeNote": "* Stripe fees estimated at 3.6% + $3.00 MXN/transaction."
     },
     "modal": {
       "editTitle": "Edit Product",

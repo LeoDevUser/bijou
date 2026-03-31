@@ -200,7 +200,10 @@
       "item": "Producto",
       "unitsSoldMonth": "vendidos este mes",
       "unitsSoldTotal": "vendidos en total",
-      "noData": "Aún no hay datos de ventas."
+      "noData": "Aún no hay datos de ventas.",
+      "stripeFee": "Stripe ~${{amount}}",
+      "stripeNet": "Neto ~${{amount}}",
+      "stripeNote": "* Comisiones Stripe estimadas al 3.6% + $3.00 MXN/transacción."
     },
     "modal": {
       "editTitle": "Editar Producto",

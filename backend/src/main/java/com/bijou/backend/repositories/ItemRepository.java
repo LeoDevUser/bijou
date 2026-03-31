@@ -47,12 +47,12 @@ public interface ItemRepository extends JpaRepository<Item, Long>{
     @Modifying
     @Query("UPDATE Item i SET i.totalSalesYear = 0")
     void resetSalesYear();
-    @Query("SELECT new com.bijou.backend.repositories.SalesStats(" +
+    @Query("SELECT new com.bijou.backend.repositories.RevenueStats(" +
        "COALESCE(SUM(i.totalSales), 0), " +
        "COALESCE(SUM(i.totalSalesWeek), 0), " +
        "COALESCE(SUM(i.totalSalesMonth), 0), " +
        "COALESCE(SUM(i.totalSalesQuarter), 0), " +
        "COALESCE(SUM(i.totalSalesYear), 0)) " +
        "FROM Item i")
-    SalesStats getCombinedSalesStats();
+    RevenueStats getRevenueTotals();
 }
