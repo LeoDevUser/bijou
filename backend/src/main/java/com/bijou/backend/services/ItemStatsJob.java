@@ -20,7 +20,7 @@ public class ItemStatsJob {
     @Transactional
     public void resetWeeklyStats() {
         itemRepository.resetSalesWeek();
-        log.info("Weekly sales reset.");
+        log.info("weekly sales reset done");
     }
 
     // 1st of every Month at Midnight
@@ -29,7 +29,7 @@ public class ItemStatsJob {
     public void resetMonthlyStats() {
         itemRepository.resetNbSoldMonth();
         itemRepository.resetSalesMonth();
-        log.info("Monthly sales reset.");
+        log.info("monthly sales reset done");
     }
 
     // 1st day of every Quarter (Jan, Apr, Jul, Oct) at Midnight
@@ -37,7 +37,7 @@ public class ItemStatsJob {
     @Transactional
     public void resetQuarterlyStats() {
         itemRepository.resetSalesQuarter();
-        log.info("Quarterly sales reset.");
+        log.info("quarterly sales reset done");
     }
 
     // Jan 1st every Year at Midnight
@@ -45,6 +45,6 @@ public class ItemStatsJob {
     @Transactional
     public void resetYearlyStats() {
         itemRepository.resetSalesYear();
-        log.info("Yearly sales reset.");
+        log.info("yearly sales reset done");
     }
 }

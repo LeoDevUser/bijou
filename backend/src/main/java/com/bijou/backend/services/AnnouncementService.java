@@ -11,9 +11,11 @@ import com.bijou.backend.repositories.AnnouncementRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AnnouncementService {
 
     private final AnnouncementRepository announcementRepository;
@@ -42,6 +44,7 @@ public class AnnouncementService {
             .active(req.active())
             .sortOrder(nextOrder)
             .build());
+        log.info("created announcement #{}", a.getId());
         return toView(a);
     }
 
@@ -52,6 +55,7 @@ public class AnnouncementService {
         a.setTextFr(req.textFr());
         a.setTextEs(req.textEs());
         a.setActive(req.active());
+        log.info("updated announcement #{}", id);
         return toView(announcementRepository.save(a));
     }
 
@@ -61,6 +65,7 @@ public class AnnouncementService {
             throw new AppException(HttpStatus.NOT_FOUND, "ANNOUNCEMENT_NOT_FOUND");
         }
         announcementRepository.deleteById(id);
+        log.info("deleted announcement #{}", id);
     }
 
     @Transactional

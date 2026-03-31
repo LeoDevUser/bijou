@@ -93,6 +93,7 @@ public class OrderService {
             .build();
         order.getOrderItems().forEach(oi -> oi.setOrder(order));
         orderRepository.save(order);
+        log.info("created order #{} for client {} (total: {})", order.getId(), client.getEmail(), total);
         return order;
     }
 
@@ -130,6 +131,7 @@ public class OrderService {
 
         order.setStatus(Status.CANCELLED);
         orderRepository.save(order);
+        log.info("cancelled order #{} for client {}", order.getId(), client.getEmail());
         return order.getStripePaymentIntentId();
     }
 

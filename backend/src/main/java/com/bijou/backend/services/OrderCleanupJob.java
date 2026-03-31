@@ -28,7 +28,8 @@ public class OrderCleanupJob {
     public void cleanupStaleOrders() {
         LocalDateTime cutoff = LocalDateTime.now().minusHours(24);
         List<Order> staleOrders = orderRepository.findByStatusAndCreatedAtBefore(Status.AWAITING_PAYMENT, cutoff);
-        
+        log.info("stale order cleanup: found {} orders to cancel", staleOrders.size());
+
         for (Order order : staleOrders) {
             try {
                 String intentId = orderService.cancel(order.getClient(), order.getId());
@@ -56,7 +57,7 @@ public class OrderCleanupJob {
     @EventListener
     public void onPaymentSuccess(PaymentSuccessEvent event) {
         try {
-            log.info("Starting background cancel for order {}", event.orderId());
+            log.info("processing successful payment for order {}", event.orderId());
             orderService.updateSales(event.client(), event.orderId());
         } catch (Exception e) {
             log.error("CRITICAL: Failed to update sales on order {}. Manual check required!", event.orderId(), e);

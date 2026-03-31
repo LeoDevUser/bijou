@@ -77,24 +77,27 @@ public class AuthService {
             .build();
 
         clientRepository.save(client);
-
+        log.info("registration successful for email {}", email);
         String token = jwtService.generateToken(client);
         return token;
     }
 
     public String login(LoginRequest req) {
         Client client = clientRepository.findByEmail(req.email()).orElseThrow(() -> {
-            log.warn("login unsuccessful for email: {}", req.email());
+            log.warn("login failed for email {} — account not found", req.email());
             return new AppException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS");
         });
 
         if (!passwordEncoder.matches(req.password(), client.getPassword())){
-            log.warn("login unsuccessful for email: {}", req.email());
+            log.warn("login failed for email {} — wrong password", req.email());
             throw new AppException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS");
         }
 
-        log.info("login successful for email: {}", req.email());
-        if (client.getRole() == Role.ADMIN) log.info("ADMIN logged in!");
+        if (client.getRole() == Role.ADMIN) {
+            log.info("admin login successful for email {}", req.email());
+        } else {
+            log.info("login successful for email {}", req.email());
+        }
         return jwtService.generateToken(client);
     }
 

@@ -146,26 +146,29 @@ public class PaymentService {
         Order order = findOrderOrLog(intent.getId());
         if (order == null) return;
         if (order.getStatus() != Status.AWAITING_PAYMENT) return;
+        log.info("payment succeeded for order #{} — amount: {} {} — intent: {}",
+            order.getId(), intent.getAmount() / 100.0, intent.getCurrency().toUpperCase(), intent.getId());
         eventPublisher.publishEvent(new PaymentSuccessEvent(order.getClient(), order.getId()));
         Client client = clientRepository.findById(order.getClient().getId())
             .orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "CLIENT NOT FOUND"));
         client.setNbSuccessfulOrders(client.getNbSuccessfulOrders() + 1);
         client.setMoneySpent(client.getMoneySpent().add(order.getTotalPrice()));
         clientRepository.save(client);
-        log.info("updated info of client {} after successful payment", client.getId());
+        log.info("updated stats for client {} after successful payment", client.getEmail());
     }
 
     private void handleFailure(PaymentIntent intent) {
         Order order = findOrderOrLog(intent.getId());
         if (order == null) return;
         if (order.getStatus() != Status.AWAITING_PAYMENT) return;
+        String failureReason = intent.getLastPaymentError() != null ? intent.getLastPaymentError().getMessage() : "unknown";
+        log.warn("payment failed for order #{} — reason: {} — intent: {}", order.getId(), failureReason, intent.getId());
         eventPublisher.publishEvent(new PaymentFailedEvent(order.getClient(), order.getId()));
         try {
             intent.cancel();
         } catch (StripeException e) {
             log.warn("failed to cancel intent {}, check manually", intent.getId());
         }
-        log.warn("order {} cancelled after payment failure", order.getId());
     }
 
     private Order findOrderOrLog(String paymentIntentId) {

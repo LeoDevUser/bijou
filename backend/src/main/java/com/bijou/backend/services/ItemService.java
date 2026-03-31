@@ -88,6 +88,7 @@ public class ItemService {
             .discountPercent(req.discountPercent())
             .build();
         itemRepository.save(item);
+        log.info("created item #{} ({})", item.getId(), displayName(item));
         return toItemView(item);
     }
 
@@ -105,6 +106,7 @@ public class ItemService {
         item.setDescriptionEs(req.descriptionEs());
         item.setDiscountPercent(req.discountPercent());
         itemRepository.save(item);
+        log.info("updated item #{} ({})", id, displayName(item));
         return toItemView(item);
     }
 
@@ -116,6 +118,7 @@ public class ItemService {
         item.setImageUrl(res.url());
         item.setImageId(res.imageId());
         itemRepository.save(item);
+        log.info("updated image for item #{} ({})", id, displayName(item));
         return toItemView(item);
     }
 
@@ -127,6 +130,7 @@ public class ItemService {
         item.setImageUrl("");
         item.setImageId("");
         itemRepository.save(item);
+        log.info("deleted image for item #{} ({})", id, displayName(item));
         return toItemView(item);
     }
 

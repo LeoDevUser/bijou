@@ -12,9 +12,11 @@ import com.bijou.backend.repositories.LabelRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class LabelService {
 
     private final LabelRepository labelRepository;
@@ -36,6 +38,7 @@ public class LabelService {
                 .nameEs(req.nameEs())
                 .build()
         );
+        log.info("created label #{} ({})", label.getId(), label.getNameEn());
         return toView(label);
     }
 
@@ -46,5 +49,6 @@ public class LabelService {
         // detach from all items before deleting to avoid FK violation
         itemRepository.findByLabels_Id(id).forEach(item -> item.getLabels().remove(label));
         labelRepository.deleteById(id);
+        log.info("deleted label #{} ({})", id, label.getNameEn());
     }
 }
