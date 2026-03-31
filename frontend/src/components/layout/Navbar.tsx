@@ -12,7 +12,11 @@ const NAV_LINKS = [
   { key: 'nav.collections', to: '/collections' },
 ] as const;
 
-const LANGUAGES = ['en', 'fr', 'es'] as const;
+const LANGUAGES = ['es', 'en', 'fr'] as const;
+
+const LANGUAGE_FLAGS: Record<string, string> = { es: '🇲🇽', en: '🇺🇸🇨🇦', fr: '🇨🇦' };
+
+const CURRENCY_FLAGS: Record<string, string> = { MXN: '🇲🇽', CAD: '🇨🇦', USD: '🇺🇸' };
 
 export default function Navbar() {
   const { t, i18n } = useTranslation();
@@ -98,8 +102,8 @@ export default function Navbar() {
           <div className="flex items-center gap-1.5">
             {LANGUAGES.map((lang, idx) => (
               <span key={lang} className="flex items-center gap-1.5">
-                <button onClick={() => i18n.changeLanguage(lang)} className={`text-[11px] uppercase tracking-wider transition-colors cursor-pointer ${i18n.language === lang ? 'text-dark font-medium' : 'text-muted'}`}>
-                  {lang}
+                <button onClick={() => i18n.changeLanguage(lang)} className={`flex items-center gap-1 text-[11px] uppercase tracking-wider transition-colors cursor-pointer ${i18n.language === lang ? 'text-dark font-medium' : 'text-muted'}`}>
+                  <span>{LANGUAGE_FLAGS[lang]}</span>{lang}
                 </button>
                 {idx < LANGUAGES.length - 1 && <span className="text-muted text-xs">|</span>}
               </span>
@@ -108,8 +112,8 @@ export default function Navbar() {
           <div className="flex items-center gap-1.5">
             {CURRENCIES.map((c, idx) => (
               <span key={c} className="flex items-center gap-1.5">
-                <button onClick={() => setCurrency(c)} className={`text-[11px] uppercase tracking-wider transition-colors cursor-pointer ${currency === c ? 'text-dark font-medium' : 'text-muted'}`}>
-                  {c}
+                <button onClick={() => setCurrency(c)} className={`flex items-center gap-1 text-[11px] uppercase tracking-wider transition-colors cursor-pointer ${currency === c ? 'text-dark font-medium' : 'text-muted'}`}>
+                  <span>{CURRENCY_FLAGS[c]}</span>{c}
                 </button>
                 {idx < CURRENCIES.length - 1 && <span className="text-muted text-xs">|</span>}
               </span>
@@ -152,8 +156,8 @@ export default function Navbar() {
                 <div className="flex items-center gap-3">
                   {LANGUAGES.map((lang, idx) => (
                     <span key={lang} className="flex items-center gap-3">
-                      <button onClick={() => i18n.changeLanguage(lang)} className={`text-xs uppercase tracking-wider transition-colors cursor-pointer ${i18n.language === lang ? 'text-dark font-medium' : 'text-muted'}`}>
-                        {lang}
+                      <button onClick={() => i18n.changeLanguage(lang)} className={`flex items-center gap-1 text-xs uppercase tracking-wider transition-colors cursor-pointer ${i18n.language === lang ? 'text-dark font-medium' : 'text-muted'}`}>
+                        <span>{LANGUAGE_FLAGS[lang]}</span>{lang}
                       </button>
                       {idx < LANGUAGES.length - 1 && <span className="text-muted text-xs">|</span>}
                     </span>
@@ -162,8 +166,8 @@ export default function Navbar() {
                 <div className="flex items-center gap-3">
                   {CURRENCIES.map((c, idx) => (
                     <span key={c} className="flex items-center gap-3">
-                      <button onClick={() => setCurrency(c)} className={`text-xs uppercase tracking-wider transition-colors cursor-pointer ${currency === c ? 'text-dark font-medium' : 'text-muted'}`}>
-                        {c}
+                      <button onClick={() => setCurrency(c)} className={`flex items-center gap-1 text-xs uppercase tracking-wider transition-colors cursor-pointer ${currency === c ? 'text-dark font-medium' : 'text-muted'}`}>
+                        <span>{CURRENCY_FLAGS[c]}</span>{c}
                       </button>
                       {idx < CURRENCIES.length - 1 && <span className="text-muted text-xs">|</span>}
                     </span>
