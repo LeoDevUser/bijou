@@ -1,8 +1,6 @@
 package com.bijou.backend.auth;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Date;
 
 import javax.crypto.SecretKey;
@@ -19,7 +17,7 @@ import io.jsonwebtoken.security.Keys;
 
 @Service
 public class JwtService {
-    @Value("${JWT_SECRET}")    
+    @Value("${JWT_SECRET}")
     private String secretKey;
 
     private SecretKey getSigningKey() {
@@ -27,63 +25,44 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(UserDetails userDetails) {
-        Date expiration = Date.from(LocalDateTime.now().plusDays(1).atZone(ZoneId.systemDefault()).toInstant());
-        Date now = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant());
-        String userName  = userDetails.getUsername();
-        String role = userDetails.getAuthorities()
-            .stream()
-            .findFirst()
-            .map(GrantedAuthority::getAuthority)
-            .orElse(null);
-        String jwt = Jwts.builder()
-            .expiration(expiration)
-            .issuedAt(now)
-            .subject(userName)
-            .claim("role", role)
-            .signWith(getSigningKey())
-            .compact();
-
-        return jwt;
+    public String generateAccessToken(UserDetails userDetails) {
+        Date expiration = Date.from(Instant.now().plusSeconds(15 * 60)); // 15 minutes
+        return buildToken(userDetails, expiration, "access");
     }
-    
-    public String generateToken(UserDetails userDetails, Date expiration) {
-        Date now = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant());
-        String userName  = userDetails.getUsername();
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        Date expiration = Date.from(Instant.now().plusSeconds(7L * 24 * 60 * 60)); // 7 days
+        return buildToken(userDetails, expiration, "refresh");
+    }
+
+    private String buildToken(UserDetails userDetails, Date expiration, String type) {
         String role = userDetails.getAuthorities()
             .stream()
             .findFirst()
             .map(GrantedAuthority::getAuthority)
             .orElse(null);
-        String jwt = Jwts.builder()
+        return Jwts.builder()
             .expiration(expiration)
-            .issuedAt(now)
-            .subject(userName)
+            .issuedAt(Date.from(Instant.now()))
+            .subject(userDetails.getUsername())
             .claim("role", role)
+            .claim("type", type)
             .signWith(getSigningKey())
             .compact();
-
-        return jwt;
     }
 
     public String extractEmail(String token) {
-        return Jwts.parser()
-            .verifyWith(getSigningKey())
-            .build()
-            .parseSignedClaims(token)
-            .getPayload()
-            .getSubject();
+        return extractAllClaims(token).getSubject();
     }
 
     public String extractRole(String token) {
-        return (String) Jwts.parser()
-            .verifyWith(getSigningKey())
-            .build()
-            .parseSignedClaims(token)
-            .getPayload()
-            .get("role");
+        return (String) extractAllClaims(token).get("role");
     }
-        
+
+    public String extractType(String token) {
+        return (String) extractAllClaims(token).get("type");
+    }
+
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
             .verifyWith(getSigningKey())
@@ -96,8 +75,6 @@ public class JwtService {
         Claims claims = extractAllClaims(token);
         String tokenEmail = claims.getSubject();
         Date expiration = claims.getExpiration();
-        Date now = Date.from(Instant.now());
-        return tokenEmail.equals(details.getUsername()) && now.before(expiration);
+        return tokenEmail.equals(details.getUsername()) && Instant.now().isBefore(expiration.toInstant());
     }
-
 }

@@ -34,12 +34,14 @@ import Returns from './pages/Returns'
 const ADMIN_URL = import.meta.env.VITE_ADMIN_PAGE ?? '';
 
 function AdminRoute() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isLoading } = useAuth();
+  if (isLoading) return null;
   return isAdmin ? <Admin /> : <Navigate to="/" replace />;
 }
 
 function AuthRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return null;
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 }
 

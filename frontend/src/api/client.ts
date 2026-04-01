@@ -1,4 +1,5 @@
 import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, AnnouncementView, SiteAssetView, CollectionView, SalesStats, ItemAssetView } from '../types';
+import { getToken, setToken } from './tokenStore';
 
 interface LabelRequest { nameEn: string; nameFr: string; nameEs: string; }
 
@@ -6,19 +7,42 @@ const BASE_URL = import.meta.env.VITE_API_URL ?? '';
 const ADMIN = import.meta.env.VITE_ADMIN_PAGE ?? '';
 
 function authHeaders(): Record<string, string> {
-  const token = localStorage.getItem('token');
+  const token = getToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+async function tryRefresh(): Promise<boolean> {
+  try {
+    const res = await fetch(`${BASE_URL}/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+    if (!res.ok) return false;
+    const body = await res.json();
+    setToken(body.token);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function request<T>(path: string, options: RequestInit = {}, retry = true): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       ...authHeaders(),
       ...(options.headers as Record<string, string> ?? {}),
     },
   });
+
+  if (res.status === 401 && retry) {
+    const refreshed = await tryRefresh();
+    if (refreshed) {
+      return request<T>(path, options, false);
+    }
+  }
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -41,6 +65,16 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(data),
       }).then(r => r.token),
+    refresh: () =>
+      fetch(`${BASE_URL}/auth/refresh`, { method: 'POST', credentials: 'include' })
+        .then(res => {
+          if (!res.ok) return Promise.reject();
+          return res.json() as Promise<{ token: string }>;
+        })
+        .then(r => r.token),
+    logout: () =>
+      fetch(`${BASE_URL}/auth/logout`, { method: 'POST', credentials: 'include' })
+        .then(() => {}),
   },
   items: {
     list: () => request<ItemView[]>('/public/items'),
@@ -111,6 +145,7 @@ export const api = {
         form.append('file', file);
         const res = await fetch(`${BASE_URL}/${ADMIN}/items/${itemId}/assets`, {
           method: 'POST',
+          credentials: 'include',
           headers: authHeaders(),
           body: form,
         });
@@ -125,6 +160,7 @@ export const api = {
         form.append('file', file);
         const res = await fetch(`${BASE_URL}/${ADMIN}/items`, {
           method: 'POST',
+          credentials: 'include',
           headers: authHeaders(),
           body: form,
         });
@@ -137,6 +173,7 @@ export const api = {
         form.append('file', file);
         const res = await fetch(`${BASE_URL}/${ADMIN}/items/${id}`, {
           method: 'PATCH',
+          credentials: 'include',
           headers: authHeaders(),
           body: form,
         });
@@ -173,6 +210,7 @@ export const api = {
         form.append('file', file);
         const res = await fetch(`${BASE_URL}/${ADMIN}/collections/${id}/image`, {
           method: 'PATCH',
+          credentials: 'include',
           headers: authHeaders(),
           body: form,
         });
@@ -192,6 +230,7 @@ export const api = {
         form.append('file', file);
         const res = await fetch(`${BASE_URL}/${ADMIN}/site-assets/${slot}/image`, {
           method: 'PATCH',
+          credentials: 'include',
           headers: authHeaders(),
           body: form,
         });

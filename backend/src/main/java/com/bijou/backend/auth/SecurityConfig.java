@@ -33,6 +33,7 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of("http://localhost:5173", "https://nonschematized-elaine-supersagacious.ngrok-free.dev"));
         config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","PATCH"));
         config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;

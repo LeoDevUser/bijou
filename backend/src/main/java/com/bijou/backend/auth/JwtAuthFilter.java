@@ -40,6 +40,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
 
        try {
+           String type = jwtService.extractType(token);
+           if (!"access".equals(type)) {
+               filterChain.doFilter(req, res);
+               return;
+           }
            String email = jwtService.extractEmail(token);
            if(email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                Optional<Client> opUserDetails = clientRepository.findByEmail(email);

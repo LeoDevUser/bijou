@@ -50,7 +50,7 @@ public class AuthService {
         return !addy.isBlank();
     }
 
-    public String register(RegisterRequest req) {
+    public AuthTokenPair register(RegisterRequest req) {
         log.info("registration attempt for email {}", req.email());
         String email = req.email();
         String pswd = req.password();
@@ -80,11 +80,10 @@ public class AuthService {
 
         clientRepository.save(client);
         log.info("registration successful for email {}", email);
-        String token = jwtService.generateToken(client);
-        return token;
+        return new AuthTokenPair(jwtService.generateAccessToken(client), jwtService.generateRefreshToken(client));
     }
 
-    public String login(LoginRequest req) {
+    public AuthTokenPair login(LoginRequest req) {
         Client client = clientRepository.findByEmail(req.email()).orElseThrow(() -> {
             log.warn("login failed for email {} — account not found", req.email());
             return new AppException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS");
@@ -100,7 +99,27 @@ public class AuthService {
         } else {
             log.info("login successful for email {}", req.email());
         }
-        return jwtService.generateToken(client);
+        return new AuthTokenPair(jwtService.generateAccessToken(client), jwtService.generateRefreshToken(client));
+    }
+
+    public String refreshAccessToken(String refreshToken) {
+        try {
+            String type = jwtService.extractType(refreshToken);
+            if (!"refresh".equals(type)) {
+                throw new AppException(HttpStatus.UNAUTHORIZED, "INVALID_TOKEN");
+            }
+            String email = jwtService.extractEmail(refreshToken);
+            Client client = clientRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(HttpStatus.UNAUTHORIZED, "INVALID_TOKEN"));
+            if (!jwtService.isTokenValid(refreshToken, client)) {
+                throw new AppException(HttpStatus.UNAUTHORIZED, "INVALID_TOKEN");
+            }
+            return jwtService.generateAccessToken(client);
+        } catch (AppException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AppException(HttpStatus.UNAUTHORIZED, "INVALID_TOKEN");
+        }
     }
 
     public void changePassword(Client client, ChangePasswordRequest req) {
