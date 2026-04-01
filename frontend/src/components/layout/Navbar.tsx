@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useCurrency, CURRENCIES } from '../../context/CurrencyContext';
+import { useLanguage } from '../../context/LanguageContext';
 import AnnouncementBar from './AnnouncementBar';
 
 const NAV_LINKS = [
@@ -19,10 +20,11 @@ const LANGUAGE_FLAGS: Record<string, string> = { es: '🇲🇽', en: '🇺🇸�
 const CURRENCY_FLAGS: Record<string, string> = { MXN: '🇲🇽', CAD: '🇨🇦', USD: '🇺🇸' };
 
 export default function Navbar() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { count } = useCart();
   const { isAuthenticated, logout } = useAuth();
   const { currency, setCurrency } = useCurrency();
+  const { language, setLanguage } = useLanguage();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -102,7 +104,7 @@ export default function Navbar() {
           <div className="flex items-center gap-1.5">
             {LANGUAGES.map((lang, idx) => (
               <span key={lang} className="flex items-center gap-1.5">
-                <button onClick={() => i18n.changeLanguage(lang)} className={`flex items-center gap-1 text-[11px] uppercase tracking-wider transition-colors cursor-pointer ${i18n.language === lang ? 'text-dark font-medium' : 'text-muted'}`}>
+                <button onClick={() => setLanguage(lang)} className={`flex items-center gap-1 text-[11px] uppercase tracking-wider transition-colors cursor-pointer ${language === lang ? 'text-dark font-medium' : 'text-muted'}`}>
                   <span>{LANGUAGE_FLAGS[lang]}</span>{lang}
                 </button>
                 {idx < LANGUAGES.length - 1 && <span className="text-muted text-xs">|</span>}
@@ -156,7 +158,7 @@ export default function Navbar() {
                 <div className="flex items-center gap-3">
                   {LANGUAGES.map((lang, idx) => (
                     <span key={lang} className="flex items-center gap-3">
-                      <button onClick={() => i18n.changeLanguage(lang)} className={`flex items-center gap-1 text-xs uppercase tracking-wider transition-colors cursor-pointer ${i18n.language === lang ? 'text-dark font-medium' : 'text-muted'}`}>
+                      <button onClick={() => setLanguage(lang)} className={`flex items-center gap-1 text-xs uppercase tracking-wider transition-colors cursor-pointer ${language === lang ? 'text-dark font-medium' : 'text-muted'}`}>
                         <span>{LANGUAGE_FLAGS[lang]}</span>{lang}
                       </button>
                       {idx < LANGUAGES.length - 1 && <span className="text-muted text-xs">|</span>}

@@ -36,7 +36,7 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       }).then(r => r.token),
-    register: (data: { firstName: string; lastName: string; email: string; password: string }) =>
+    register: (data: { firstName: string; lastName: string; email: string; password: string; address: string; language: string }) =>
       request<{ token: string }>('/auth/register', {
         method: 'POST',
         body: JSON.stringify(data),
@@ -82,13 +82,15 @@ export const api = {
   },
   account: {
     getProfile: () =>
-      request<{ firstName: string; lastName: string; email: string; address: string }>('/account/profile'),
+      request<{ firstName: string; lastName: string; email: string; address: string; language: string }>('/account/profile'),
     changePassword: (oldPassword: string, newPassword: string) =>
       request<void>('/account/password', { method: 'PATCH', body: JSON.stringify({ oldPassword, newPassword }) }),
     changeEmail: (password: string, newEmail: string) =>
       request<void>('/account/email', { method: 'PATCH', body: JSON.stringify({ password, newEmail }) }),
     changeAddress: (newAddress: string) =>
       request<void>(`/account/address?newAddress=${encodeURIComponent(newAddress)}`, { method: 'PATCH' }),
+    changeLanguage: (newLanguage: string) =>
+      request<void>(`/account/language?newLanguage=${encodeURIComponent(newLanguage)}`, { method: 'PATCH' }),
   },
   admin: {
     items: {

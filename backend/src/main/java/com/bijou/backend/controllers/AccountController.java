@@ -56,6 +56,12 @@ public class AccountController {
         return ResponseEntity.ok().build();
     }
 
+    @PatchMapping("/language")
+    public ResponseEntity<Void> changeLanguage(@AuthenticationPrincipal Client client, @RequestParam String newLanguage) {
+        clientService.updateLanguage(client, newLanguage);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/${ADMIN_PAGE}/promote")
     public ResponseEntity<Void> promote(@AuthenticationPrincipal Client admin, @Valid @RequestBody PromoteRequest req) {
         clientService.promote(admin, req);

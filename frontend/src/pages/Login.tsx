@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage, type Language } from '../context/LanguageContext';
+import { api } from '../api/client';
 
 export default function Login() {
   const { t } = useTranslation();
   const { login } = useAuth();
+  const { language, setLanguage } = useLanguage();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,6 +21,9 @@ export default function Login() {
     setError(null);
     try {
       await login(email, password);
+      const profile = await api.account.getProfile();
+      const preferred = profile.language.toLowerCase() as Language;
+      if (preferred !== language) setLanguage(preferred);
       navigate('/');
     } catch (err) {
       const e = err as { code?: string };

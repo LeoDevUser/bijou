@@ -9,6 +9,7 @@ function ScrollToTop() {
 import { CartProvider } from './context/CartContext'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { CurrencyProvider } from './context/CurrencyContext'
+import { LanguageProvider } from './context/LanguageContext'
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
 import Home from './pages/Home'
@@ -47,6 +48,7 @@ function App() {
     <BrowserRouter>
       <ScrollToTop />
       <AuthProvider>
+        <LanguageProvider>
         <CurrencyProvider>
         <CartProvider>
           <div className="flex flex-col min-h-screen">
@@ -77,6 +79,7 @@ function App() {
           </div>
         </CartProvider>
         </CurrencyProvider>
+        </LanguageProvider>
       </AuthProvider>
     </BrowserRouter>
   )

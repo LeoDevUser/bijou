@@ -5,6 +5,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.bijou.backend.entities.Client;
+import com.bijou.backend.entities.Language;
 import com.bijou.backend.exception.AppException;
 import com.bijou.backend.entities.Role;
 import com.bijou.backend.repositories.ClientRepository;
@@ -74,6 +75,7 @@ public class AuthService {
             .lastName(req.lastName())
             .password(encoded)
             .role(Role.CLIENT)
+            .language(Language.valueOf(req.language()))
             .build();
 
         clientRepository.save(client);

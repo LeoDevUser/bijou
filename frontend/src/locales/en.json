@@ -111,6 +111,7 @@
     "signUp": "Create one",
     "signIn": "Sign in",
     "createAccount": "Create Account",
+    "language": "Preferred Language",
     "error": "Something went wrong. Please try again."
   },
   "orders": {
@@ -187,6 +188,7 @@
       "delImage": "Del Image",
       "delete": "Delete",
       "deleteConfirm": "Delete this product? This cannot be undone.",
+      "deleteHasOrders": "This product has orders and cannot be deleted. Deactivate it instead.",
       "saveError": "Failed to save. Please try again."
     },
     "stats": {
@@ -308,6 +310,12 @@
       "save": "Update Email",
       "success": "Email updated.",
       "error": "Failed. Check your password and try again."
+    },
+    "language": {
+      "title": "Preferred Language",
+      "save": "Save Language",
+      "success": "Language updated.",
+      "error": "Failed to update language."
     },
     "password": {
       "title": "Change Password",

@@ -111,6 +111,7 @@
     "signUp": "Créala",
     "signIn": "Inicia sesión",
     "createAccount": "Crear Cuenta",
+    "language": "Idioma Preferido",
     "error": "Algo salió mal. Por favor, intenta de nuevo."
   },
   "orders": {
@@ -187,6 +188,7 @@
       "delImage": "Elim. Imagen",
       "delete": "Eliminar",
       "deleteConfirm": "¿Eliminar este producto? Esta acción no se puede deshacer.",
+      "deleteHasOrders": "Este producto tiene pedidos y no puede eliminarse. Desactívalo en su lugar.",
       "saveError": "Error al guardar. Por favor, intenta de nuevo."
     },
     "stats": {
@@ -308,6 +310,12 @@
       "save": "Actualizar Correo",
       "success": "Correo actualizado.",
       "error": "Error. Verifica tu contraseña e intenta de nuevo."
+    },
+    "language": {
+      "title": "Idioma Preferido",
+      "save": "Guardar Idioma",
+      "success": "Idioma actualizado.",
+      "error": "Error al actualizar el idioma."
     },
     "password": {
       "title": "Cambiar Contraseña",

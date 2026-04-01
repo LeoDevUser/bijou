@@ -175,6 +175,9 @@ public class ItemService {
     @Transactional
     public void delete(Long id) {
         Item item = findAnyItemOrThrow(id);
+        if (orderRepository.existsByOrderItems_Item_Id(id)) {
+            throw new AppException(HttpStatus.CONFLICT, "ITEM_HAS_ORDERS");
+        }
         List<ItemAsset> assets = List.copyOf(item.getAssets());
         itemRepository.delete(item);
         itemRepository.flush();

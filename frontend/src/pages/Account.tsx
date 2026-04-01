@@ -2,15 +2,23 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage, type Language } from '../context/LanguageContext';
 import { api } from '../api/client';
 
 const ADMIN_URL = import.meta.env.VITE_ADMIN_PAGE ?? '';
+
+const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
+  { value: 'en', label: 'English' },
+  { value: 'fr', label: 'Français' },
+  { value: 'es', label: 'Español' },
+];
 
 interface Profile {
   firstName: string;
   lastName: string;
   email: string;
   address: string;
+  language: string;
 }
 
 const inputClass = 'w-full border border-border bg-cream px-4 py-3 text-sm outline-none focus:border-dark transition-colors';
@@ -35,6 +43,7 @@ function StatusMsg({ msg }: { msg: { type: 'success' | 'error'; text: string } |
 export default function Account() {
   const { t } = useTranslation();
   const { isAdmin, logout } = useAuth();
+  const { setLanguage } = useLanguage();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
 
@@ -50,10 +59,15 @@ export default function Account() {
   const [addressMsg, setAddressMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [addressLoading, setAddressLoading] = useState(false);
 
+  const [lang, setLang] = useState<Language>('en');
+  const [langMsg, setLangMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [langLoading, setLangLoading] = useState(false);
+
   useEffect(() => {
     api.account.getProfile().then(p => {
       setProfile(p);
       setAddress(p.address);
+      setLang(p.language.toLowerCase() as Language);
     });
   }, []);
 
@@ -106,6 +120,21 @@ export default function Account() {
     }
   }
 
+  async function handleLanguage(e: React.FormEvent) {
+    e.preventDefault();
+    setLangLoading(true);
+    setLangMsg(null);
+    try {
+      await api.account.changeLanguage(lang.toUpperCase());
+      setLanguage(lang);
+      setLangMsg({ type: 'success', text: t('account.language.success') });
+    } catch {
+      setLangMsg({ type: 'error', text: t('account.language.error') });
+    } finally {
+      setLangLoading(false);
+    }
+  }
+
   return (
     <div className="max-w-2xl mx-auto px-6 py-12">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-2">
@@ -139,6 +168,22 @@ export default function Account() {
               </button>
             </div>
             <StatusMsg msg={addressMsg} />
+          </form>
+        </Section>
+
+        <Section title={t('account.language.title')}>
+          <form onSubmit={handleLanguage} className="space-y-4">
+            <select value={lang} onChange={e => setLang(e.target.value as Language)} className={inputClass}>
+              {LANGUAGE_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            <div className="flex justify-end">
+              <button type="submit" disabled={langLoading} className={btnClass}>
+                {langLoading ? '...' : t('account.language.save')}
+              </button>
+            </div>
+            <StatusMsg msg={langMsg} />
           </form>
         </Section>
 

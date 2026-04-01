@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.bijou.backend.entities.Client;
+import com.bijou.backend.entities.Language;
 import com.bijou.backend.exception.AppException;
 import com.bijou.backend.entities.Role;
 import com.bijou.backend.repositories.ClientRepository;
@@ -42,7 +43,8 @@ public class ClientService {
                 client.getFirstName(),
                 client.getLastName(),
                 client.getEmail(),
-                client.getAddress());
+                client.getAddress(),
+                client.getLanguage().name());
     }
 
     public VerboseClientProfileResponse getVerboseProfile(Long id) {
@@ -94,6 +96,12 @@ public class ClientService {
         client.setAddress(newAddress);
         clientRepository.save(client);
         log.info("updated address of {}", client.getEmail());
+    }
+
+    public void updateLanguage(Client client, String newLang) {
+        client.setLanguage(Language.valueOf(newLang));
+        clientRepository.save(client);
+        log.info("updated Language of {}", client.getEmail());
     }
 
     public void promote(Client admin, PromoteRequest req) {

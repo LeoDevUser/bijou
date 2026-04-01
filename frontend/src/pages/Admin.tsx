@@ -496,8 +496,14 @@ function AdminProducts() {
 
   async function handleDelete(id: number) {
     if (!confirm(t('admin.products.deleteConfirm'))) return;
-    await api.admin.items.delete(id);
-    load();
+    try {
+      await api.admin.items.delete(id);
+      load();
+    } catch (err: any) {
+      if (err?.status === 409 || err?.code === 'ITEM_HAS_ORDERS') {
+        alert(t('admin.products.deleteHasOrders'));
+      }
+    }
   }
 
   const sorted = [...items]

@@ -111,6 +111,7 @@
     "signUp": "En créer un",
     "signIn": "Se connecter",
     "createAccount": "Créer un Compte",
+    "language": "Langue Préférée",
     "error": "Une erreur est survenue. Veuillez réessayer."
   },
   "orders": {
@@ -187,6 +188,7 @@
       "delImage": "Suppr. Image",
       "delete": "Supprimer",
       "deleteConfirm": "Supprimer ce produit ? Cette action est irréversible.",
+      "deleteHasOrders": "Ce produit a des commandes et ne peut pas être supprimé. Désactivez-le à la place.",
       "saveError": "Échec de l'enregistrement. Veuillez réessayer."
     },
     "stats": {
@@ -308,6 +310,12 @@
       "save": "Mettre à Jour l'E-mail",
       "success": "E-mail mis à jour.",
       "error": "Échec. Vérifiez votre mot de passe et réessayez."
+    },
+    "language": {
+      "title": "Langue Préférée",
+      "save": "Enregistrer la Langue",
+      "success": "Langue mise à jour.",
+      "error": "Échec de la mise à jour de la langue."
     },
     "password": {
       "title": "Changer le Mot de Passe",

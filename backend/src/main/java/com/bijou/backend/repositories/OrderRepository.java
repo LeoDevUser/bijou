@@ -26,6 +26,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Optional<Order> findByStripePaymentIntentId(String id);
     List<Order> findByCountry(Country country);
 
+    boolean existsByOrderItems_Item_Id(Long itemId);
+
     @Query("SELECT COUNT(o) FROM Order o WHERE o.status NOT IN (com.bijou.backend.entities.Status.AWAITING_PAYMENT, com.bijou.backend.entities.Status.CANCELLED)")
     long countSuccessful();
 

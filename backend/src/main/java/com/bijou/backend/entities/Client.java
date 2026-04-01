@@ -59,6 +59,8 @@ public class Client implements UserDetails {
     private int nbSuccessfulOrders;
     @Column(nullable = false)
     private BigDecimal moneySpent;
+    @Column(nullable = false)
+    private Language language;
 
     @PrePersist
     protected void onCreate() {

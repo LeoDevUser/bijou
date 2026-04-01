@@ -2,25 +2,34 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage, type Language } from '../context/LanguageContext';
+
+const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
+  { value: 'en', label: 'English' },
+  { value: 'fr', label: 'Français' },
+  { value: 'es', label: 'Español' },
+];
 
 export default function Register() {
   const { t } = useTranslation();
   const { register } = useAuth();
+  const { language, setLanguage } = useLanguage();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '' , address: ''});
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '', address: '', language: language });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }));
   }
 
-  async function handleSubmit(e: React.SubmitEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
     try {
-      await register(form);
+      await register({ ...form, language: form.language.toUpperCase() });
+      if (form.language !== language) setLanguage(form.language as Language);
       navigate('/');
     } catch (err) {
       const e = err as { code?: string };
@@ -59,7 +68,15 @@ export default function Register() {
           </div>
           <div>
             <label className="block text-xs uppercase tracking-widest mb-2">{t('auth.address')}</label>
-            <input name="address" type="address" value={form.address} onChange={handleChange} required className={inputClass} />
+            <input name="address" value={form.address} onChange={handleChange} required className={inputClass} />
+          </div>
+          <div>
+            <label className="block text-xs uppercase tracking-widest mb-2">{t('auth.language')}</label>
+            <select name="language" value={form.language} onChange={handleChange} required className={inputClass}>
+              {LANGUAGE_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
           </div>
 
           {error && <p className="text-red-500 text-sm">{error}</p>}

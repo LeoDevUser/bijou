@@ -14,5 +14,7 @@ public record RegisterRequest(
     @NotBlank
     String lastName,
     @NotBlank
-    String address
+    String address,
+    @NotBlank
+    String language
 ) {}

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import com.bijou.backend.entities.Client;
 import com.bijou.backend.entities.Role;
+import com.bijou.backend.entities.Language;
 import com.bijou.backend.repositories.ClientRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -37,6 +38,7 @@ public class AdminSeeder implements ApplicationRunner {
             .lastName("ADMIN")
             .address("N/A")
             .role(Role.ADMIN)
+            .language(Language.ES)
             .build();
 
         clientRepository.save(admin);
