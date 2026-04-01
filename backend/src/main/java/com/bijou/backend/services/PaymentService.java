@@ -110,6 +110,7 @@ public class PaymentService {
         switch (event.getType()) {
             case "payment_intent.succeeded" -> handleSuccess(intent);
             case "payment_intent.payment_failed" -> handleFailure(intent);
+            case "payment_intent.created" -> log.info("payment intent created");
             default -> log.info("unhandled stripe event type: {}", event.getType());
         }
 

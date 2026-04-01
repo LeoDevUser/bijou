@@ -55,7 +55,7 @@ export default function ProductCard({ item }: { item: ItemView }) {
 
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault();
-    addItem({ id: item.id, name, price: salePrice, quantity: 1, imageUrl: assets[0]?.imageUrl ?? null });
+    addItem({ id: item.id, name, price: salePrice, quantity: 1, imageUrl: assets[0]?.imageUrl ?? null, resourceType: assets[0]?.resourceType });
   }
 
   return (

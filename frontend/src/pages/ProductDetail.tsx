@@ -67,7 +67,7 @@ export default function ProductDetail() {
 
   function handleAddToCart() {
     if (!item) return;
-    addItem({ id: item.id, name, price: salePrice, quantity: 1, imageUrl: assets[0]?.imageUrl ?? null });
+    addItem({ id: item.id, name, price: salePrice, quantity: 1, imageUrl: assets[0]?.imageUrl ?? null, resourceType: assets[0]?.resourceType });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   }
@@ -102,7 +102,9 @@ export default function ProductDetail() {
                   src={currentAsset.imageUrl ?? undefined}
                   className="w-full h-full object-cover"
                   controls
+                  autoPlay
                   muted
+                  loop
                   playsInline
                 />
               ) : (

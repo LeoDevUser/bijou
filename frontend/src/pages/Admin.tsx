@@ -164,7 +164,9 @@ function AdminOrders() {
                           <div key={i} className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-2 min-w-0">
                               {item.imageUrl
-                                ? <img src={item.imageUrl} alt={name} className="w-10 h-10 object-cover bg-[#F0EDE8] flex-shrink-0" />
+                                ? item.resourceType === 'video'
+                                  ? <video src={item.imageUrl} className="w-10 h-10 object-cover bg-[#F0EDE8] flex-shrink-0" autoPlay muted loop playsInline />
+                                  : <img src={item.imageUrl} alt={name} className="w-10 h-10 object-cover bg-[#F0EDE8] flex-shrink-0" />
                                 : <div className="w-10 h-10 bg-[#F0EDE8] flex-shrink-0" />
                               }
                               <div className="min-w-0">
@@ -572,7 +574,9 @@ function AdminProducts() {
             }`}>
               <div className="flex items-center gap-4">
                 {item.assets?.[0]?.imageUrl
-                  ? <img src={item.assets[0].imageUrl!} alt={displayName} className="w-12 h-12 object-cover flex-shrink-0" />
+                  ? item.assets[0].resourceType === 'video'
+                    ? <video src={item.assets[0].imageUrl!} className="w-12 h-12 object-cover flex-shrink-0" autoPlay muted loop playsInline />
+                    : <img src={item.assets[0].imageUrl!} alt={displayName} className="w-12 h-12 object-cover flex-shrink-0" />
                   : <div className="w-12 h-12 bg-[#F0EDE8] flex-shrink-0" />
                 }
                 <div className="flex-1 min-w-0">
@@ -1294,7 +1298,7 @@ function AdminSiteAssets() {
               <div className="w-20 h-14 bg-[#F0EDE8] shrink-0 overflow-hidden flex items-center justify-center">
                 {asset.imageUrl
                   ? asset.resourceType === 'video'
-                    ? <video src={asset.imageUrl} className="w-full h-full object-cover" muted />
+                    ? <video src={asset.imageUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
                     : <img src={asset.imageUrl} alt={asset.slot} className="w-full h-full object-cover" />
                   : <span className="text-muted text-xs">—</span>
                 }
@@ -1630,7 +1634,9 @@ function AdminStats() {
               <div key={item.id} className="grid grid-cols-6 px-4 py-3 text-sm items-center">
                 <div className="col-span-2 flex items-center gap-3 min-w-0">
                   {item.assets?.[0]?.imageUrl
-                    ? <img src={item.assets[0].imageUrl!} alt={name} className="w-8 h-8 object-cover flex-shrink-0" />
+                    ? item.assets[0].resourceType === 'video'
+                      ? <video src={item.assets[0].imageUrl!} className="w-8 h-8 object-cover flex-shrink-0" autoPlay muted loop playsInline />
+                      : <img src={item.assets[0].imageUrl!} alt={name} className="w-8 h-8 object-cover flex-shrink-0" />
                     : <div className="w-8 h-8 bg-[#F0EDE8] flex-shrink-0" />
                   }
                   <div className="min-w-0">

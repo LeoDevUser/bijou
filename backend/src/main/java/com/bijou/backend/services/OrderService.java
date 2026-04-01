@@ -194,6 +194,7 @@ public class OrderService {
                         item.getNameFr(),
                         item.getNameEs(),
                         item.getAssets().isEmpty() ? null : item.getAssets().get(0).getImageUrl(),
+                        item.getAssets().isEmpty() ? "image" : item.getAssets().get(0).getResourceType(),
                         item.isActive()
                     );
                 }).toList(),

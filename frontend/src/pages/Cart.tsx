@@ -33,11 +33,13 @@ export default function Cart() {
         <div className="space-y-6">
           {items.map(item => (
             <div key={item.id} className="flex gap-4 border-b border-border pb-6">
-              <div className="w-24 h-24 bg-[#F0EDE8] flex-shrink-0 overflow-hidden">
+              <Link to={`/shop/${item.id}`} className="w-24 h-24 bg-[#F0EDE8] flex-shrink-0 overflow-hidden">
                 {item.imageUrl && (
-                  <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                  item.resourceType === 'video'
+                    ? <video src={item.imageUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
+                    : <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
                 )}
-              </div>
+              </Link>
               <div className="flex-1 flex flex-col justify-between">
                 <div className="flex justify-between">
                   <p className="text-sm tracking-wide">{item.name}</p>

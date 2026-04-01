@@ -60,6 +60,7 @@ export interface OrderItemView {
   nameFr: string | null;
   nameEs: string | null;
   imageUrl: string | null;
+  resourceType: string;
   active: boolean;
 }
 
@@ -122,6 +123,7 @@ export interface CartItem {
   price: number;
   quantity: number;
   imageUrl?: string | null;
+  resourceType?: string;
 }
 
 export interface AnnouncementView {

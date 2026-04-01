@@ -10,5 +10,6 @@ public record OrderItemView(
     String nameFr,
     String nameEs,
     String imageUrl,
+    String resourceType,
     boolean active
 ) {}
