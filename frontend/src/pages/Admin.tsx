@@ -1422,32 +1422,111 @@ function AdminSiteAssets() {
 
 // ── Site ──────────────────────────────────────────────────────────────────────
 
+const ANNOUNCEMENT_CATEGORIES = ['NECKLACE', 'RING', 'EARRING', 'MISC'] as const;
+
+type AnnouncementForm = {
+  textEn: string; textFr: string; textEs: string; active: boolean;
+  ctaType: 'none' | 'category' | 'label' | 'collection';
+  ctaCategory: string; ctaLabelId: number | null; ctaCollectionId: number | null;
+};
+
+function emptyAnnouncementForm(): AnnouncementForm {
+  return { textEn: '', textFr: '', textEs: '', active: true, ctaType: 'none', ctaCategory: '', ctaLabelId: null, ctaCollectionId: null };
+}
+
+function formFromAnnouncement(a: AnnouncementView): AnnouncementForm {
+  let ctaType: AnnouncementForm['ctaType'] = 'none';
+  if (a.ctaCollectionId != null) ctaType = 'collection';
+  else if (a.ctaLabelId != null) ctaType = 'label';
+  else if (a.ctaCategory) ctaType = 'category';
+  return {
+    textEn: a.textEn ?? '', textFr: a.textFr ?? '', textEs: a.textEs ?? '', active: a.active,
+    ctaType, ctaCategory: a.ctaCategory ?? '', ctaLabelId: a.ctaLabelId, ctaCollectionId: a.ctaCollectionId,
+  };
+}
+
+function formToRequest(f: AnnouncementForm) {
+  return {
+    textEn: f.textEn, textFr: f.textFr, textEs: f.textEs, active: f.active,
+    ctaCategory: f.ctaType === 'category' ? f.ctaCategory || null : null,
+    ctaLabelId: f.ctaType === 'label' ? f.ctaLabelId : null,
+    ctaCollectionId: f.ctaType === 'collection' ? f.ctaCollectionId : null,
+  };
+}
+
+function AnnouncementCtaFields({ form, setForm, labels, collections }: {
+  form: AnnouncementForm;
+  setForm: React.Dispatch<React.SetStateAction<AnnouncementForm>>;
+  labels: LabelView[];
+  collections: CollectionView[];
+}) {
+  const { t, i18n } = useTranslation();
+  return (
+    <div className="space-y-2">
+      <select value={form.ctaType} onChange={e => setForm(f => ({ ...f, ctaType: e.target.value as AnnouncementForm['ctaType'] }))}
+        className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full">
+        <option value="none">{t('admin.site.ctaNone')}</option>
+        <option value="category">{t('admin.site.ctaCategory')}</option>
+        <option value="label">{t('admin.site.ctaLabel')}</option>
+        <option value="collection">{t('admin.site.ctaCollection')}</option>
+      </select>
+      {form.ctaType === 'category' && (
+        <select value={form.ctaCategory} onChange={e => setForm(f => ({ ...f, ctaCategory: e.target.value }))}
+          className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full">
+          <option value="">— {t('admin.site.ctaCategory')} —</option>
+          {ANNOUNCEMENT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+      )}
+      {form.ctaType === 'label' && (
+        <select value={form.ctaLabelId ?? ''} onChange={e => setForm(f => ({ ...f, ctaLabelId: Number(e.target.value) || null }))}
+          className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full">
+          <option value="">— {t('admin.site.ctaLabel')} —</option>
+          {labels.map(l => <option key={l.id} value={l.id}>{pickLocale(l.nameEn, l.nameFr, l.nameEs, i18n.language)}</option>)}
+        </select>
+      )}
+      {form.ctaType === 'collection' && (
+        <select value={form.ctaCollectionId ?? ''} onChange={e => setForm(f => ({ ...f, ctaCollectionId: Number(e.target.value) || null }))}
+          className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full">
+          <option value="">— {t('admin.site.ctaCollection')} —</option>
+          {collections.map(c => <option key={c.id} value={c.id}>{pickLocale(c.headerEn, c.headerFr, c.headerEs, i18n.language) || pickLocale(c.labelNameEn, c.labelNameFr, c.labelNameEs, i18n.language) || `#${c.id}`}</option>)}
+        </select>
+      )}
+    </div>
+  );
+}
+
 function AdminSite() {
   const { t } = useTranslation();
   const [announcements, setAnnouncements] = useState<AnnouncementView[]>([]);
+  const [labels, setLabels] = useState<LabelView[]>([]);
+  const [collections, setCollections] = useState<CollectionView[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<number | null>(null);
-  const [editForm, setEditForm] = useState({ textEn: '', textFr: '', textEs: '', active: true });
-  const [newForm, setNewForm] = useState({ textEn: '', textFr: '', textEs: '' });
+  const [editForm, setEditForm] = useState<AnnouncementForm>(emptyAnnouncementForm());
+  const [newForm, setNewForm] = useState<AnnouncementForm>(emptyAnnouncementForm());
   const [saving, setSaving] = useState(false);
 
   useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function load() {
     setLoading(true);
-    try { setAnnouncements(await api.admin.announcements.list()); }
-    finally { setLoading(false); }
+    try {
+      const [a, l, c] = await Promise.all([api.admin.announcements.list(), api.labels.list(), api.collections.list()]);
+      setAnnouncements(a);
+      setLabels(l);
+      setCollections(c);
+    } finally { setLoading(false); }
   }
 
   function openEdit(a: AnnouncementView) {
     setEditing(a.id);
-    setEditForm({ textEn: a.textEn ?? '', textFr: a.textFr ?? '', textEs: a.textEs ?? '', active: a.active });
+    setEditForm(formFromAnnouncement(a));
   }
 
   async function saveEdit(id: number) {
     setSaving(true);
     try {
-      await api.admin.announcements.update(id, { ...editForm });
+      await api.admin.announcements.update(id, formToRequest(editForm));
       setEditing(null);
       await load();
     } finally { setSaving(false); }
@@ -1469,8 +1548,8 @@ function AdminSite() {
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!newForm.textEn && !newForm.textFr && !newForm.textEs) return;
-    await api.admin.announcements.create({ ...newForm, active: true });
-    setNewForm({ textEn: '', textFr: '', textEs: '' });
+    await api.admin.announcements.create(formToRequest(newForm));
+    setNewForm(emptyAnnouncementForm());
     await load();
   }
 
@@ -1494,6 +1573,7 @@ function AdminSite() {
                   <input value={editForm.textEn} onChange={e => setEditForm(f => ({ ...f, textEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                   <input value={editForm.textFr} onChange={e => setEditForm(f => ({ ...f, textFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                   <input value={editForm.textEs} onChange={e => setEditForm(f => ({ ...f, textEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <AnnouncementCtaFields form={editForm} setForm={setEditForm} labels={labels} collections={collections} />
                   <div className="flex items-center gap-4 pt-1">
                     <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
                       <input type="checkbox" checked={editForm.active} onChange={e => setEditForm(f => ({ ...f, active: e.target.checked }))} />
@@ -1531,6 +1611,7 @@ function AdminSite() {
         <input value={newForm.textEn} onChange={e => setNewForm(f => ({ ...f, textEn: e.target.value }))} placeholder={`${t('admin.site.textPlaceholder')} (EN)`} className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
         <input value={newForm.textFr} onChange={e => setNewForm(f => ({ ...f, textFr: e.target.value }))} placeholder={`${t('admin.site.textPlaceholder')} (FR)`} className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
         <input value={newForm.textEs} onChange={e => setNewForm(f => ({ ...f, textEs: e.target.value }))} placeholder={`${t('admin.site.textPlaceholder')} (ES)`} className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+        <AnnouncementCtaFields form={newForm} setForm={setNewForm} labels={labels} collections={collections} />
         <button type="submit" className="text-xs uppercase tracking-widest border border-dark bg-dark text-white px-4 py-2 hover:bg-gold transition-colors">{t('admin.site.add')}</button>
       </form>
     </div>

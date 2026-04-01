@@ -35,4 +35,8 @@ public class Announcement {
     @Column(nullable = false)
     @Builder.Default
     private int sortOrder = 0;
+
+    private String ctaCategory;
+    private Long ctaLabelId;
+    private Long ctaCollectionId;
 }

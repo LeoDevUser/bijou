@@ -289,7 +289,11 @@
       "cancel": "Cancelar",
       "delete": "Eliminar",
       "deleteConfirm": "¿Eliminar este anuncio?",
-      "active": "Activo"
+      "active": "Activo",
+      "ctaNone": "Sin enlace",
+      "ctaCategory": "Enlace a categoría",
+      "ctaLabel": "Enlace a etiqueta",
+      "ctaCollection": "Enlace a colección"
     }
   },
   "account": {

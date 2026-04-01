@@ -21,7 +21,8 @@ public class AnnouncementService {
     private final AnnouncementRepository announcementRepository;
 
     private AnnouncementView toView(Announcement a) {
-        return new AnnouncementView(a.getId(), a.getTextEn(), a.getTextFr(), a.getTextEs(), a.isActive(), a.getSortOrder());
+        return new AnnouncementView(a.getId(), a.getTextEn(), a.getTextFr(), a.getTextEs(), a.isActive(), a.getSortOrder(),
+                a.getCtaCategory(), a.getCtaLabelId(), a.getCtaCollectionId());
     }
 
     public List<AnnouncementView> getActive() {
@@ -43,6 +44,9 @@ public class AnnouncementService {
             .textEs(req.textEs())
             .active(req.active())
             .sortOrder(nextOrder)
+            .ctaCategory(req.ctaCategory())
+            .ctaLabelId(req.ctaLabelId())
+            .ctaCollectionId(req.ctaCollectionId())
             .build());
         log.info("created announcement #{}", a.getId());
         return toView(a);
@@ -55,6 +59,9 @@ public class AnnouncementService {
         a.setTextFr(req.textFr());
         a.setTextEs(req.textEs());
         a.setActive(req.active());
+        a.setCtaCategory(req.ctaCategory());
+        a.setCtaLabelId(req.ctaLabelId());
+        a.setCtaCollectionId(req.ctaCollectionId());
         log.info("updated announcement #{}", id);
         return toView(announcementRepository.save(a));
     }

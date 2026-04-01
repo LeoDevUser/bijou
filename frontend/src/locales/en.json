@@ -289,7 +289,11 @@
       "cancel": "Cancel",
       "delete": "Delete",
       "deleteConfirm": "Delete this announcement?",
-      "active": "Active"
+      "active": "Active",
+      "ctaNone": "No link",
+      "ctaCategory": "Link to category",
+      "ctaLabel": "Link to label",
+      "ctaCollection": "Link to collection"
     }
   },
   "account": {

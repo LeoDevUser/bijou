@@ -133,6 +133,9 @@ export interface AnnouncementView {
   textEs: string | null;
   active: boolean;
   sortOrder: number;
+  ctaCategory: string | null;
+  ctaLabelId: number | null;
+  ctaCollectionId: number | null;
 }
 
 export interface CollectionView {

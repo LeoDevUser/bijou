@@ -1,8 +1,20 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../api/client';
 import { pickLocale } from '../../types';
 import type { AnnouncementView } from '../../types';
+
+function announcementHref(msg: AnnouncementView): string | null {
+  if (msg.ctaCollectionId != null) return `/collections/${msg.ctaCollectionId}`;
+  if (msg.ctaCategory || msg.ctaLabelId != null) {
+    const params = new URLSearchParams();
+    if (msg.ctaCategory) params.set('category', msg.ctaCategory);
+    if (msg.ctaLabelId != null) params.set('label', String(msg.ctaLabelId));
+    return `/shop?${params.toString()}`;
+  }
+  return null;
+}
 
 export default function AnnouncementBar() {
   const { i18n } = useTranslation();
@@ -30,11 +42,15 @@ export default function AnnouncementBar() {
 
   const msg = messages[index % messages.length];
   const text = pickLocale(msg.textEn, msg.textFr, msg.textEs, i18n.language);
+  const href = announcementHref(msg);
 
   return (
     <div className="bg-[#1C1C1C] text-white text-xs tracking-widest uppercase text-center py-2 px-4 select-none">
       <span style={{ transition: 'opacity 0.4s', opacity: visible ? 1 : 0 }}>
-        {text}
+        {href
+          ? <Link to={href} className="hover:underline">{text}</Link>
+          : text
+        }
       </span>
     </div>
   );
