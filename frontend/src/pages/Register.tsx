@@ -15,7 +15,7 @@ export default function Register() {
   const { register } = useAuth();
   const { language, setLanguage } = useLanguage();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '', address: '', language: language });
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '', address: '', city: '', postalCode: '', country: 'CANADA', language: language });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -69,6 +69,24 @@ export default function Register() {
           <div>
             <label className="block text-xs uppercase tracking-widest mb-2">{t('auth.address')}</label>
             <input name="address" value={form.address} onChange={handleChange} required className={inputClass} />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs uppercase tracking-widest mb-2">{t('auth.city')}</label>
+              <input name="city" value={form.city} onChange={handleChange} required className={inputClass} />
+            </div>
+            <div>
+              <label className="block text-xs uppercase tracking-widest mb-2">{t('auth.postalCode')}</label>
+              <input name="postalCode" value={form.postalCode} onChange={handleChange} required className={inputClass} />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs uppercase tracking-widest mb-2">{t('checkout.country')}</label>
+            <select name="country" value={form.country} onChange={handleChange} required className={inputClass}>
+              <option value="CANADA">Canada</option>
+              <option value="UNITED_STATES">United States</option>
+              <option value="MEXICO">Mexico</option>
+            </select>
           </div>
           <div>
             <label className="block text-xs uppercase tracking-widest mb-2">{t('auth.language')}</label>

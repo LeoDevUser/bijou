@@ -106,6 +106,8 @@
     "firstName": "Nombre",
     "lastName": "Apellido",
     "address": "Dirección",
+    "city": "Ciudad",
+    "postalCode": "Código Postal",
     "noAccount": "¿No tienes cuenta?",
     "hasAccount": "¿Ya tienes cuenta?",
     "signUp": "Créala",
@@ -161,6 +163,8 @@
     },
     "detail": {
       "address": "Dirección",
+      "city": "Ciudad",
+      "postalCode": "Código Postal",
       "country": "País",
       "tracking": "Seguimiento",
       "items": "Artículos",

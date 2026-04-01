@@ -86,10 +86,12 @@ public class OrderService {
         //update order and link OrderItems
         Order order = Order.builder()
             .address(req.address())
+            .city(req.city())
+            .postalCode(req.postalCode())
+            .country(req.country())
             .orderItems(orderItems)
             .totalPrice(total)
             .client(client)
-            .country(req.country())
             .build();
         order.getOrderItems().forEach(oi -> oi.setOrder(order));
         orderRepository.save(order);
@@ -180,6 +182,8 @@ public class OrderService {
     public OrderView toOrderView(Order order) {
         Client client = order.getClient();
         return new OrderView(order.getAddress(),
+                client.getCity(),
+                client.getPostalCode(),
                 client.getEmail(),
                 client.getFirstName(),
                 client.getLastName(),

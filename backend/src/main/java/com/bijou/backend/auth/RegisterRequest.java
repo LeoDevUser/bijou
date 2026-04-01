@@ -16,5 +16,11 @@ public record RegisterRequest(
     @NotBlank
     String address,
     @NotBlank
+    String city,
+    @NotBlank
+    String postalCode,
+    @NotBlank
+    String country,
+    @NotBlank
     String language
 ) {}

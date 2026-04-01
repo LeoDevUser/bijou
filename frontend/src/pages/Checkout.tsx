@@ -21,7 +21,9 @@ export default function Checkout() {
   const { currency, format } = useCurrency();
 
   const [address, setAddress] = useState('');
-  const [savedAddress, setSavedAddress] = useState<string | null>(null);
+  const [city, setCity] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [savedAddress, setSavedAddress] = useState<{ address: string; city: string; postalCode: string } | null>(null);
   const [useSaved, setUseSaved] = useState(false);
   const [country, setCountry] = useState<Country>('CANADA');
   const [loading, setLoading] = useState(false);
@@ -37,9 +39,12 @@ export default function Checkout() {
     api.account.getProfile()
       .then(profile => {
         if (profile.address) {
-          setSavedAddress(profile.address);
+          setSavedAddress({ address: profile.address, city: profile.city, postalCode: profile.postalCode });
           setUseSaved(true);
           setAddress(profile.address);
+          setCity(profile.city);
+          setPostalCode(profile.postalCode);
+          setCountry(profile.country as Country);
         }
       })
       .catch(() => {});
@@ -47,8 +52,15 @@ export default function Checkout() {
 
   function handleUseSavedToggle(use: boolean) {
     setUseSaved(use);
-    if (use && savedAddress) setAddress(savedAddress);
-    else setAddress('');
+    if (use && savedAddress) {
+      setAddress(savedAddress.address);
+      setCity(savedAddress.city);
+      setPostalCode(savedAddress.postalCode);
+    } else {
+      setAddress('');
+      setCity('');
+      setPostalCode('');
+    }
   }
 
   if (!isAuthenticated || items.length === 0) return null;
@@ -61,6 +73,8 @@ export default function Checkout() {
       const { order, clientSecret } = await api.orders.create({
         items: items.map(i => ({ itemId: i.id, quantity: i.quantity })),
         address,
+        city,
+        postalCode,
         country,
         currency,
       });
@@ -112,6 +126,30 @@ export default function Checkout() {
               readOnly={useSaved && !!savedAddress}
               className={`${inputClass} ${useSaved && savedAddress ? 'opacity-60 cursor-default' : ''}`}
             />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelClass}>{t('auth.city')}</label>
+              <input
+                type="text"
+                value={city}
+                onChange={e => setCity(e.target.value)}
+                required
+                readOnly={useSaved && !!savedAddress}
+                className={`${inputClass} ${useSaved && savedAddress ? 'opacity-60 cursor-default' : ''}`}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>{t('auth.postalCode')}</label>
+              <input
+                type="text"
+                value={postalCode}
+                onChange={e => setPostalCode(e.target.value)}
+                required
+                readOnly={useSaved && !!savedAddress}
+                className={`${inputClass} ${useSaved && savedAddress ? 'opacity-60 cursor-default' : ''}`}
+              />
+            </div>
           </div>
           <div>
             <label className={labelClass}>{t('checkout.country')}</label>

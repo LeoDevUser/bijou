@@ -77,6 +77,8 @@ export type Currency = 'CAD' | 'USD' | 'MXN';
 export interface OrderView {
   id: number;
   address: string;
+  city: string;
+  postalCode: string;
   email: string;
   firstName: string;
   lastName: string;
@@ -110,6 +112,10 @@ export interface VerboseClient {
   lastName: string;
   email: string;
   address: string;
+  postalCode: string;
+  city: string;
+  country: string;
+  language: string;
   createdOn: string;
   role: string;
   stripeCustomerId: string | null;

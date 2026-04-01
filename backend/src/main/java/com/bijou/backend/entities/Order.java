@@ -39,6 +39,10 @@ public class Order {
     private BigDecimal totalPrice;
     @Column(nullable = false)
     private String address;
+    @Column(nullable = false)
+    private String city;
+    @Column(nullable = false)
+    private String postalCode;
     private String trackingNumber;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

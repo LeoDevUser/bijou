@@ -18,6 +18,9 @@ interface Profile {
   lastName: string;
   email: string;
   address: string;
+  city: string;
+  postalCode: string;
+  country: string;
   language: string;
 }
 
@@ -55,7 +58,7 @@ export default function Account() {
   const [emailMsg, setEmailMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [emailLoading, setEmailLoading] = useState(false);
 
-  const [address, setAddress] = useState('');
+  const [addressForm, setAddressForm] = useState({ address: '', city: '', postalCode: '', country: 'CANADA' });
   const [addressMsg, setAddressMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [addressLoading, setAddressLoading] = useState(false);
 
@@ -66,7 +69,7 @@ export default function Account() {
   useEffect(() => {
     api.account.getProfile().then(p => {
       setProfile(p);
-      setAddress(p.address);
+      setAddressForm({ address: p.address, city: p.city, postalCode: p.postalCode, country: p.country });
       setLang(p.language.toLowerCase() as Language);
     });
   }, []);
@@ -110,9 +113,9 @@ export default function Account() {
     setAddressLoading(true);
     setAddressMsg(null);
     try {
-      await api.account.changeAddress(address);
+      await api.account.changeAddress(addressForm);
       setAddressMsg({ type: 'success', text: t('account.address.success') });
-      setProfile(p => p ? { ...p, address } : p);
+      setProfile(p => p ? { ...p, ...addressForm } : p);
     } catch {
       setAddressMsg({ type: 'error', text: t('account.address.error') });
     } finally {
@@ -156,12 +159,37 @@ export default function Account() {
         <Section title={t('account.address.title')}>
           <form onSubmit={handleAddress} autoComplete="off" className="space-y-4">
             <input
-              value={address}
-              onChange={e => setAddress(e.target.value)}
+              value={addressForm.address}
+              onChange={e => setAddressForm(f => ({ ...f, address: e.target.value }))}
               required
               className={inputClass}
               placeholder={t('account.address.placeholder')}
             />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <input
+                value={addressForm.city}
+                onChange={e => setAddressForm(f => ({ ...f, city: e.target.value }))}
+                required
+                className={inputClass}
+                placeholder={t('auth.city')}
+              />
+              <input
+                value={addressForm.postalCode}
+                onChange={e => setAddressForm(f => ({ ...f, postalCode: e.target.value }))}
+                required
+                className={inputClass}
+                placeholder={t('auth.postalCode')}
+              />
+            </div>
+            <select
+              value={addressForm.country}
+              onChange={e => setAddressForm(f => ({ ...f, country: e.target.value }))}
+              className={inputClass}
+            >
+              <option value="CANADA">Canada</option>
+              <option value="UNITED_STATES">United States</option>
+              <option value="MEXICO">Mexico</option>
+            </select>
             <div className="flex justify-end">
               <button type="submit" disabled={addressLoading} className={btnClass}>
                 {addressLoading ? '...' : t('account.address.save')}

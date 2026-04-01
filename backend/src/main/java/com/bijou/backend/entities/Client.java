@@ -45,6 +45,12 @@ public class Client implements UserDetails {
     @Column(nullable = false)
     private String address;
     @Column(nullable = false)
+    private String postalCode;
+    @Column(nullable = false)
+    private String city;
+    @Column(nullable = false)
+    private Country country;
+    @Column(nullable = false)
     private LocalDateTime createdOn;
     @OneToMany(mappedBy = "client", fetch = FetchType.LAZY)
     private List<Order> orders;

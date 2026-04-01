@@ -99,6 +99,10 @@ export default function Orders() {
                 </div>
               </div>
 
+              <p className="text-xs text-muted mt-3">
+                {order.address}, {order.city}, {order.postalCode} · {order.country.replace('_', ' ')}
+              </p>
+
               <div className="flex flex-wrap gap-3 mt-4">
                 {order.items.map(item => {
                   const name = pickLocale(item.nameEn, item.nameFr, item.nameEs, i18n.language) ?? item.nameEn ?? '';

@@ -5,5 +5,8 @@ public record ClientProfileResponse(
         String lastName,
         String email,
         String address,
+        String postalCode,
+        String city,
+        String country,
         String language
 ){}

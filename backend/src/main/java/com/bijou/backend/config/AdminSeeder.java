@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.bijou.backend.entities.Client;
+import com.bijou.backend.entities.Country;
 import com.bijou.backend.entities.Role;
 import com.bijou.backend.entities.Language;
 import com.bijou.backend.repositories.ClientRepository;
@@ -37,6 +38,9 @@ public class AdminSeeder implements ApplicationRunner {
             .firstName("ADMIN")
             .lastName("ADMIN")
             .address("N/A")
+            .postalCode("N/A")
+            .city("N/A")
+            .country(Country.MEXICO)
             .role(Role.ADMIN)
             .language(Language.ES)
             .build();

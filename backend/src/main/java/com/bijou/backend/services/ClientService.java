@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.bijou.backend.entities.Client;
+import com.bijou.backend.entities.Country;
 import com.bijou.backend.entities.Language;
 import com.bijou.backend.exception.AppException;
 import com.bijou.backend.entities.Role;
@@ -44,6 +45,9 @@ public class ClientService {
                 client.getLastName(),
                 client.getEmail(),
                 client.getAddress(),
+                client.getPostalCode(),
+                client.getCity(),
+                client.getCountry().name(),
                 client.getLanguage().name());
     }
 
@@ -62,6 +66,10 @@ public class ClientService {
                 client.getLastName(),
                 client.getEmail(),
                 client.getAddress(),
+                client.getPostalCode(),
+                client.getCity(),
+                client.getCountry().name(),
+                client.getLanguage().name(),
                 client.getCreatedOn(),
                 client.getRole(),
                 client.getStripeCustomerId(),
@@ -92,8 +100,11 @@ public class ClientService {
             .toList();
     }
 
-    public void updateAddress(Client client, String newAddress) {
-        client.setAddress(newAddress);
+    public void updateAddress(Client client, AddressRequest req) {
+        client.setAddress(req.address());
+        client.setPostalCode(req.postalCode());
+        client.setCity(req.city());
+        client.setCountry(Country.valueOf(req.country()));
         clientRepository.save(client);
         log.info("updated address of {}", client.getEmail());
     }

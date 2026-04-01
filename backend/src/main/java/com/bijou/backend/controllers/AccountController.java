@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.bijou.backend.auth.AuthService;
 import com.bijou.backend.auth.ChangePasswordRequest;
 import com.bijou.backend.entities.Client;
+import com.bijou.backend.services.AddressRequest;
 import com.bijou.backend.services.ChangeEmailRequest;
 import com.bijou.backend.services.PromoteRequest;
 import com.bijou.backend.services.ClientProfileResponse;
@@ -51,8 +52,8 @@ public class AccountController {
     } 
 
     @PatchMapping("/address")
-    public ResponseEntity<Void> changeAddress(@AuthenticationPrincipal Client client, @RequestParam String newAddress) {
-        clientService.updateAddress(client, newAddress);
+    public ResponseEntity<Void> changeAddress(@AuthenticationPrincipal Client client, @RequestBody AddressRequest req) {
+        clientService.updateAddress(client, req);
         return ResponseEntity.ok().build();
     }
 

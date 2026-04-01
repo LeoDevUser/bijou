@@ -145,6 +145,14 @@ function AdminOrders() {
                       <p>{o.address}</p>
                     </div>
                     <div>
+                      <p className="text-xs uppercase tracking-widest text-muted mb-1">{t('admin.detail.city')}</p>
+                      <p>{o.city}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-widest text-muted mb-1">{t('admin.detail.postalCode')}</p>
+                      <p>{o.postalCode}</p>
+                    </div>
+                    <div>
                       <p className="text-xs uppercase tracking-widest text-muted mb-1">{t('admin.detail.country')}</p>
                       <p>{o.country.replace('_', ' ')}</p>
                     </div>
@@ -977,6 +985,18 @@ function VerboseRow({
             <div>
               <p className="text-xs uppercase tracking-widest text-muted mb-1">{t('admin.detail.address')}</p>
               <p>{u.address}</p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-widest text-muted mb-1">{t('admin.detail.city')}</p>
+              <p>{u.city}</p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-widest text-muted mb-1">{t('admin.detail.postalCode')}</p>
+              <p>{u.postalCode}</p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-widest text-muted mb-1">{t('admin.detail.country')}</p>
+              <p>{u.country?.replace('_', ' ')}</p>
             </div>
             <div>
               <p className="text-xs uppercase tracking-widest text-muted mb-1">{t('admin.detail.joined')}</p>

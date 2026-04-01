@@ -5,6 +5,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.bijou.backend.entities.Client;
+import com.bijou.backend.entities.Country;
 import com.bijou.backend.entities.Language;
 import com.bijou.backend.exception.AppException;
 import com.bijou.backend.entities.Role;
@@ -70,6 +71,9 @@ public class AuthService {
         String encoded = passwordEncoder.encode(pswd);
         Client client = Client.builder()
             .address(req.address())
+            .city(req.city())
+            .postalCode(req.postalCode())
+            .country(Country.valueOf(req.country()))
             .firstName(req.firstName())
             .email(email)
             .lastName(req.lastName())

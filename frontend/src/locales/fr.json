@@ -106,6 +106,8 @@
     "firstName": "Prénom",
     "lastName": "Nom",
     "address": "Addresse",
+    "city": "Ville",
+    "postalCode": "Code Postal",
     "noAccount": "Pas encore de compte ?",
     "hasAccount": "Déjà un compte ?",
     "signUp": "En créer un",
@@ -161,6 +163,8 @@
     },
     "detail": {
       "address": "Adresse",
+      "city": "Ville",
+      "postalCode": "Code Postal",
       "country": "Pays",
       "tracking": "Suivi",
       "items": "Articles",
