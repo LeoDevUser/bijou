@@ -7,10 +7,16 @@ export default function About() {
     <div className="max-w-3xl mx-auto px-6 py-16">
       <h1 className="font-serif text-4xl font-light mb-10">{t('about.title')}</h1>
 
-      <div className="space-y-8 text-sm leading-relaxed text-[#444]">
-        <p>{t('about.p1')}</p>
-        <p>{t('about.p2')}</p>
-        <p>{t('about.p3')}</p>
+      <div className="space-y-10 text-sm leading-relaxed text-[#444]">
+        <section>
+          <h2 className="font-serif text-xl font-light text-dark mb-3">{t('about.s1.title')}</h2>
+          <p>{t('about.s1.body')}</p>
+        </section>
+
+        <section>
+          <h2 className="font-serif text-xl font-light text-dark mb-3">{t('about.s2.title')}</h2>
+          <p>{t('about.s2.body')}</p>
+        </section>
       </div>
     </div>
   );

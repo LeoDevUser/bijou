@@ -10,7 +10,7 @@
   "announcement": {
     "free_shipping": "Envío gratuito en pedidos superiores a $150",
     "new_collection": "Nueva colección disponible",
-    "returns": "Devoluciones gratuitas en 30 días"
+    "new_arrivals": "Nuevas llegadas ya disponibles"
   },
   "home": {
     "hero": {
@@ -114,7 +114,13 @@
     "signIn": "Inicia sesión",
     "createAccount": "Crear Cuenta",
     "language": "Idioma Preferido",
-    "error": "Algo salió mal. Por favor, intenta de nuevo."
+    "error": "Algo salió mal. Por favor, intenta de nuevo.",
+    "agreeTerms": {
+      "pre": "Acepto los ",
+      "terms": "Términos de Servicio",
+      "mid": " y el ",
+      "privacy": "Aviso de Privacidad"
+    }
   },
   "orders": {
     "title": "Mis Pedidos",
@@ -338,170 +344,245 @@
   },
   "faq": {
     "title": "Preguntas Frecuentes",
-    "q1": { "q": "¿A qué países envían?", "a": "Actualmente enviamos a México, Estados Unidos y Canadá. Estamos trabajando para ampliar nuestra cobertura a más países en el futuro." },
-    "q2": { "q": "¿Cuánto tarda la entrega?", "a": "La entrega en México tarda de 3 a 7 días hábiles. A Estados Unidos, de 7 a 14 días hábiles. A Canadá, de 10 a 18 días hábiles. Estos son estimados y pueden variar según tu ubicación y el transportista." },
-    "q3": { "q": "¿Cómo puedo rastrear mi pedido?", "a": "Una vez que tu pedido haya sido enviado, recibirás un número de rastreo por correo electrónico. También puedes consultar el estado de tu pedido en cualquier momento desde la sección Mis Pedidos de tu cuenta." },
-    "q4": { "q": "¿Qué métodos de pago aceptan?", "a": "Aceptamos todas las principales tarjetas de crédito y débito (Visa, Mastercard, American Express) a través de nuestro proveedor de pagos seguro, Stripe. No almacenamos ningún dato de tarjeta en nuestros servidores. Todas las transacciones se procesan en Pesos Mexicanos (MXN). Si seleccionas USD o CAD al finalizar tu compra, el monto mostrado es un estimado — tu banco aplicará el tipo de cambio al momento del cargo y puede agregar comisiones por transacción internacional." },
-    "q5": { "q": "¿Puedo devolver o cambiar un artículo?", "a": "Sí. Aceptamos devoluciones dentro de los 30 días posteriores a la entrega para artículos en su condición original, sin usar. Visita nuestra página de Devoluciones para conocer el proceso completo." },
-    "q6": { "q": "¿Los materiales de sus joyas son seguros?", "a": "Todas nuestras joyas están fabricadas con materiales de alta calidad e hipoalergénicos. Si tienes sensibilidades específicas, contáctanos antes de comprar y con gusto te ayudaremos." },
-    "q7": { "q": "¿Cómo cuido mis joyas?", "a": "Recomendamos guardar tus joyas en un lugar seco alejado de la luz solar directa. Evita el contacto con perfumes, lociones y agua. Limpia suavemente con un paño suave y seco." },
-    "q8": { "q": "Tengo un problema con mi pedido. ¿A quién contacto?", "a": "Escríbenos a support@bijou-monde.com con tu número de pedido y una descripción del problema. Nuestro objetivo es responder en 2 días hábiles." }
+    "q1": { "q": "¿Los materiales son auténticos?", "a": "Absolutamente. En Bijou Monde solo trabajamos con metales preciosos certificados. Nuestra plata es Ley .925 y nuestro oro (10k/14k) cuenta con el quintado oficial que garantiza su pureza. El acero que seleccionamos es de grado quirúrgico e inoxidable, diseñado para durar." },
+    "q2": { "q": "¿Realizan envíos a Estados Unidos y Canadá?", "a": "Sí, realizamos envíos internacionales asegurados a través de FedEx y DHL Express. El tiempo de entrega estimado es de 3 a 5 días hábiles una vez procesado el pedido. Recibirás un número de rastreo en tiempo real para monitorear tu paquete." },
+    "q3": { "q": "¿Cómo sé cuál es mi talla de anillo?", "a": "Utilizamos la escala de tallas estándar de EE. UU. Si no conoces tu medida, contamos con una Guía de Tallas Digital que podemos enviarte por WhatsApp o correo para asegurar que tu pieza ajuste a la perfección." },
+    "q4": { "q": "¿Tengo que pagar impuestos de importación?", "a": "Los pedidos internacionales pueden estar sujetos a aranceles e impuestos de importación según las leyes de tu país (Canadá/USA). Estos cargos son responsabilidad del cliente y se determinan en la aduana al llegar a su destino." },
+    "q5": { "q": "¿Qué métodos de pago aceptan?", "a": "Para tu seguridad, aceptamos pagos globales a través de Stripe (tarjetas de crédito/débito internacionales). Esta plataforma ofrece protección al comprador y cifrado de datos de nivel bancario." },
+    "q6": { "q": "¿Las joyas se manchan o pierden el brillo?", "a": "Nuestras piezas están diseñadas para mantener su esencia. La plata y el oro son metales eternos que pueden requerir una limpieza ligera ocasional. El acero es altamente resistente al agua, aunque recomendamos evitar el contacto con químicos fuertes (cloro, perfumes) para preservar el acabado espejo por años." }
   },
   "shipping": {
-    "title": "Envíos y Entregas",
+    "title": "Política de Envíos",
     "s1": {
-      "title": "Tiempos y Métodos de Entrega",
-      "body": "Enviamos todos los pedidos desde México a través de servicios de mensajería de confianza. Los tiempos de entrega estimados son los siguientes:",
-      "tableDestination": "Destino",
-      "tableMethod": "Método",
-      "tableTime": "Tiempo estimado",
-      "mxDest": "México", "mxMethod": "Mensajería estándar", "mxTime": "3–7 días hábiles",
-      "usDest": "Estados Unidos", "usMethod": "Mensajería internacional", "usTime": "7–14 días hábiles",
-      "caDest": "Canadá", "caMethod": "Mensajería internacional", "caTime": "10–18 días hábiles"
+      "title": "Cobertura de Envíos",
+      "intro": "En Bijou Monde realizamos envíos nacionales e internacionales con cobertura en:",
+      "i1": "México",
+      "i2": "Estados Unidos",
+      "i3": "Canadá",
+      "note": "Trabajamos con paqueterías de prestigio internacional como DHL, FedEx y UPS, garantizando seguridad, rastreo y confiabilidad en cada envío."
     },
     "s2": {
-      "title": "Rastreo",
-      "body": "Todos los pedidos incluyen rastreo. Una vez enviado tu pedido, recibirás un correo de confirmación con tu número de rastreo. También puedes consultar tu información de rastreo en cualquier momento desde la sección Mis Pedidos de tu cuenta."
+      "title": "Tiempos de Procesamiento",
+      "body": "Todos los pedidos pasan por un proceso de preparación antes de ser enviados.",
+      "i1": "Tiempo de preparación: 1 a 3 días hábiles",
+      "i2": "Incluye: verificación, empaque y control de calidad"
     },
     "s3": {
-      "title": "Aduanas e Impuestos",
-      "body": "Para pedidos enviados a Estados Unidos o Canadá, pueden aplicarse aranceles aduaneros e impuestos de importación a la llegada a tu país. Estos cargos son determinados por las autoridades aduaneras locales y son responsabilidad del destinatario. Bijou Monde no tiene control sobre estos costos."
+      "title": "Tiempos de Entrega",
+      "mx": {
+        "title": "Envíos dentro de México",
+        "i1": "Express: 1 a 2 días hábiles",
+        "i2": "Estándar: 2 a 5 días hábiles"
+      },
+      "us": {
+        "title": "Envíos a Estados Unidos",
+        "i1": "Express internacional: 1 a 3 días hábiles",
+        "i2": "Económico: 2 a 5 días hábiles"
+      },
+      "ca": {
+        "title": "Envíos a Canadá",
+        "i1": "Express internacional: 1 a 3 días hábiles",
+        "i2": "Económico: 2 a 5 días hábiles"
+      },
+      "note": "Los tiempos pueden extenderse por procesos aduanales o alta demanda."
     },
     "s4": {
-      "title": "Retrasos",
-      "body": "Los tiempos de entrega son estimados y no están garantizados. Pueden ocurrir retrasos por trámites aduaneros, interrupciones del transportista u otras circunstancias fuera de nuestro control. Si tu pedido no ha llegado en el plazo estimado, contáctanos en support@bijou-monde.com."
-    }
-  },
-  "returns": {
-    "title": "Devoluciones y Reembolsos",
-    "s1": {
-      "title": "Plazo de Devolución",
-      "body": "Aceptamos devoluciones dentro de los 30 días posteriores a la fecha de entrega. Después de 30 días, no podremos aceptar devoluciones ni emitir reembolsos."
-    },
-    "s2": {
-      "title": "Requisitos",
-      "intro": "Para ser elegible para una devolución, el artículo debe cumplir las siguientes condiciones:",
-      "i1": "Sin usar y en su condición original",
-      "i2": "En su empaque original",
-      "i3": "No ser un artículo en liquidación o promoción marcado como no retornable"
-    },
-    "s3": {
-      "title": "Cómo Devolver",
-      "i1": "Envíanos un correo a returns@bijou-monde.com con tu número de pedido y el motivo de la devolución.",
-      "i2": "Confirmaremos si tu devolución es elegible y te proporcionaremos la dirección de envío.",
-      "i3": "Envía el artículo de forma segura. Los gastos de envío de devolución son tu responsabilidad, salvo que el artículo haya llegado dañado o incorrecto.",
-      "i4": "Una vez recibido e inspeccionado el artículo, procesaremos tu reembolso."
-    },
-    "s4": {
-      "title": "Reembolsos",
-      "body": "Los reembolsos aprobados se emiten al método de pago original en un plazo de 5 a 10 días hábiles tras recibir el artículo devuelto. Recibirás un correo de confirmación cuando tu reembolso haya sido procesado."
+      "title": "Costos de Envío",
+      "body": "El costo de envío se calcula automáticamente en el checkout en función de:",
+      "i1": "Peso (gramaje de la joyería)",
+      "i2": "Dimensiones del paquete",
+      "i3": "Destino",
+      "i4": "Tipo de envío seleccionado",
+      "note": "En envíos internacionales, los costos pueden variar considerablemente dependiendo del servicio (express vs económico)."
     },
     "s5": {
-      "title": "Artículos Dañados o Incorrectos",
-      "body": "Si tu pedido llegó dañado o recibiste el artículo equivocado, contáctanos en support@bijou-monde.com dentro de los 7 días posteriores a la entrega con una foto del artículo. Organizaremos un reemplazo o reembolso completo sin costo para ti."
+      "title": "Impuestos y Aduanas",
+      "intro": "Para envíos internacionales:",
+      "i1": "El cliente es responsable de impuestos, aranceles o cargos aduanales",
+      "i2": "Estos cargos no están incluidos en el precio del producto ni en el envío",
+      "i3": "Pueden variar según la legislación de cada país",
+      "note": "Los procesos aduanales pueden generar retrasos fuera del control de Bijou Monde."
+    },
+    "s6": {
+      "title": "Rastreo de Pedidos",
+      "body": "Todos los envíos incluyen número de seguimiento. El cliente podrá rastrear su pedido en tiempo real a través de la plataforma de la paquetería correspondiente."
+    },
+    "s7": {
+      "title": "Seguridad del Envío",
+      "intro": "En Bijou Monde cuidamos cada detalle:",
+      "i1": "Empaque seguro y discreto",
+      "i2": "Protección contra daños",
+      "i3": "Verificación antes de envío",
+      "note": "Trabajamos con paqueterías que operan en más de 220 países, garantizando cobertura global confiable."
+    },
+    "s8": {
+      "title": "Entregas Fallidas",
+      "body": "En caso de intento de entrega fallido, la paquetería realizará nuevos intentos. Si el paquete no puede ser entregado, podrá ser devuelto. Cualquier costo adicional por reenvío será responsabilidad del cliente."
+    },
+    "s9": {
+      "title": "Pérdida o Daño del Paquete",
+      "body": "En caso de incidente, se iniciará un proceso de investigación con la paquetería. El tiempo de resolución dependerá del proveedor logístico. Bijou Monde brindará apoyo durante todo el proceso."
+    },
+    "s10": {
+      "title": "Consideraciones Importantes",
+      "i1": "Los tiempos son estimados, no garantizados",
+      "i2": "Factores externos (clima, aduanas, logística) pueden afectar entregas",
+      "i3": "Durante temporadas altas, los tiempos pueden incrementarse"
     }
   },
   "privacy": {
-    "title": "Política de Privacidad",
-    "updated": "Última actualización: marzo de 2026",
+    "title": "Aviso de Privacidad",
+    "updated": "Última actualización: abril de 2026",
     "s1": {
-      "title": "Quiénes Somos",
-      "body": "Bijou Monde es una tienda de joyería constituida en México. Operamos el sitio bijou-monde.com y enviamos pedidos a clientes en México, Estados Unidos y Canadá. Las referencias a «nosotros» o «nuestro» en esta política se refieren a Bijou Monde."
+      "title": "Identidad del Responsable",
+      "body": "Bijou Monde es responsable del tratamiento de los datos personales que recaba a través de su sitio web, redes sociales y canales de contacto."
     },
     "s2": {
-      "title": "Información que Recopilamos",
-      "intro": "Cuando realizas un pedido o creas una cuenta, recopilamos los siguientes datos personales:",
-      "i1": "Nombre completo y correo electrónico",
-      "i2": "Dirección de envío y país",
-      "i3": "Historial de pedidos y detalles de compra",
-      "i4": "El pago es procesado íntegramente por Stripe, Inc. No recibimos, almacenamos ni tenemos acceso a tu número de tarjeta, CVV ni ninguna otra credencial de pago."
+      "title": "Datos Personales que se Recaban",
+      "body": "Podemos recopilar: nombre completo, número telefónico, correo electrónico, dirección de envío, datos de facturación y cualquier información proporcionada voluntariamente por el usuario."
     },
     "s3": {
-      "title": "Cómo Usamos Tu Información",
-      "intro": "Usamos tus datos personales exclusivamente para:",
-      "i1": "Procesar y cumplir tus pedidos",
-      "i2": "Enviar confirmaciones de pedido y actualizaciones de envío",
-      "i3": "Responder consultas de servicio al cliente"
+      "title": "Finalidad del Tratamiento",
+      "body": "Los datos serán utilizados para: procesar pedidos, brindar atención personalizada, gestionar envíos, emitir facturas, mejorar la experiencia del usuario y enviar información relevante sobre productos y promociones."
     },
     "s4": {
-      "title": "Procesamiento de Pagos",
-      "body": "Todas las transacciones de pago son gestionadas por Stripe, Inc., un procesador de pagos certificado PCI-DSS nivel 1. Cuando ingresas los datos de tu tarjeta en el proceso de pago, esa información se transmite directamente a Stripe y nunca pasa por nuestros servidores ni se almacena en ellos."
+      "title": "Uso de Cookies y Tecnologías Similares",
+      "body": "El sitio web puede utilizar cookies para mejorar la experiencia de navegación, analizar el comportamiento del usuario y personalizar contenido."
     },
     "s5": {
-      "title": "Compartir con Terceros",
-      "body": "No vendemos, arrendamos ni compartimos tu información personal con terceros con fines de marketing. Compartimos tu nombre y dirección de envío con nuestros socios logísticos únicamente para entregar tu pedido."
+      "title": "Transferencia de Datos",
+      "body": "Los datos podrán compartirse con terceros únicamente para fines operativos como envíos, procesamiento de pagos o cumplimiento legal, garantizando siempre su protección."
     },
     "s6": {
-      "title": "Tus Derechos",
-      "intro": "De conformidad con la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP) de México, tienes derecho a:",
-      "i1": "Acceder a los datos personales que tenemos sobre ti",
-      "i2": "Solicitar la corrección de datos inexactos",
-      "i3": "Solicitar la eliminación de tus datos",
-      "i4": "Oponerte al tratamiento de tus datos o restringirlo"
+      "title": "Protección de Datos",
+      "body": "Bijou Monde implementa medidas de seguridad administrativas, técnicas y físicas para proteger los datos personales contra daño, pérdida, alteración o acceso no autorizado."
     },
     "s7": {
-      "title": "Retención de Datos",
-      "body": "Conservamos tus datos personales mientras tu cuenta esté activa y hasta 5 años después de tu último pedido, según lo requieren las obligaciones legales y fiscales mexicanas. Puedes solicitar la eliminación en cualquier momento."
+      "title": "Derechos ARCO",
+      "body": "El usuario tiene derecho a Acceder, Rectificar, Cancelar u Oponerse al uso de sus datos personales. Para ejercer estos derechos, deberá solicitarlo mediante los canales de contacto oficiales."
     },
     "s8": {
-      "title": "Contacto",
-      "body": "Para ejercer tus derechos o para cualquier consulta relacionada con privacidad, contáctanos en privacy@bijou-monde.com. Responderemos en un plazo de 20 días hábiles conforme a la LFPDPPP."
+      "title": "Cambios al Aviso de Privacidad",
+      "body": "Bijou Monde se reserva el derecho de modificar el presente aviso en cualquier momento. Las actualizaciones serán publicadas en el sitio web."
+    },
+    "s9": {
+      "title": "Consentimiento",
+      "body": "Al proporcionar sus datos personales, el usuario acepta los términos del presente aviso de privacidad."
     }
   },
   "terms": {
     "title": "Términos de Servicio",
-    "updated": "Última actualización: marzo de 2026",
+    "updated": "Última actualización: abril de 2026",
     "s1": {
-      "title": "Aceptación de los Términos",
-      "body": "Al acceder a nuestro sitio web o realizar un pedido, aceptas estos Términos de Servicio. Estos términos constituyen un acuerdo vinculante entre tú y Bijou Monde, constituida en México."
+      "title": "Información General",
+      "body": "El presente documento establece los términos y condiciones aplicables al uso del sitio web de Bijou Monde, así como a la compra de los productos ofrecidos a través del mismo. Al acceder, navegar o realizar una compra, el usuario acepta de manera expresa los presentes términos y condiciones."
     },
     "s2": {
+      "title": "Identidad de la Marca",
+      "intro": "Bijou Monde es una marca dedicada a la comercialización de joyería de:",
+      "i1": "Oro de 10K y 14K (italiano y nacional)",
+      "i2": "Plata ley 925",
+      "i3": "Acero inoxidable quirúrgico 316"
+    },
+    "s3": {
+      "title": "Uso del Sitio Web",
+      "intro": "El usuario se compromete a utilizar el sitio de forma lícita, respetuosa y conforme a la legislación aplicable. Queda prohibido:",
+      "i1": "Actividades fraudulentas",
+      "i2": "Interferir con el funcionamiento del sitio",
+      "i3": "Uso indebido de la información"
+    },
+    "s4": {
       "title": "Productos y Precios",
       "body": "Los precios se muestran en la moneda seleccionada (MXN, USD o CAD) como referencia. Todas las transacciones se procesan en Pesos Mexicanos (MXN). Si pagas en USD o CAD, el cargo final se convertirá a MXN al tipo de cambio aplicado por Stripe al momento del pago. Tu banco también puede aplicar comisiones adicionales por transacciones internacionales. Bijou Monde no se hace responsable de las fluctuaciones del tipo de cambio ni de los cargos bancarios. Nos reservamos el derecho de modificar los precios en cualquier momento."
     },
-    "s3": {
+    "s5": {
       "title": "Pedidos y Pago",
       "body": "Los pedidos se confirman tras la autorización exitosa del pago a través de Stripe. Nos reservamos el derecho de cancelar cualquier pedido por falta de stock, errores de precio o sospecha de fraude, en cuyo caso recibirás un reembolso completo."
     },
-    "s4": {
+    "s6": {
+      "title": "Formas de Pago",
+      "intro": "Se aceptan las siguientes formas de pago:",
+      "i1": "Efectivo (únicamente en persona en nuestra tienda física)",
+      "i2": "Tarjetas de crédito y débito (Visa, Mastercard y otras aceptadas internacionalmente)",
+      "note": "Los pagos internacionales pueden estar sujetos a comisiones bancarias o cargos por tipo de cambio, los cuales serán responsabilidad del cliente."
+    },
+    "s7": {
+      "title": "Facturación",
+      "body": "La facturación está disponible conforme a la legislación fiscal mexicana y aplica principalmente para pagos realizados desde México. Clientes internacionales recibirán comprobantes de compra digitales."
+    },
+    "s8": {
       "title": "Envíos",
       "intro": "Enviamos a México, Estados Unidos y Canadá. Los tiempos de entrega estimados varían según el destino:",
       "i1": "México: 3 a 7 días hábiles",
       "i2": "Estados Unidos: 7 a 14 días hábiles",
       "i3": "Canadá: 10 a 18 días hábiles"
     },
-    "s5": {
-      "title": "Devoluciones y Reembolsos",
-      "body": "Aceptamos devoluciones dentro de los 30 días posteriores a la entrega para artículos en su condición original, sin usar. Para iniciar una devolución, contáctanos en returns@bijou-monde.com con tu número de pedido. Los gastos de envío de devolución son responsabilidad del cliente, salvo que el artículo haya llegado dañado o incorrecto."
+    "s9": {
+      "title": "Envíos Internacionales",
+      "intro": "Para pedidos fuera de México:",
+      "i1": "El cliente es responsable de cualquier impuesto, arancel o cargo aduanal aplicable en su país",
+      "i2": "Los tiempos de entrega pueden extenderse por procesos aduanales",
+      "i3": "Bijou Monde no se hace responsable por retrasos ocasionados por autoridades o paqueterías internacionales"
     },
-    "s6": {
+    "s10": {
+      "title": "Cambios y Devoluciones",
+      "body": "No se aceptan devoluciones por cambio de opinión ni en productos personalizados. Los cambios son aceptados únicamente por defecto de fábrica. Para solicitar un cambio, reporta el defecto dentro de las 48 horas posteriores a la entrega. Bijou Monde revisará y validará cada caso."
+    },
+    "s11": {
+      "title": "Garantía",
+      "intro": "Bijou Monde garantiza la autenticidad de:",
+      "i1": "Oro",
+      "i2": "Plata 925",
+      "i3": "Acero inoxidable",
+      "note": "La garantía cubre únicamente defectos de fabricación."
+    },
+    "s12": {
+      "title": "Inversión en Oro",
+      "body": "Las piezas de la línea \"Inversión\" están diseñadas como una opción de resguardo de valor. Bijou Monde no garantiza rendimientos financieros, ya que el valor del oro depende del mercado internacional."
+    },
+    "s13": {
+      "title": "Mayoreo",
+      "body": "La compra mayorista está disponible a partir de 80 gramos, con beneficios escalonados según el volumen."
+    },
+    "s14": {
+      "title": "Limitación de Responsabilidad",
+      "intro": "Bijou Monde no será responsable por:",
+      "i1": "Cargos adicionales en aduanas",
+      "i2": "Retrasos de envío por terceros",
+      "i3": "Uso indebido de los productos"
+    },
+    "s15": {
       "title": "Propiedad Intelectual",
       "body": "Todo el contenido de este sitio — incluyendo imágenes, textos, logotipos y diseños — es propiedad de Bijou Monde y no puede ser reproducido ni utilizado sin nuestro consentimiento previo por escrito."
     },
-    "s7": {
-      "title": "Limitación de Responsabilidad",
-      "body": "Bijou Monde no es responsable de daños indirectos, incidentales o consecuentes derivados del uso de nuestro sitio o productos. Nuestra responsabilidad total no excederá el monto pagado por el pedido en cuestión."
+    "s16": {
+      "title": "Protección de Datos",
+      "body": "Los datos personales serán tratados conforme al Aviso de Privacidad."
     },
-    "s8": {
-      "title": "Ley Aplicable",
-      "body": "Estos términos se rigen por las leyes de los Estados Unidos Mexicanos. Cualquier disputa estará sujeta a la jurisdicción exclusiva de los tribunales de la Ciudad de México."
+    "s17": {
+      "title": "Legislación Aplicable",
+      "body": "Estos términos se rigen por la legislación mexicana. Para operaciones en México, en caso de controversia se podrá acudir a la PROFECO. Para operaciones internacionales, el cliente acepta las condiciones generales de comercio internacional."
     },
-    "s9": {
+    "s18": {
       "title": "Cambios en los Términos",
       "body": "Nos reservamos el derecho de actualizar estos términos en cualquier momento. Los cambios se publicarán en esta página con una fecha actualizada. El uso continuado de nuestros servicios tras cualquier modificación implica la aceptación de los nuevos términos."
     }
   },
   "about": {
     "title": "Sobre Nosotros",
-    "p1": "Bijou Monde nació de una pasión por la elegancia atemporal y la artesanía refinada. Cada pieza de nuestra colección está cuidadosamente diseñada para celebrar la belleza en su forma más pura.",
-    "p2": "Trabajamos con artesanos talentosos y materiales de origen responsable para crear joyas pensadas para usarse, atesorarse y transmitirse.",
-    "p3": "Ya sea que te des un capricho o busques el regalo perfecto, estamos aquí para hacer cada momento un poco más especial."
+    "s1": {
+      "title": "Excelencia en el Corazón Joyero de México",
+      "body": "Ubicada en el prestigioso Magno Centro Joyero de Guadalajara, Bijou Monde es una firma especializada en la selección y comercialización de joyería de alta gama. Nuestra operación se distingue por un enfoque riguroso en la calidad de los materiales, ofreciendo piezas exclusivas en Oro, Plata y Acero de alta resistencia para un público global que busca distinción y durabilidad."
+    },
+    "s2": {
+      "title": "Nuestra Propuesta",
+      "body": "En Bijou Monde, entendemos que la joyería es una inversión en estilo y legado. Por ello, no somos simplemente distribuidores; somos selectores expertos. Cada pieza de nuestro catálogo ha sido elegida bajo estrictos estándares de diseño minimalista y excelencia técnica, garantizando acabados impecables que cumplen con las expectativas del mercado internacional más exigente."
+    }
   },
   "footer": {
     "help": "Ayuda",
     "faq": "Preguntas Frecuentes",
     "shipping": "Envíos",
-    "returns": "Devoluciones",
     "company": "Empresa",
     "aboutUs": "Sobre Nosotros",
     "rights": "Todos los derechos reservados.",
@@ -512,7 +593,7 @@
       "subscribe": "Suscribirme"
     },
     "legal": {
-      "privacy": "Política de Privacidad",
+      "privacy": "Aviso de Privacidad",
       "terms": "Términos de Servicio"
     }
   }

@@ -17,22 +17,27 @@ export default function Terms() {
 
         <section>
           <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s2.title')}</h2>
-          <p>{p('s2.body')}</p>
+          <p className="mb-3">{p('s2.intro')}</p>
+          <ul className="list-disc list-inside space-y-1">
+            <li>{p('s2.i1')}</li>
+            <li>{p('s2.i2')}</li>
+            <li>{p('s2.i3')}</li>
+          </ul>
         </section>
 
         <section>
           <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s3.title')}</h2>
-          <p>{p('s3.body')}</p>
+          <p className="mb-3">{p('s3.intro')}</p>
+          <ul className="list-disc list-inside space-y-1">
+            <li>{p('s3.i1')}</li>
+            <li>{p('s3.i2')}</li>
+            <li>{p('s3.i3')}</li>
+          </ul>
         </section>
 
         <section>
           <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s4.title')}</h2>
-          <p className="mb-3">{p('s4.intro')}</p>
-          <ul className="list-disc list-inside space-y-1">
-            <li>{p('s4.i1')}</li>
-            <li>{p('s4.i2')}</li>
-            <li>{p('s4.i3')}</li>
-          </ul>
+          <p>{p('s4.body')}</p>
         </section>
 
         <section>
@@ -42,7 +47,12 @@ export default function Terms() {
 
         <section>
           <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s6.title')}</h2>
-          <p>{p('s6.body')}</p>
+          <p className="mb-3">{p('s6.intro')}</p>
+          <ul className="list-disc list-inside space-y-1 mb-3">
+            <li>{p('s6.i1')}</li>
+            <li>{p('s6.i2')}</li>
+          </ul>
+          <p>{p('s6.note')}</p>
         </section>
 
         <section>
@@ -52,12 +62,78 @@ export default function Terms() {
 
         <section>
           <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s8.title')}</h2>
-          <p>{p('s8.body')}</p>
+          <p className="mb-3">{p('s8.intro')}</p>
+          <ul className="list-disc list-inside space-y-1">
+            <li>{p('s8.i1')}</li>
+            <li>{p('s8.i2')}</li>
+            <li>{p('s8.i3')}</li>
+          </ul>
         </section>
 
         <section>
           <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s9.title')}</h2>
-          <p>{p('s9.body')}</p>
+          <p className="mb-3">{p('s9.intro')}</p>
+          <ul className="list-disc list-inside space-y-1">
+            <li>{p('s9.i1')}</li>
+            <li>{p('s9.i2')}</li>
+            <li>{p('s9.i3')}</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s10.title')}</h2>
+          <p>{p('s10.body')}</p>
+        </section>
+
+        <section>
+          <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s11.title')}</h2>
+          <p className="mb-3">{p('s11.intro')}</p>
+          <ul className="list-disc list-inside space-y-1 mb-3">
+            <li>{p('s11.i1')}</li>
+            <li>{p('s11.i2')}</li>
+            <li>{p('s11.i3')}</li>
+          </ul>
+          <p>{p('s11.note')}</p>
+        </section>
+
+        <section>
+          <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s12.title')}</h2>
+          <p>{p('s12.body')}</p>
+        </section>
+
+        <section>
+          <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s13.title')}</h2>
+          <p>{p('s13.body')}</p>
+        </section>
+
+        <section>
+          <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s14.title')}</h2>
+          <p className="mb-3">{p('s14.intro')}</p>
+          <ul className="list-disc list-inside space-y-1">
+            <li>{p('s14.i1')}</li>
+            <li>{p('s14.i2')}</li>
+            <li>{p('s14.i3')}</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s15.title')}</h2>
+          <p>{p('s15.body')}</p>
+        </section>
+
+        <section>
+          <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s16.title')}</h2>
+          <p>{p('s16.body')}</p>
+        </section>
+
+        <section>
+          <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s17.title')}</h2>
+          <p>{p('s17.body')}</p>
+        </section>
+
+        <section>
+          <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s18.title')}</h2>
+          <p>{p('s18.body')}</p>
         </section>
       </div>
     </div>

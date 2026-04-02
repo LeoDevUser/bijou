@@ -10,45 +10,97 @@ export default function Shipping() {
 
       <div className="space-y-10 text-sm leading-relaxed text-[#444]">
         <section>
-          <h2 className="font-serif text-xl font-light text-dark mb-4">{p('s1.title')}</h2>
-          <p className="mb-4">{p('s1.body')}</p>
-          <div className="border border-border divide-y divide-border">
-            <div className="grid grid-cols-3 px-4 py-3 text-xs uppercase tracking-widest text-muted">
-              <span>{p('s1.tableDestination')}</span>
-              <span>{p('s1.tableMethod')}</span>
-              <span>{p('s1.tableTime')}</span>
-            </div>
-            <div className="grid grid-cols-3 px-4 py-3">
-              <span>{p('s1.mxDest')}</span>
-              <span>{p('s1.mxMethod')}</span>
-              <span>{p('s1.mxTime')}</span>
-            </div>
-            <div className="grid grid-cols-3 px-4 py-3">
-              <span>{p('s1.usDest')}</span>
-              <span>{p('s1.usMethod')}</span>
-              <span>{p('s1.usTime')}</span>
-            </div>
-            <div className="grid grid-cols-3 px-4 py-3">
-              <span>{p('s1.caDest')}</span>
-              <span>{p('s1.caMethod')}</span>
-              <span>{p('s1.caTime')}</span>
-            </div>
-          </div>
+          <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s1.title')}</h2>
+          <p className="mb-3">{p('s1.intro')}</p>
+          <ul className="list-disc list-inside space-y-1 mb-3">
+            <li>{p('s1.i1')}</li>
+            <li>{p('s1.i2')}</li>
+            <li>{p('s1.i3')}</li>
+          </ul>
+          <p className="text-muted italic">{p('s1.note')}</p>
         </section>
 
         <section>
           <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s2.title')}</h2>
-          <p>{p('s2.body')}</p>
+          <p className="mb-3">{p('s2.body')}</p>
+          <ul className="list-disc list-inside space-y-1">
+            <li>{p('s2.i1')}</li>
+            <li>{p('s2.i2')}</li>
+          </ul>
         </section>
 
         <section>
           <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s3.title')}</h2>
-          <p>{p('s3.body')}</p>
+          <div className="space-y-4 mt-3">
+            {(['mx', 'us', 'ca'] as const).map(zone => (
+              <div key={zone}>
+                <h3 className="font-medium text-dark mb-1">{p(`s3.${zone}.title`)}</h3>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>{p(`s3.${zone}.i1`)}</li>
+                  <li>{p(`s3.${zone}.i2`)}</li>
+                </ul>
+              </div>
+            ))}
+          </div>
+          <p className="mt-4 text-muted italic">{p('s3.note')}</p>
         </section>
 
         <section>
           <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s4.title')}</h2>
-          <p>{p('s4.body')}</p>
+          <p className="mb-3">{p('s4.body')}</p>
+          <ul className="list-disc list-inside space-y-1 mb-3">
+            <li>{p('s4.i1')}</li>
+            <li>{p('s4.i2')}</li>
+            <li>{p('s4.i3')}</li>
+            <li>{p('s4.i4')}</li>
+          </ul>
+          <p className="text-muted italic">{p('s4.note')}</p>
+        </section>
+
+        <section>
+          <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s5.title')}</h2>
+          <p className="mb-3">{p('s5.intro')}</p>
+          <ul className="list-disc list-inside space-y-1 mb-3">
+            <li>{p('s5.i1')}</li>
+            <li>{p('s5.i2')}</li>
+            <li>{p('s5.i3')}</li>
+          </ul>
+          <p className="text-muted italic">{p('s5.note')}</p>
+        </section>
+
+        <section>
+          <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s6.title')}</h2>
+          <p>{p('s6.body')}</p>
+        </section>
+
+        <section>
+          <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s7.title')}</h2>
+          <p className="mb-3">{p('s7.intro')}</p>
+          <ul className="list-disc list-inside space-y-1 mb-3">
+            <li>{p('s7.i1')}</li>
+            <li>{p('s7.i2')}</li>
+            <li>{p('s7.i3')}</li>
+          </ul>
+          <p className="text-muted italic">{p('s7.note')}</p>
+        </section>
+
+        <section>
+          <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s8.title')}</h2>
+          <p>{p('s8.body')}</p>
+        </section>
+
+        <section>
+          <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s9.title')}</h2>
+          <p>{p('s9.body')}</p>
+        </section>
+
+        <section>
+          <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s10.title')}</h2>
+          <ul className="list-disc list-inside space-y-1">
+            <li>{p('s10.i1')}</li>
+            <li>{p('s10.i2')}</li>
+            <li>{p('s10.i3')}</li>
+          </ul>
         </section>
       </div>
     </div>

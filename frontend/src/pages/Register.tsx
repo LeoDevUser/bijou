@@ -16,6 +16,7 @@ export default function Register() {
   const { language, setLanguage } = useLanguage();
   const navigate = useNavigate();
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '', address: '', city: '', postalCode: '', country: 'CANADA', language: language });
+  const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -97,11 +98,30 @@ export default function Register() {
             </select>
           </div>
 
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={e => setAgreed(e.target.checked)}
+              className="mt-0.5 flex-shrink-0 accent-dark"
+            />
+            <span className="text-xs text-muted leading-relaxed">
+              {t('auth.agreeTerms.pre')}
+              <Link to="/terms" target="_blank" className="text-dark underline hover:text-gold transition-colors">
+                {t('auth.agreeTerms.terms')}
+              </Link>
+              {t('auth.agreeTerms.mid')}
+              <Link to="/privacy" target="_blank" className="text-dark underline hover:text-gold transition-colors">
+                {t('auth.agreeTerms.privacy')}
+              </Link>
+            </span>
+          </label>
+
           {error && <p className="text-red-500 text-sm">{error}</p>}
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !agreed}
             className="w-full bg-dark text-white text-xs uppercase tracking-widest py-4 hover:bg-gold transition-colors disabled:opacity-50 cursor-pointer mt-2"
           >
             {loading ? '...' : t('auth.createAccount')}

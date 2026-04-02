@@ -40,7 +40,6 @@ export default function Footer() {
           <ul className="space-y-3">
             <li><Link to="/faq" className="text-sm text-[#ccc] hover:text-white transition-colors">{t('footer.faq')}</Link></li>
             <li><Link to="/shipping" className="text-sm text-[#ccc] hover:text-white transition-colors">{t('footer.shipping')}</Link></li>
-            <li><Link to="/returns" className="text-sm text-[#ccc] hover:text-white transition-colors">{t('footer.returns')}</Link></li>
           </ul>
         </div>
         <div>
