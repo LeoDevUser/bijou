@@ -1,8 +1,170 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, Category, VerboseClient, LabelView, AnnouncementView, SiteAssetView, CollectionView, SalesStats } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, Category, VerboseClient, LabelView, AnnouncementView, SiteAssetView, CollectionView, SalesStats, ThemeConfig } from '../types';
 import { pickLocale, isItemIncomplete, isLabelIncomplete } from '../types';
+import { useTheme, THEME_DEFAULTS } from '../context/ThemeContext';
+
+// ── Color utilities ───────────────────────────────────────────────────────────
+
+function parseColorToRgba(value: string): [number, number, number, number] {
+  const v = (value ?? '').trim();
+  if (v.startsWith('#')) {
+    const h = v.slice(1);
+    if (h.length === 3) return [parseInt(h[0]+h[0],16), parseInt(h[1]+h[1],16), parseInt(h[2]+h[2],16), 1];
+    if (h.length === 6) return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16), 1];
+    if (h.length === 8) return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16), +(parseInt(h.slice(6,8),16)/255).toFixed(2)];
+  }
+  const m = v.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\s*\)/);
+  if (m) return [+m[1], +m[2], +m[3], m[4] != null ? +m[4] : 1];
+  return [0, 0, 0, 1];
+}
+
+function toHex6(r: number, g: number, b: number): string {
+  return '#' + [r,g,b].map(n => Math.max(0,Math.min(255,Math.round(n))).toString(16).padStart(2,'0')).join('');
+}
+
+function toColorString(r: number, g: number, b: number, a: number): string {
+  const [ri,gi,bi] = [r,g,b].map(n => Math.max(0,Math.min(255,Math.round(n))));
+  const ac = Math.round(Math.max(0,Math.min(1,a))*100)/100;
+  if (ac >= 1) return toHex6(ri,gi,bi);
+  return `rgba(${ri}, ${gi}, ${bi}, ${ac})`;
+}
+
+function toHex6Safe(value: string): string {
+  if (!value) return '#000000';
+  if (value.startsWith('#') && value.length === 7) return value;
+  const [r,g,b] = parseColorToRgba(value);
+  return toHex6(r,g,b);
+}
+
+// ── RGBA modal ────────────────────────────────────────────────────────────────
+
+function RgbaModal({ value, onApply, onClose }: { value: string; onApply: (v: string) => void; onClose: () => void }) {
+  const [r, g, b, a] = parseColorToRgba(value);
+  const [rVal, setR] = useState(r);
+  const [gVal, setG] = useState(g);
+  const [bVal, setB] = useState(b);
+  const [aVal, setA] = useState(a);
+
+  const preview = toColorString(rVal, gVal, bVal, aVal);
+
+  const sliders = [
+    { label: 'R', val: rVal, set: setR, min: 0, max: 255, step: 1,
+      gradient: `linear-gradient(to right, rgb(0,${gVal},${bVal}), rgb(255,${gVal},${bVal}))` },
+    { label: 'G', val: gVal, set: setG, min: 0, max: 255, step: 1,
+      gradient: `linear-gradient(to right, rgb(${rVal},0,${bVal}), rgb(${rVal},255,${bVal}))` },
+    { label: 'B', val: bVal, set: setB, min: 0, max: 255, step: 1,
+      gradient: `linear-gradient(to right, rgb(${rVal},${gVal},0), rgb(${rVal},${gVal},255))` },
+    { label: 'A', val: aVal, set: setA, min: 0, max: 1, step: 0.01,
+      gradient: `linear-gradient(to right, rgba(${rVal},${gVal},${bVal},0), rgba(${rVal},${gVal},${bVal},1))` },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[999] flex items-center justify-center" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/40" />
+      <div className="relative bg-[#FAFAF8] border border-[#E8E4DC] p-5 w-72 shadow-xl" onClick={e => e.stopPropagation()}>
+
+        {/* Preview */}
+        <div className="flex items-center gap-3 mb-5">
+          <div
+            className="w-12 h-12 border border-[#E8E4DC] flex-shrink-0"
+            style={{ background: `linear-gradient(${preview}, ${preview}), repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 8px 8px` }}
+          />
+          <div>
+            <p className="text-xs font-mono">{preview}</p>
+            <p className="text-xs text-[#9C9C9C] mt-0.5">{toHex6(rVal,gVal,bVal)} · A: {Math.round(aVal*100)}%</p>
+          </div>
+        </div>
+
+        {/* Sliders */}
+        <div className="space-y-3">
+          {sliders.map(s => (
+            <div key={s.label} className="flex items-center gap-2">
+              <span className="text-[11px] font-mono text-[#9C9C9C] w-4 flex-shrink-0">{s.label}</span>
+              <div className="relative flex-1 h-5 flex items-center">
+                {/* Gradient track */}
+                <div className="absolute left-0 right-0 h-2 rounded-sm" style={{ background: s.gradient }} />
+                {/* Thumb indicator */}
+                <div
+                  className="absolute top-1/2 w-3.5 h-3.5 rounded-full bg-white border border-[#999] shadow pointer-events-none"
+                  style={{ left: `${((s.val - s.min) / (s.max - s.min)) * 100}%`, transform: 'translate(-50%, -50%)' }}
+                />
+                {/* Invisible native input for interaction */}
+                <input
+                  type="range"
+                  min={s.min} max={s.max} step={s.step}
+                  value={s.val}
+                  onChange={e => s.set(+e.target.value)}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+              </div>
+              <span className="text-[11px] font-mono text-[#9C9C9C] w-8 text-right flex-shrink-0">
+                {s.label === 'A' ? Math.round(aVal * 100) + '%' : Math.round(s.val)}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-2 mt-5">
+          <button
+            onClick={() => { onApply(preview); onClose(); }}
+            className="flex-1 text-xs uppercase tracking-widest border border-[#1C1C1C] bg-[#1C1C1C] text-white px-4 py-2 hover:bg-[#C9A96E] hover:border-[#C9A96E] transition-colors cursor-pointer"
+          >
+            Apply
+          </button>
+          <button
+            onClick={onClose}
+            className="text-xs uppercase tracking-widest border border-[#E8E4DC] px-4 py-2 hover:border-[#1C1C1C] transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Reusable color input ──────────────────────────────────────────────────────
+
+function ColorInput({ value: rawValue, onChange, placeholder, className: cls }: { value: string | null | undefined; onChange: (v: string) => void; placeholder?: string; className?: string }) {
+  const value = rawValue ?? '';
+  const [modalOpen, setModalOpen] = useState(false);
+  return (
+    <>
+      <div className={`flex items-center gap-2 ${cls ?? ''}`}>
+        <div className="relative flex-1">
+          <input
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            placeholder={placeholder || '#000000'}
+            className="border border-[#E8E4DC] bg-[#FAFAF8] px-3 py-2 text-sm outline-none focus:border-[#1C1C1C] transition-colors w-full pr-10"
+          />
+          {value && (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 rounded-sm border border-[#E8E4DC]" style={{ background: value }} />
+          )}
+        </div>
+        <input
+          type="color"
+          value={toHex6Safe(value)}
+          onChange={e => onChange(e.target.value)}
+          className="w-10 h-9 border border-[#E8E4DC] cursor-pointer bg-[#FAFAF8] p-0.5 flex-shrink-0"
+          title="Pick color"
+        />
+        <button
+          type="button"
+          onClick={() => setModalOpen(true)}
+          className="text-[10px] uppercase tracking-widest border border-[#E8E4DC] px-2 h-9 hover:border-[#1C1C1C] transition-colors flex-shrink-0 text-[#9C9C9C] hover:text-[#1C1C1C] cursor-pointer"
+          title="RGBA sliders"
+        >
+          RGBA
+        </button>
+      </div>
+      {modalOpen && <RgbaModal value={value} onApply={onChange} onClose={() => setModalOpen(false)} />}
+    </>
+  );
+}
 
 const CATEGORIES: { value: Category; labelKey: string }[] = [
   { value: 'NECKLACE', labelKey: 'home.categories.necklaces' },
@@ -801,11 +963,10 @@ function CollectionFormModal({
           </div>
         </div>
 
-        <input
+        <ColorInput
           value={form.color}
-          onChange={e => set('color', e.target.value)}
+          onChange={v => set('color', v)}
           placeholder={t('admin.site.colorPlaceholder')}
-          className={inputClass}
         />
 
         <div>
@@ -1376,26 +1537,11 @@ function AdminSiteAssets() {
                 <input value={textForm.subheaderFr} onChange={e => setTextForm(f => ({ ...f, subheaderFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                 <input value={textForm.subheaderEs} onChange={e => setTextForm(f => ({ ...f, subheaderEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
               </div>
-              <div className="flex items-center gap-3">
-                <div className="relative flex-1">
-                  <input
-                    value={textForm.color}
-                    onChange={e => setTextForm(f => ({ ...f, color: e.target.value }))}
-                    placeholder={t('admin.site.colorPlaceholder')}
-                    className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full pr-10"
-                  />
-                  {textForm.color && (
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 rounded-sm border border-border" style={{ background: textForm.color }} />
-                  )}
-                </div>
-                <input
-                  type="color"
-                  value={textForm.color || '#1C1C1C'}
-                  onChange={e => setTextForm(f => ({ ...f, color: e.target.value }))}
-                  className="w-10 h-9 border border-border cursor-pointer bg-cream p-0.5"
-                  title="Pick color"
-                />
-              </div>
+              <ColorInput
+                value={textForm.color}
+                onChange={v => setTextForm(f => ({ ...f, color: v }))}
+                placeholder={t('admin.site.colorPlaceholder')}
+              />
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.ctaCategory')}</p>
@@ -1759,9 +1905,112 @@ function AdminStats() {
   );
 }
 
+// ── Theme ─────────────────────────────────────────────────────────────────────
+
+type ColorField = {
+  key: keyof ThemeConfig;
+  labelKey: string;
+};
+
+const THEME_SECTIONS: { titleKey: string; fields: ColorField[] }[] = [
+  {
+    titleKey: 'admin.theme.navbar',
+    fields: [
+      { key: 'navbarBg',           labelKey: 'admin.theme.navbarBg' },
+      { key: 'navbarText',         labelKey: 'admin.theme.navbarText' },
+      { key: 'navbarTextSelected', labelKey: 'admin.theme.navbarSelected' },
+      { key: 'navbarTextInactive', labelKey: 'admin.theme.navbarInactive' },
+      { key: 'navbarSeparator',    labelKey: 'admin.theme.navbarSeparator' },
+    ],
+  },
+  {
+    titleKey: 'admin.theme.announcement',
+    fields: [
+      { key: 'announcementBg',   labelKey: 'admin.theme.announcementBg' },
+      { key: 'announcementText', labelKey: 'admin.theme.announcementText' },
+    ],
+  },
+  {
+    titleKey: 'admin.theme.site',
+    fields: [
+      { key: 'siteBg',         labelKey: 'admin.theme.siteBg' },
+      { key: 'siteText',       labelKey: 'admin.theme.siteText' },
+      { key: 'siteTextMuted',  labelKey: 'admin.theme.siteTextMuted' },
+      { key: 'siteTextAccent', labelKey: 'admin.theme.siteTextAccent' },
+      { key: 'siteSeparator',  labelKey: 'admin.theme.siteSeparator' },
+    ],
+  },
+  {
+    titleKey: 'admin.theme.card',
+    fields: [
+      { key: 'cardText',       labelKey: 'admin.theme.cardText' },
+      { key: 'cardButtonBg',   labelKey: 'admin.theme.cardButtonBg' },
+      { key: 'cardButtonText', labelKey: 'admin.theme.cardButtonText' },
+    ],
+  },
+];
+
+function AdminTheme() {
+  const { t } = useTranslation();
+  const { theme, setTheme } = useTheme();
+  const [form, setForm] = useState<ThemeConfig>({ ...theme });
+  const [saving, setSaving] = useState(false);
+
+  function setColor(key: keyof ThemeConfig, value: string) {
+    setForm(f => ({ ...f, [key]: value }));
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      const raw = await api.admin.theme.update(form);
+      const updated = { ...THEME_DEFAULTS, ...Object.fromEntries(Object.entries(raw as Record<string, unknown>).filter(([, v]) => v != null)) } as typeof THEME_DEFAULTS;
+      setTheme(updated);
+      setForm({ ...updated });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function handleReset() {
+    setForm({ ...THEME_DEFAULTS });
+  }
+
+  return (
+    <div className="space-y-8">
+      <p className="text-xs uppercase tracking-widest text-muted">{t('admin.theme.title')}</p>
+      {THEME_SECTIONS.map(section => (
+        <div key={section.titleKey}>
+          <p className="text-xs uppercase tracking-widest text-muted mb-3">{t(section.titleKey)}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {section.fields.map(field => (
+              <div key={field.key}>
+                <p className="text-xs text-muted mb-1">{t(field.labelKey)}</p>
+                <ColorInput
+                  value={form[field.key]}
+                  onChange={v => setColor(field.key, v)}
+                  placeholder="#000000"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+      <div className="flex gap-2 pt-2">
+        <button onClick={handleSave} disabled={saving} className="text-xs uppercase tracking-widest border border-dark bg-dark text-white px-4 py-2 hover:bg-gold transition-colors disabled:opacity-50">
+          {saving ? '...' : t('admin.theme.save')}
+        </button>
+        <button onClick={handleReset} className="text-xs uppercase tracking-widest border border-border px-4 py-2 hover:border-dark transition-colors">
+          {t('admin.theme.reset')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-type Tab = 'orders' | 'products' | 'stats' | 'users' | 'admins' | 'site';
+type Tab = 'orders' | 'products' | 'stats' | 'users' | 'admins' | 'site' | 'theme';
 
 export default function Admin() {
   const { t } = useTranslation();
@@ -1774,6 +2023,7 @@ export default function Admin() {
     { key: 'users', label: t('admin.tabs.users') },
     { key: 'admins', label: t('admin.tabs.admins') },
     { key: 'site', label: t('admin.tabs.site') },
+    { key: 'theme', label: t('admin.tabs.theme') },
   ];
 
   return (
@@ -1801,6 +2051,7 @@ export default function Admin() {
       {tab === 'users' && <AdminUsers />}
       {tab === 'admins' && <AdminAdmins />}
       {tab === 'site' && <AdminSite />}
+      {tab === 'theme' && <AdminTheme />}
     </div>
   );
 }

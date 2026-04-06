@@ -1,5 +1,6 @@
 package com.bijou.backend.auth;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,15 +20,18 @@ public class AuthService {
     private final ClientRepository clientRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public AuthService(
         ClientRepository clientRepository,
         PasswordEncoder passwordEncoder,
-        JwtService jwtService
+        JwtService jwtService,
+        ApplicationEventPublisher eventPublisher
     ) {
         this.clientRepository = clientRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.eventPublisher = eventPublisher;
     }
 
     private boolean checkChars(String str) {
@@ -68,6 +72,8 @@ public class AuthService {
             throw new AppException(HttpStatus.BAD_REQUEST, "ADDRESS_INVALID");
         }
 
+        Language lang = Language.valueOf(req.language());
+
         String encoded = passwordEncoder.encode(pswd);
         Client client = Client.builder()
             .address(req.address())
@@ -79,11 +85,12 @@ public class AuthService {
             .lastName(req.lastName())
             .password(encoded)
             .role(Role.CLIENT)
-            .language(Language.valueOf(req.language()))
+            .language(lang)
             .build();
 
         clientRepository.save(client);
         log.info("registration successful for email {}", email);
+        eventPublisher.publishEvent(new RegisterEvent(req.firstName(),req.lastName(),lang,email));
         return new AuthTokenPair(jwtService.generateAccessToken(client), jwtService.generateRefreshToken(client));
     }
 

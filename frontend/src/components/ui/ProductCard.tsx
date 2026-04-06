@@ -118,12 +118,13 @@ export default function ProductCard({ item }: { item: ItemView }) {
         {/* Quick add — slides up on hover */}
         <button
           onClick={handleAddToCart}
-          className="absolute bottom-0 left-0 right-0 bg-dark text-white text-xs uppercase tracking-widest py-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300 cursor-pointer"
+          className="absolute bottom-0 left-0 right-0 text-xs uppercase tracking-widest py-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300 cursor-pointer"
+          style={{ backgroundColor: 'var(--bijou-card-button-bg)', color: 'var(--bijou-card-button-text)' }}
         >
           {t('product.addToCart')}
         </button>
       </div>
-      <p className="text-sm tracking-wide">{name}</p>
+      <p className="text-sm tracking-wide" style={{ color: 'var(--bijou-card-text)' }}>{name}</p>
       {hasDiscount ? (
         <p className="text-sm mt-0.5 flex items-center gap-2">
           <span>{format(salePrice)}</span>

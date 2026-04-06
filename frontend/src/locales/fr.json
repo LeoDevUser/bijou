@@ -151,7 +151,8 @@
       "users": "Utilisateurs",
       "admins": "Admins",
       "site": "Site",
-      "stats": "Ventes"
+      "stats": "Ventes",
+      "theme": "Thème"
     },
     "search": {
       "orderPlaceholder": "Rechercher par ID de commande ou e-mail...",
@@ -304,6 +305,30 @@
       "ctaCategory": "Lien vers une catégorie",
       "ctaLabel": "Lien vers un label",
       "ctaCollection": "Lien vers une collection"
+    },
+    "theme": {
+      "title": "Thème de Couleur",
+      "navbar": "Barre de Navigation",
+      "navbarBg": "Fond",
+      "navbarText": "Texte Normal",
+      "navbarSelected": "Sélectionné / Survol",
+      "navbarInactive": "Texte Inactif",
+      "navbarSeparator": "Séparateur",
+      "announcement": "Barre d'Annonces",
+      "announcementBg": "Fond",
+      "announcementText": "Texte",
+      "site": "Site",
+      "siteBg": "Fond",
+      "siteText": "Texte",
+      "siteTextMuted": "Texte Secondaire",
+      "siteTextAccent": "Accent / Texte Sélectionné",
+      "siteSeparator": "Séparateur",
+      "card": "Carte Produit",
+      "cardText": "Texte",
+      "cardButtonBg": "Fond du Bouton",
+      "cardButtonText": "Texte du Bouton",
+      "save": "Enregistrer le Thème",
+      "reset": "Réinitialiser"
     }
   },
   "account": {

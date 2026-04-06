@@ -1,4 +1,4 @@
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, AnnouncementView, SiteAssetView, CollectionView, SalesStats, ItemAssetView } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, AnnouncementView, SiteAssetView, CollectionView, SalesStats, ItemAssetView, ThemeConfig } from '../types';
 import { getToken, setToken } from './tokenStore';
 
 interface LabelRequest { nameEn: string; nameFr: string; nameEs: string; }
@@ -95,6 +95,9 @@ export const api = {
   },
   collections: {
     list: () => request<CollectionView[]>('/public/collections'),
+  },
+  theme: {
+    get: () => request<ThemeConfig>('/public/theme'),
   },
   orders: {
     list: () => request<OrderView[]>('/api/orders'),
@@ -223,6 +226,10 @@ export const api = {
         request<CollectionView>(`/${ADMIN}/collections/${id}/image`, { method: 'DELETE' }),
       delete: (id: number) =>
         request<void>(`/${ADMIN}/collections/${id}`, { method: 'DELETE' }),
+    },
+    theme: {
+      update: (data: ThemeConfig) =>
+        request<ThemeConfig>(`/${ADMIN}/theme`, { method: 'PATCH', body: JSON.stringify(data) }),
     },
     siteAssets: {
       updateText: (slot: string, data: { headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; color: string; ctaCategory: string | null; ctaLabelId: number | null }) =>

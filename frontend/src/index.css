@@ -2,11 +2,29 @@
 
 @import "tailwindcss";
 
+:root {
+  --bijou-navbar-bg: #FAFAF8;
+  --bijou-navbar-text: #1C1C1C;
+  --bijou-navbar-selected: #C9A96E;
+  --bijou-navbar-inactive: #9C9C9C;
+  --bijou-navbar-separator: #E8E4DC;
+  --bijou-announcement-bg: #1C1C1C;
+  --bijou-announcement-text: #FFFFFF;
+  --bijou-site-bg: #FAFAF8;
+  --bijou-site-text: #1C1C1C;
+  --bijou-site-text-muted: #9C9C9C;
+  --bijou-site-text-accent: #C9A96E;
+  --bijou-site-separator: #E8E4DC;
+  --bijou-card-text: #1C1C1C;
+  --bijou-card-button-bg: #1C1C1C;
+  --bijou-card-button-text: #FFFFFF;
+}
+
 @theme {
   --color-cream: #FAFAF8;
-  --color-gold: #C9A96E;
-  --color-border: #E8E4DC;
-  --color-muted: #9C9C9C;
+  --color-gold: var(--bijou-site-text-accent);
+  --color-border: var(--bijou-site-separator);
+  --color-muted: var(--bijou-site-text-muted);
   --color-dark: #1C1C1C;
 
   --font-serif: "Cormorant Garamond", Georgia, serif;
@@ -19,11 +37,29 @@
   }
 
   body {
-    background-color: #FAFAF8;
-    color: #1C1C1C;
+    background-color: var(--bijou-site-bg);
+    color: var(--bijou-site-text);
     font-family: Jost, system-ui, sans-serif;
     margin: 0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+}
+
+.bijou-navbar-border {
+  border-color: var(--bijou-navbar-separator);
+}
+
+.bijou-nav-link {
+  color: var(--bijou-navbar-text);
+  transition: color 0.15s;
+}
+.bijou-nav-link:hover {
+  color: var(--bijou-navbar-selected);
+}
+.bijou-nav-selected {
+  color: var(--bijou-navbar-selected);
+}
+.bijou-nav-inactive {
+  color: var(--bijou-navbar-inactive);
 }

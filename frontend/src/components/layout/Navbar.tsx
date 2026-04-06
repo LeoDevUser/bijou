@@ -31,9 +31,9 @@ export default function Navbar() {
   function close() { setMenuOpen(false); }
 
   return (
-    <header className="sticky top-0 z-50 bg-cream">
+    <header className="sticky top-0 z-50" style={{ backgroundColor: 'var(--bijou-navbar-bg)' }}>
       <AnnouncementBar />
-      <div className="border-b border-border">
+      <div className="border-b bijou-navbar-border">
 
         {/* ── Main row ── */}
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center relative">
@@ -42,7 +42,7 @@ export default function Navbar() {
           <div className="flex items-center">
             {/* Hamburger */}
             <button
-              className="md:hidden text-dark hover:text-gold transition-colors cursor-pointer"
+              className="md:hidden bijou-nav-link cursor-pointer"
               onClick={() => setMenuOpen(o => !o)}
               aria-label="Menu"
             >
@@ -60,7 +60,7 @@ export default function Navbar() {
             {/* Desktop nav links */}
             <nav className="hidden md:flex items-center gap-8">
               {NAV_LINKS.map(link => (
-                <Link key={link.key} to={link.to} className="text-xs uppercase tracking-widest text-dark hover:text-gold transition-colors">
+                <Link key={link.key} to={link.to} className="text-xs uppercase tracking-widest bijou-nav-link">
                   {t(link.key)}
                 </Link>
               ))}
@@ -68,7 +68,7 @@ export default function Navbar() {
           </div>
 
           {/* Center: Logo */}
-          <Link to="/" onClick={close} className="absolute left-1/2 -translate-x-1/2 font-serif text-2xl tracking-[0.22em] text-dark whitespace-nowrap">
+          <Link to="/" onClick={close} className="absolute left-1/2 -translate-x-1/2 font-serif text-2xl tracking-[0.22em] whitespace-nowrap bijou-nav-link">
             BIJOU MONDE
           </Link>
 
@@ -76,22 +76,22 @@ export default function Navbar() {
           <div className="flex items-center gap-5 ml-auto">
             {isAuthenticated ? (
               <>
-                <Link to="/account" className="hidden md:block text-xs uppercase tracking-wider text-dark hover:text-gold transition-colors">{t('nav.account')}</Link>
-                <Link to="/orders" className="hidden md:block text-xs uppercase tracking-wider text-dark hover:text-gold transition-colors">{t('nav.orders')}</Link>
-                <button onClick={() => { logout(); navigate('/'); }} className="hidden md:block text-xs uppercase tracking-wider text-dark hover:text-gold transition-colors cursor-pointer">{t('nav.logout')}</button>
+                <Link to="/account" className="hidden md:block text-xs uppercase tracking-wider bijou-nav-link">{t('nav.account')}</Link>
+                <Link to="/orders" className="hidden md:block text-xs uppercase tracking-wider bijou-nav-link">{t('nav.orders')}</Link>
+                <button onClick={() => { logout(); navigate('/'); }} className="hidden md:block text-xs uppercase tracking-wider bijou-nav-link cursor-pointer">{t('nav.logout')}</button>
               </>
             ) : (
-              <Link to="/login" className="hidden md:block text-xs uppercase tracking-wider text-dark hover:text-gold transition-colors">{t('nav.account')}</Link>
+              <Link to="/login" className="hidden md:block text-xs uppercase tracking-wider bijou-nav-link">{t('nav.account')}</Link>
             )}
 
-            <Link to="/cart" onClick={close} className="relative text-dark hover:text-gold transition-colors">
+            <Link to="/cart" onClick={close} className="relative bijou-nav-link">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
                 <line x1="3" y1="6" x2="21" y2="6" />
                 <path d="M16 10a4 4 0 01-8 0" />
               </svg>
               {count > 0 && (
-                <span className="absolute -top-2 -right-2 bg-dark text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center leading-none">
+                <span className="absolute -top-2 -right-2 text-[10px] w-4 h-4 rounded-full flex items-center justify-center leading-none" style={{ backgroundColor: 'var(--bijou-navbar-text)', color: 'var(--bijou-navbar-bg)' }}>
                   {count}
                 </span>
               )}
@@ -100,24 +100,24 @@ export default function Navbar() {
         </div>
 
         {/* ── Desktop row 2: language (left) + currency (right) ── */}
-        <div className="hidden md:flex justify-between items-center border-t border-border py-1.5 max-w-7xl mx-auto px-6 w-full">
+        <div className="hidden md:flex justify-between items-center border-t bijou-navbar-border py-1.5 max-w-7xl mx-auto px-6 w-full">
           <div className="flex items-center gap-1.5">
             {LANGUAGES.map((lang, idx) => (
               <span key={lang} className="flex items-center gap-1.5">
-                <button onClick={() => setLanguage(lang)} className={`flex items-center gap-1 text-[11px] uppercase tracking-wider transition-colors cursor-pointer ${language === lang ? 'text-dark font-medium' : 'text-muted'}`}>
+                <button onClick={() => setLanguage(lang)} className="flex items-center gap-1 text-[11px] uppercase tracking-wider transition-colors cursor-pointer" style={{ color: language === lang ? 'var(--bijou-navbar-text)' : 'var(--bijou-navbar-inactive)', fontWeight: language === lang ? 500 : 400 }}>
                   <span>{LANGUAGE_FLAGS[lang]}</span>{lang}
                 </button>
-                {idx < LANGUAGES.length - 1 && <span className="text-muted text-xs">|</span>}
+                {idx < LANGUAGES.length - 1 && <span className="text-xs" style={{ color: 'var(--bijou-navbar-inactive)' }}>|</span>}
               </span>
             ))}
           </div>
           <div className="flex items-center gap-1.5">
             {CURRENCIES.map((c, idx) => (
               <span key={c} className="flex items-center gap-1.5">
-                <button onClick={() => setCurrency(c)} className={`flex items-center gap-1 text-[11px] uppercase tracking-wider transition-colors cursor-pointer ${currency === c ? 'text-dark font-medium' : 'text-muted'}`}>
+                <button onClick={() => setCurrency(c)} className="flex items-center gap-1 text-[11px] uppercase tracking-wider transition-colors cursor-pointer" style={{ color: currency === c ? 'var(--bijou-navbar-text)' : 'var(--bijou-navbar-inactive)', fontWeight: currency === c ? 500 : 400 }}>
                   <span>{CURRENCY_FLAGS[c]}</span>{c}
                 </button>
-                {idx < CURRENCIES.length - 1 && <span className="text-muted text-xs">|</span>}
+                {idx < CURRENCIES.length - 1 && <span className="text-xs" style={{ color: 'var(--bijou-navbar-inactive)' }}>|</span>}
               </span>
             ))}
           </div>
@@ -125,7 +125,7 @@ export default function Navbar() {
 
         {/* ── Mobile menu ── */}
         {menuOpen && (
-          <div className="md:hidden border-t border-border bg-cream">
+          <div className="md:hidden border-t bijou-navbar-border" style={{ backgroundColor: 'var(--bijou-navbar-bg)' }}>
             <div className="px-6 py-2">
 
               {/* Nav links */}
@@ -134,22 +134,22 @@ export default function Navbar() {
                   key={link.key}
                   to={link.to}
                   onClick={close}
-                  className="flex items-center py-3.5 text-xs uppercase tracking-widest text-dark hover:text-gold transition-colors border-b border-border last:border-b-0"
+                  className="flex items-center py-3.5 text-xs uppercase tracking-widest bijou-nav-link border-b bijou-navbar-border last:border-b-0"
                 >
                   {t(link.key)}
                 </Link>
               ))}
 
               {/* Account links */}
-              <div className="border-b border-border">
+              <div className="border-b bijou-navbar-border">
                 {isAuthenticated ? (
                   <>
-                    <Link to="/account" onClick={close} className="flex items-center py-3.5 text-xs uppercase tracking-widest text-dark hover:text-gold transition-colors">{t('nav.account')}</Link>
-                    <Link to="/orders" onClick={close} className="flex items-center py-3.5 text-xs uppercase tracking-widest text-dark hover:text-gold transition-colors">{t('nav.orders')}</Link>
-                    <button onClick={() => { logout(); navigate('/'); close(); }} className="flex items-center w-full py-3.5 text-xs uppercase tracking-widest text-dark hover:text-gold transition-colors cursor-pointer">{t('nav.logout')}</button>
+                    <Link to="/account" onClick={close} className="flex items-center py-3.5 text-xs uppercase tracking-widest bijou-nav-link">{t('nav.account')}</Link>
+                    <Link to="/orders" onClick={close} className="flex items-center py-3.5 text-xs uppercase tracking-widest bijou-nav-link">{t('nav.orders')}</Link>
+                    <button onClick={() => { logout(); navigate('/'); close(); }} className="flex items-center w-full py-3.5 text-xs uppercase tracking-widest bijou-nav-link cursor-pointer">{t('nav.logout')}</button>
                   </>
                 ) : (
-                  <Link to="/login" onClick={close} className="flex items-center py-3.5 text-xs uppercase tracking-widest text-dark hover:text-gold transition-colors">{t('nav.account')}</Link>
+                  <Link to="/login" onClick={close} className="flex items-center py-3.5 text-xs uppercase tracking-widest bijou-nav-link">{t('nav.account')}</Link>
                 )}
               </div>
 
@@ -158,20 +158,20 @@ export default function Navbar() {
                 <div className="flex items-center gap-3">
                   {LANGUAGES.map((lang, idx) => (
                     <span key={lang} className="flex items-center gap-3">
-                      <button onClick={() => setLanguage(lang)} className={`flex items-center gap-1 text-xs uppercase tracking-wider transition-colors cursor-pointer ${language === lang ? 'text-dark font-medium' : 'text-muted'}`}>
+                      <button onClick={() => setLanguage(lang)} className="flex items-center gap-1 text-xs uppercase tracking-wider transition-colors cursor-pointer" style={{ color: language === lang ? 'var(--bijou-navbar-text)' : 'var(--bijou-navbar-inactive)', fontWeight: language === lang ? 500 : 400 }}>
                         <span>{LANGUAGE_FLAGS[lang]}</span>{lang}
                       </button>
-                      {idx < LANGUAGES.length - 1 && <span className="text-muted text-xs">|</span>}
+                      {idx < LANGUAGES.length - 1 && <span className="text-xs" style={{ color: 'var(--bijou-navbar-inactive)' }}>|</span>}
                     </span>
                   ))}
                 </div>
                 <div className="flex items-center gap-3">
                   {CURRENCIES.map((c, idx) => (
                     <span key={c} className="flex items-center gap-3">
-                      <button onClick={() => setCurrency(c)} className={`flex items-center gap-1 text-xs uppercase tracking-wider transition-colors cursor-pointer ${currency === c ? 'text-dark font-medium' : 'text-muted'}`}>
+                      <button onClick={() => setCurrency(c)} className="flex items-center gap-1 text-xs uppercase tracking-wider transition-colors cursor-pointer" style={{ color: currency === c ? 'var(--bijou-navbar-text)' : 'var(--bijou-navbar-inactive)', fontWeight: currency === c ? 500 : 400 }}>
                         <span>{CURRENCY_FLAGS[c]}</span>{c}
                       </button>
-                      {idx < CURRENCIES.length - 1 && <span className="text-muted text-xs">|</span>}
+                      {idx < CURRENCIES.length - 1 && <span className="text-xs" style={{ color: 'var(--bijou-navbar-inactive)' }}>|</span>}
                     </span>
                   ))}
                 </div>

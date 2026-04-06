@@ -151,7 +151,8 @@
       "users": "Users",
       "admins": "Admins",
       "site": "Site",
-      "stats": "Sales"
+      "stats": "Sales",
+      "theme": "Theme"
     },
     "search": {
       "orderPlaceholder": "Search by order ID or email...",
@@ -304,6 +305,30 @@
       "ctaCategory": "Link to category",
       "ctaLabel": "Link to label",
       "ctaCollection": "Link to collection"
+    },
+    "theme": {
+      "title": "Color Theme",
+      "navbar": "Navbar",
+      "navbarBg": "Background",
+      "navbarText": "Normal Text",
+      "navbarSelected": "Selected / Hover",
+      "navbarInactive": "Inactive Text",
+      "navbarSeparator": "Separator",
+      "announcement": "Announcement Bar",
+      "announcementBg": "Background",
+      "announcementText": "Text",
+      "site": "Site",
+      "siteBg": "Background",
+      "siteText": "Text",
+      "siteTextMuted": "Muted Text",
+      "siteTextAccent": "Accent / Selected Text",
+      "siteSeparator": "Separator",
+      "card": "Product Card",
+      "cardText": "Text",
+      "cardButtonBg": "Button Background",
+      "cardButtonText": "Button Text",
+      "save": "Save Theme",
+      "reset": "Reset to Defaults"
     }
   },
   "account": {

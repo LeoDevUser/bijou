@@ -151,7 +151,8 @@
       "users": "Usuarios",
       "admins": "Admins",
       "site": "Sitio",
-      "stats": "Ventas"
+      "stats": "Ventas",
+      "theme": "Tema"
     },
     "search": {
       "orderPlaceholder": "Buscar por ID de pedido o correo...",
@@ -304,6 +305,30 @@
       "ctaCategory": "Enlace a categoría",
       "ctaLabel": "Enlace a etiqueta",
       "ctaCollection": "Enlace a colección"
+    },
+    "theme": {
+      "title": "Tema de Color",
+      "navbar": "Barra de Navegación",
+      "navbarBg": "Fondo",
+      "navbarText": "Texto Normal",
+      "navbarSelected": "Seleccionado / Hover",
+      "navbarInactive": "Texto Inactivo",
+      "navbarSeparator": "Separador",
+      "announcement": "Barra de Anuncios",
+      "announcementBg": "Fondo",
+      "announcementText": "Texto",
+      "site": "Sitio",
+      "siteBg": "Fondo",
+      "siteText": "Texto",
+      "siteTextMuted": "Texto Secundario",
+      "siteTextAccent": "Acento / Texto Seleccionado",
+      "siteSeparator": "Separador",
+      "card": "Tarjeta de Producto",
+      "cardText": "Texto",
+      "cardButtonBg": "Fondo del Botón",
+      "cardButtonText": "Texto del Botón",
+      "save": "Guardar Tema",
+      "reset": "Restaurar Predeterminados"
     }
   },
   "account": {

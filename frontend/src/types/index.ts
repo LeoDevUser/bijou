@@ -162,6 +162,24 @@ export interface CollectionView {
   color: string | null;
 }
 
+export interface ThemeConfig {
+  navbarBg: string;
+  navbarText: string;
+  navbarTextSelected: string;
+  navbarTextInactive: string;
+  announcementBg: string;
+  announcementText: string;
+  siteBg: string;
+  siteText: string;
+  cardText: string;
+  cardButtonBg: string;
+  cardButtonText: string;
+  navbarSeparator: string | null;
+  siteTextMuted: string | null;
+  siteTextAccent: string | null;
+  siteSeparator: string | null;
+}
+
 export interface SiteAssetView {
   id: number;
   slot: string;

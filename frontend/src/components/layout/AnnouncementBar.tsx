@@ -45,7 +45,7 @@ export default function AnnouncementBar() {
   const href = announcementHref(msg);
 
   return (
-    <div className="bg-[#1C1C1C] text-white text-xs tracking-widest uppercase text-center py-2 px-4 select-none">
+    <div className="text-xs tracking-widest uppercase text-center py-2 px-4 select-none" style={{ backgroundColor: 'var(--bijou-announcement-bg)', color: 'var(--bijou-announcement-text)' }}>
       <span style={{ transition: 'opacity 0.4s', opacity: visible ? 1 : 0 }}>
         {href
           ? <Link to={href} className="hover:underline">{text}</Link>
