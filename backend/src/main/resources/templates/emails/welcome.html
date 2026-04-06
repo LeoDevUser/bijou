@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Base styles for clients that support it */
+        body { margin: 0; padding: 0; background-color: #111111; font-family: 'Georgia', serif; color: #ffffff; }
+        .content { padding: 40px 20px; text-align: center; }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            border: 1px solid #ffffff;
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .footer { font-size: 10px; color: #666666; margin-top: 50px; letter-spacing: 1px; }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #111111; font-family: 'Georgia', serif; color: #ffffff;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #111111;">
+        <tr>
+            <td align="center" style="padding: 60px 0 20px 0;">
+                <h1 style="font-size: 24px; letter-spacing: 8px; text-transform: uppercase; margin: 0; font-weight: normal;">
+                    BIJOU MONDE
+                </h1>
+            </td>
+        </tr>
+        <tr>
+            <td align="center" class="content">
+                <table width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px;">
+                    <tr>
+                        <td align="center" style="padding: 40px 0 20px 0;">
+                            <h2 style="font-size: 28px; font-weight: normal; font-style: italic;" 
+                                th:text="#{mail.welcome.greeting(${fullName})}">
+                                Welcome
+                            </h2>
+                            <p style="font-size: 16px; line-height: 1.6; color: #cccccc; padding: 0 40px;" 
+                               th:text="#{mail.welcome.body}">
+                                Your account is now active. Explore our latest collections of fine jewelry.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="padding: 30px 0;">
+                            <a href="https://bijou.mx" class="button" style="border: 1px solid #ffffff; color: #ffffff; padding: 12px 30px; text-decoration: none; text-transform: uppercase; letter-spacing: 2px; font-size: 12px;">
+                                Shop Collection
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="center" class="footer" style="padding: 60px 0 40px 0; color: #666666; font-size: 10px; text-transform: uppercase; letter-spacing: 2px;">
+                            &copy; 2026 BIJOU MONDE <br> Montréal | México
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
