@@ -23,7 +23,7 @@ public class EmailListener {
     private String sender;
 
 
-    @Async
+    @Async("emailTaskExecutor")
     @EventListener
     public void handleRegistration(RegisterEvent event) {
         SimpleMailMessage msg = new SimpleMailMessage();
