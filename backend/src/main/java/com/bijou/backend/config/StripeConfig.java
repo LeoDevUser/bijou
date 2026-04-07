@@ -12,7 +12,7 @@ import jakarta.annotation.PostConstruct;
 @EnableAsync
 public class StripeConfig {
 
-    @Value("${STRIPE_SECRET_KEY}")
+    @Value("${stripe.secret.key}")
     private String secretKey;
 
     @PostConstruct

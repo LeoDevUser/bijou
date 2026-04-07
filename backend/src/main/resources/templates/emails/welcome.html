@@ -4,61 +4,108 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        /* Base styles for clients that support it */
         body { margin: 0; padding: 0; background-color: #111111; font-family: 'Georgia', serif; color: #ffffff; }
-        .content { padding: 40px 20px; text-align: center; }
         .button {
             display: inline-block;
-            padding: 12px 30px;
+            padding: 14px 36px;
             border: 1px solid #ffffff;
             color: #ffffff;
             text-decoration: none;
-            font-size: 14px;
-            letter-spacing: 2px;
+            font-size: 11px;
+            letter-spacing: 3px;
             text-transform: uppercase;
         }
-        .footer { font-size: 10px; color: #666666; margin-top: 50px; letter-spacing: 1px; }
+        .button:hover { background-color: #ffffff; color: #111111; }
     </style>
 </head>
 <body style="margin: 0; padding: 0; background-color: #111111; font-family: 'Georgia', serif; color: #ffffff;">
+
+    <!-- Outer wrapper -->
     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #111111;">
         <tr>
-            <td align="center" style="padding: 60px 0 20px 0;">
-                <h1 style="font-size: 24px; letter-spacing: 8px; text-transform: uppercase; margin: 0; font-weight: normal;">
-                    BIJOU MONDE
-                </h1>
-            </td>
-        </tr>
-        <tr>
-            <td align="center" class="content">
-                <table width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px;">
+            <td align="center" style="padding: 60px 20px 0 20px;">
+
+                <!-- Inner container -->
+                <table width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%; margin: 0 auto;">
+
+                    <!-- Brand header -->
                     <tr>
-                        <td align="center" style="padding: 40px 0 20px 0;">
-                            <h2 style="font-size: 28px; font-weight: normal; font-style: italic;" 
+                        <td align="center" style="padding-bottom: 50px;">
+                            <h1 style="font-size: 22px; letter-spacing: 10px; text-transform: uppercase; margin: 0; font-weight: normal; color: #ffffff;">
+                                BIJOU MONDE
+                            </h1>
+                        </td>
+                    </tr>
+
+                    <!-- Thin divider -->
+                    <tr>
+                        <td align="center" style="padding-bottom: 50px;">
+                            <table width="60" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td style="border-top: 1px solid #888888; font-size: 0; line-height: 0;">&nbsp;</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Welcome heading -->
+                    <tr>
+                        <td align="center" style="padding: 0 40px 24px 40px;">
+                            <h2 style="font-size: 30px; font-weight: normal; font-style: italic; margin: 0; color: #ffffff;"
                                 th:text="#{mail.welcome.greeting(${fullName})}">
                                 Welcome
                             </h2>
-                            <p style="font-size: 16px; line-height: 1.6; color: #cccccc; padding: 0 40px;" 
+                        </td>
+                    </tr>
+
+                    <!-- Body text -->
+                    <tr>
+                        <td align="center" style="padding: 0 60px 40px 60px;">
+                            <p style="font-size: 15px; line-height: 1.8; color: #aaaaaa; margin: 0; text-align: center;"
                                th:text="#{mail.welcome.body}">
-                                Your account is now active. Explore our latest collections of fine jewelry.
+                                Your account is now active. We invite you to explore our latest collections,
+                                where every piece tells a unique story of craftsmanship.
                             </p>
                         </td>
                     </tr>
+
+                    <!-- CTA Button -->
                     <tr>
-                        <td align="center" style="padding: 30px 0;">
-                            <a href="https://bijou.mx" class="button" style="border: 1px solid #ffffff; color: #ffffff; padding: 12px 30px; text-decoration: none; text-transform: uppercase; letter-spacing: 2px; font-size: 12px;">
+                        <td align="center" style="padding-bottom: 60px;">
+                            <a href="https://bijou.mx" class="button"
+                               style="display: inline-block; border: 1px solid #ffffff; color: #ffffff; padding: 14px 36px; text-decoration: none; text-transform: uppercase; letter-spacing: 3px; font-size: 11px; font-family: 'Georgia', serif;">
                                 Shop Collection
                             </a>
                         </td>
                     </tr>
+
+                    <!-- Thin divider -->
                     <tr>
-                        <td align="center" class="footer" style="padding: 60px 0 40px 0; color: #666666; font-size: 10px; text-transform: uppercase; letter-spacing: 2px;">
-                            &copy; 2026 BIJOU MONDE <br> Montréal | México
+                        <td align="center" style="padding-bottom: 30px;">
+                            <table width="60" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td style="border-top: 1px solid #333333; font-size: 0; line-height: 0;">&nbsp;</td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td align="center" style="padding-bottom: 50px;">
+                            <p style="font-size: 10px; color: #555555; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 12px 0;">
+                                &copy; 2026 BIJOU MONDE
+                            </p>
+                            <p style="font-size: 10px; color: #444444; margin: 0;">
+                                <a href="https://bijou.mx/unsubscribe" style="color: #555555; text-decoration: underline; letter-spacing: 1px;">Unsubscribe</a>
+                            </p>
+                        </td>
+                    </tr>
+
                 </table>
             </td>
         </tr>
     </table>
+
 </body>
 </html>

@@ -34,7 +34,7 @@ public class PaymentService {
     private final OrderRepository orderRepository;
     private final ClientRepository clientRepository;
     private final ApplicationEventPublisher eventPublisher;
-    @Value("${STRIPE_WEBHOOK_SECRET}")
+    @Value("${stripe.webhook.secret}")
     private String webSecret;
 
     public String createPaymentIntent(Client client, Order order, Currency currency) {
