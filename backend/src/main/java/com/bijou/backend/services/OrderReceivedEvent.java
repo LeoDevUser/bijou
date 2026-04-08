@@ -6,7 +6,7 @@ import java.util.List;
 import com.bijou.backend.entities.Country;
 import com.bijou.backend.entities.Language;
 
-public record OrderConfirmationEvent(
+public record OrderReceivedEvent(
     String email,
     String firstName,
     Language language,
@@ -17,9 +17,7 @@ public record OrderConfirmationEvent(
     String city,
     String postalCode,
     Country country,
-    String oxxoVoucherUrl,  // null for card payments
-    Integer installments,   // null if not MSI
-    boolean oxxoPayment     // true if order was paid via OXXO method
+    Integer installments
 ) {
     public record ItemLine(String name, int quantity, BigDecimal unitPrice) {}
 }

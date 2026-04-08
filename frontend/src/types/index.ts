@@ -88,6 +88,8 @@ export interface OrderView {
   createdAt: string;
   status: OrderStatus;
   country: Country;
+  installments: number | null;
+  oxxo: boolean;
 }
 
 export type Category = 'NECKLACE' | 'RING' | 'EARRING' | 'MISC';

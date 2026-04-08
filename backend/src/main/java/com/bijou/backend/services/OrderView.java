@@ -21,5 +21,6 @@ public record OrderView(
     Status status,
     Long id,
     Country country,
-    Integer installments
+    Integer installments,
+    boolean oxxo
 ){}

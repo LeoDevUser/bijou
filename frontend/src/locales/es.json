@@ -143,6 +143,10 @@
     "tracking": "Seguimiento",
     "pay": "Pagar Ahora",
     "cancel": "Cancelar Pedido",
+    "oxxo": {
+      "label": "Pago en OXXO",
+      "instructions": "Acude a cualquier tienda OXXO y paga con el voucher enviado a tu correo."
+    },
     "status": {
       "AWAITING_PAYMENT": "Esperando Pago",
       "PROCESSING": "En Proceso",

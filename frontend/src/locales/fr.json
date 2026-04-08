@@ -143,6 +143,10 @@
     "tracking": "Suivi",
     "pay": "Payer Maintenant",
     "cancel": "Annuler la Commande",
+    "oxxo": {
+      "label": "Payer à OXXO",
+      "instructions": "Rendez-vous dans n'importe quel magasin OXXO et payez avec le bon envoyé à votre adresse e-mail."
+    },
     "status": {
       "AWAITING_PAYMENT": "En attente de paiement",
       "PROCESSING": "En cours de traitement",

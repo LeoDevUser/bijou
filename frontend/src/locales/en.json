@@ -143,6 +143,10 @@
     "tracking": "Tracking",
     "pay": "Pay Now",
     "cancel": "Cancel Order",
+    "oxxo": {
+      "label": "Pay at OXXO",
+      "instructions": "Take your order to any OXXO store and pay with the voucher sent to your email."
+    },
     "status": {
       "AWAITING_PAYMENT": "Awaiting Payment",
       "PROCESSING": "Processing",

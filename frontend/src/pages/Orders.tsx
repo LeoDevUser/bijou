@@ -133,14 +133,21 @@ export default function Orders() {
               )}
 
               {order.status === 'AWAITING_PAYMENT' && (
-                <div className="mt-5 flex gap-3">
-                  <button
-                    onClick={() => handlePay(order)}
-                    disabled={payingId === order.id}
-                    className="text-xs uppercase tracking-wider bg-dark text-white px-5 py-2 hover:bg-gold transition-colors disabled:opacity-50 cursor-pointer"
-                  >
-                    {payingId === order.id ? '...' : t('orders.pay')}
-                  </button>
+                <div className="mt-5">
+                  {order.oxxo ? (
+                    <div className="mb-3">
+                      <p className="text-xs uppercase tracking-widest text-amber-600 font-medium mb-1">{t('orders.oxxo.label')}</p>
+                      <p className="text-xs text-muted">{t('orders.oxxo.instructions')}</p>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => handlePay(order)}
+                      disabled={payingId === order.id}
+                      className="text-xs uppercase tracking-wider bg-dark text-white px-5 py-2 hover:bg-gold transition-colors disabled:opacity-50 cursor-pointer mr-3"
+                    >
+                      {payingId === order.id ? '...' : t('orders.pay')}
+                    </button>
+                  )}
                   <button
                     onClick={() => handleCancel(order.id)}
                     disabled={cancelling === order.id}

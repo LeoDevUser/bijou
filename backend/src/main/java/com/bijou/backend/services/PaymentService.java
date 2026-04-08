@@ -192,6 +192,9 @@ public class PaymentService {
         Client client = clientRepository.findById(order.getClient().getId())
             .orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "CLIENT_NOT_FOUND"));
 
+        order.setOxxo(true);
+        orderRepository.save(order);
+
         log.info("OXXO voucher generated for order #{} — client {}", order.getId(), client.getEmail());
         eventPublisher.publishEvent(buildConfirmationEvent(client, order, voucherUrl));
     }
@@ -199,10 +202,13 @@ public class PaymentService {
     private OrderConfirmationEvent buildConfirmationEvent(Client client, Order order, String oxxoVoucherUrl) {
         List<OrderConfirmationEvent.ItemLine> lines = order.getOrderItems().stream()
             .map(oi -> {
+                String en = oi.getItem().getNameEn();
+                String fr = oi.getItem().getNameFr();
+                String es = oi.getItem().getNameEs();
                 String name = switch (client.getLanguage()) {
-                    case FR -> oi.getItem().getNameFr();
-                    case ES -> oi.getItem().getNameEs();
-                    default -> oi.getItem().getNameEn();
+                    case FR -> fr != null ? fr : (en != null ? en : es);
+                    case ES -> es != null ? es : (en != null ? en : fr);
+                    default -> en != null ? en : (fr != null ? fr : es);
                 };
                 return new OrderConfirmationEvent.ItemLine(name, oi.getQuantity(), oi.getUnitPrice());
             }).toList();
@@ -218,7 +224,9 @@ public class PaymentService {
             order.getCity(),
             order.getPostalCode(),
             order.getCountry(),
-            oxxoVoucherUrl
+            oxxoVoucherUrl,
+            order.getInstallments(),
+            order.isOxxo()
         );
     }
 

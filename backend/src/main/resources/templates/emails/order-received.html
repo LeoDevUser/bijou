@@ -16,18 +16,6 @@
             text-transform: uppercase;
             font-family: 'Georgia', serif;
         }
-        .oxxo-button {
-            display: inline-block;
-            padding: 14px 36px;
-            background-color: #e8232a;
-            color: #ffffff;
-            text-decoration: none;
-            font-size: 11px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            font-family: 'Georgia', serif;
-            font-weight: bold;
-        }
     </style>
 </head>
 <body style="margin:0;padding:0;background-color:#111111;font-family:'Georgia',serif;color:#ffffff;">
@@ -57,41 +45,17 @@
                     <tr>
                         <td align="center" style="padding:0 40px 16px 40px;">
                             <h2 style="font-size:28px;font-weight:normal;font-style:italic;margin:0;color:#ffffff;"
-                                th:text="#{mail.order.greeting(${firstName})}">Thank you</h2>
+                                th:text="#{mail.received.greeting(${firstName})}">Thank you</h2>
                         </td>
                     </tr>
 
                     <!-- Body text -->
                     <tr>
                         <td align="center" style="padding:0 60px 40px 60px;">
-                            <p th:if="${isOxxo}" style="font-size:15px;line-height:1.8;color:#aaaaaa;margin:0;text-align:center;"
-                               th:text="#{mail.order.body.oxxo}">
-                                Your order has been placed.
+                            <p style="font-size:15px;line-height:1.8;color:#aaaaaa;margin:0;text-align:center;"
+                               th:text="#{mail.received.body}">
+                                We've received your order and it's being prepared.
                             </p>
-                            <p th:unless="${isOxxo}" style="font-size:15px;line-height:1.8;color:#aaaaaa;margin:0;text-align:center;"
-                               th:text="#{mail.order.body.card}">
-                                Your payment has been received.
-                            </p>
-                        </td>
-                    </tr>
-
-                    <!-- OXXO Voucher -->
-                    <tr th:if="${isOxxo}">
-                        <td align="center" style="padding:0 40px 40px 40px;">
-                            <table width="100%" border="0" cellspacing="0" cellpadding="0"
-                                   style="border:1px solid #e8232a;">
-                                <tr>
-                                    <td align="center" style="padding:24px 30px;">
-                                        <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#e8232a;margin:0 0 16px 0;"
-                                           th:text="#{mail.order.voucher.title}">OXXO Payment Voucher</p>
-                                        <a th:href="${oxxoVoucherUrl}" class="oxxo-button"
-                                           style="display:inline-block;padding:14px 36px;background-color:#e8232a;color:#ffffff;text-decoration:none;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-family:'Georgia',serif;font-weight:bold;"
-                                           th:text="#{mail.order.voucher.cta}">View &amp; Print Voucher</a>
-                                        <p style="font-size:11px;color:#888888;margin:16px 0 0 0;line-height:1.6;"
-                                           th:text="#{mail.order.voucher.note}">Voucher expires in 3 days.</p>
-                                    </td>
-                                </tr>
-                            </table>
                         </td>
                     </tr>
 
@@ -105,17 +69,7 @@
                                         <p style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#666666;margin:0 0 10px 0;"
                                            th:text="#{mail.payment.method}">Payment Method</p>
 
-                                        <!-- OXXO voucher email -->
-                                        <p th:if="${isOxxo}" style="font-size:13px;color:#e8232a;font-weight:bold;margin:0 0 4px 0;"
-                                           th:text="#{mail.payment.oxxo}">OXXO</p>
-
-                                        <!-- OXXO completed (payment received at store) -->
-                                        <p th:if="${!isOxxo and oxxoPayment}" style="font-size:13px;color:#cccccc;margin:0 0 4px 0;"
-                                           th:text="#{mail.payment.oxxo}">OXXO</p>
-                                        <p th:if="${!isOxxo and oxxoPayment}" style="font-size:11px;color:#888888;margin:0 0 4px 0;"
-                                           th:text="#{mail.payment.oxxo.completed}">Payment received at store.</p>
-
-                                        <!-- MSI card -->
+                                        <!-- MSI plan -->
                                         <p th:if="${hasMsi}" style="font-size:13px;color:#cccccc;margin:0 0 10px 0;"
                                            th:text="#{mail.payment.msi(${installments})}">X-month plan</p>
                                         <table th:if="${hasMsi}" width="100%" border="0" cellspacing="0" cellpadding="0"
@@ -139,17 +93,14 @@
                                         </table>
                                         <p th:if="${hasMsi}" style="font-size:11px;color:#888888;margin:0 0 4px 0;"
                                            th:text="#{mail.payment.msi.fee(${msiFeePct})}">Includes fee.</p>
-                                        <p th:if="${hasMsi}" style="font-size:11px;color:#888888;margin:0;"
+                                        <p th:if="${hasMsi}" style="font-size:11px;color:#888888;margin:0 0 8px 0;"
                                            th:text="#{mail.payment.msi.stripe}">Stripe handles your installments.</p>
 
-                                        <!-- Regular card -->
-                                        <p th:if="${!isOxxo and !oxxoPayment and !hasMsi}" style="font-size:13px;color:#cccccc;margin:0 0 4px 0;"
-                                           th:text="#{mail.payment.card}">Credit / Debit Card</p>
+                                        <!-- Regular / OXXO (not yet determined at order creation) -->
+                                        <p th:unless="${hasMsi}" style="font-size:13px;color:#cccccc;margin:0 0 4px 0;"
+                                           th:text="#{mail.payment.card.or.oxxo}">Card or OXXO</p>
 
-                                        <!-- Stripe note (all non-OXXO-voucher) -->
-                                        <p th:unless="${isOxxo}" style="font-size:11px;color:#555555;margin:8px 0 0 0;"
-                                           th:text="#{mail.payment.stripe}">Processed through Stripe.</p>
-                                        <p th:if="${isOxxo}" style="font-size:11px;color:#555555;margin:8px 0 0 0;"
+                                        <p style="font-size:11px;color:#555555;margin:8px 0 0 0;"
                                            th:text="#{mail.payment.stripe}">Processed through Stripe.</p>
                                     </td>
                                 </tr>

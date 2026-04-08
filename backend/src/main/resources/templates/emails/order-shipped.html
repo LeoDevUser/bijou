@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { margin: 0; padding: 0; background-color: #111111; font-family: 'Georgia', serif; color: #ffffff; }
+        .button {
+            display: inline-block;
+            padding: 14px 36px;
+            border: 1px solid #ffffff;
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-family: 'Georgia', serif;
+        }
+    </style>
+</head>
+<body style="margin:0;padding:0;background-color:#111111;font-family:'Georgia',serif;color:#ffffff;">
+
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#111111;">
+        <tr>
+            <td align="center" style="padding:60px 20px 0 20px;">
+                <table width="600" border="0" cellspacing="0" cellpadding="0" style="max-width:600px;width:100%;margin:0 auto;">
+
+                    <!-- Brand -->
+                    <tr>
+                        <td align="center" style="padding-bottom:40px;">
+                            <h1 style="font-size:22px;letter-spacing:10px;text-transform:uppercase;margin:0;font-weight:normal;color:#ffffff;">BIJOU MONDE</h1>
+                        </td>
+                    </tr>
+
+                    <!-- Divider -->
+                    <tr>
+                        <td align="center" style="padding-bottom:40px;">
+                            <table width="60" border="0" cellspacing="0" cellpadding="0">
+                                <tr><td style="border-top:1px solid #888888;font-size:0;line-height:0;">&nbsp;</td></tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Greeting -->
+                    <tr>
+                        <td align="center" style="padding:0 40px 16px 40px;">
+                            <h2 style="font-size:28px;font-weight:normal;font-style:italic;margin:0;color:#ffffff;"
+                                th:text="#{mail.shipped.greeting(${firstName})}">Your order is on its way</h2>
+                        </td>
+                    </tr>
+
+                    <!-- Body text -->
+                    <tr>
+                        <td align="center" style="padding:0 60px 40px 60px;">
+                            <p style="font-size:15px;line-height:1.8;color:#aaaaaa;margin:0;text-align:center;"
+                               th:text="#{mail.shipped.body}">
+                                Your order has been handed to the carrier and is on its way to you.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Order ID -->
+                    <tr>
+                        <td style="padding:0 40px 8px 40px;">
+                            <p style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:#666666;margin:0 0 20px 0;">
+                                <span th:text="#{mail.order.label}">Order</span> #<span th:text="${orderId}"></span>
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Tracking number -->
+                    <tr th:if="${hasTracking}">
+                        <td style="padding:0 40px 30px 40px;">
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0"
+                                   style="border:1px solid #444444;background-color:#1a1a1a;">
+                                <tr>
+                                    <td style="padding:20px 24px;">
+                                        <p style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#666666;margin:0 0 10px 0;"
+                                           th:text="#{mail.shipped.tracking}">Tracking Number</p>
+                                        <p style="font-size:18px;color:#ffffff;margin:0 0 10px 0;letter-spacing:2px;font-family:monospace;"
+                                           th:text="${trackingNumber}">TRACK123</p>
+                                        <p style="font-size:11px;color:#666666;margin:0;"
+                                           th:text="#{mail.shipped.trackingNote}">Use this number to track your shipment with your carrier.</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Items table -->
+                    <tr>
+                        <td style="padding:0 40px 30px 40px;">
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <thead>
+                                    <tr style="border-bottom:1px solid #333333;">
+                                        <th align="left" style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#666666;font-weight:normal;padding-bottom:10px;"
+                                            th:text="#{mail.order.items}">Items</th>
+                                        <th align="center" style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#666666;font-weight:normal;padding-bottom:10px;"
+                                            th:text="#{mail.order.qty}">Qty</th>
+                                        <th align="right" style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#666666;font-weight:normal;padding-bottom:10px;"
+                                            th:text="#{mail.order.unitPrice}">Unit Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="item : ${items}" style="border-bottom:1px solid #222222;">
+                                        <td style="font-size:13px;color:#cccccc;padding:10px 0;" th:text="${item.name()}">Item name</td>
+                                        <td align="center" style="font-size:13px;color:#cccccc;padding:10px 0;" th:text="${item.quantity()}">1</td>
+                                        <td align="right" style="font-size:13px;color:#cccccc;padding:10px 0;"
+                                            th:text="'$' + ${#numbers.formatDecimal(item.unitPrice(), 1, 'COMMA', 2, 'POINT')} + ' MXN'">$0.00 MXN</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- CTA -->
+                    <tr>
+                        <td align="center" style="padding-bottom:60px;">
+                            <a href="https://bijou.mx/orders" class="button"
+                               style="display:inline-block;border:1px solid #ffffff;color:#ffffff;padding:14px 36px;text-decoration:none;text-transform:uppercase;letter-spacing:3px;font-size:11px;font-family:'Georgia',serif;"
+                               th:text="#{mail.order.cta}">View My Orders</a>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td align="center" style="padding-bottom:50px;">
+                            <table width="60" border="0" cellspacing="0" cellpadding="0">
+                                <tr><td style="border-top:1px solid #333333;font-size:0;line-height:0;">&nbsp;</td></tr>
+                            </table>
+                            <p style="font-size:10px;color:#555555;letter-spacing:2px;text-transform:uppercase;margin:20px 0 0 0;">
+                                &copy; 2026 BIJOU MONDE
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>
