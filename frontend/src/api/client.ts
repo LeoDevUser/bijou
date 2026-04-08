@@ -108,6 +108,7 @@ export const api = {
       postalCode: string;
       country: string;
       currency: string;
+      installments?: number | null;
     }) =>
       request<{ order: OrderView; clientSecret: string }>('/api/orders', {
         method: 'POST',

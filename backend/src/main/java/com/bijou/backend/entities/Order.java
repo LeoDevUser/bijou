@@ -56,6 +56,7 @@ public class Order {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Country country;
+    private Integer installments;
 
     @PrePersist
     protected void onCreate(){

@@ -34,10 +34,11 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   const [rates, setRates] = useState<Record<string, number>>(loadCachedRates);
 
   useEffect(() => {
-    fetch('https://api.frankfurter.app/latest?from=MXN&to=USD,CAD')
+    const base = import.meta.env.VITE_API_URL ?? '';
+    fetch(`${base}/public/fx-rates`)
       .then(r => r.json())
-      .then(data => {
-        const updated = { MXN: 1, ...data.rates };
+      .then((data: Record<string, number>) => {
+        const updated = { MXN: 1, ...data };
         setRates(updated);
         localStorage.setItem('fx_rates', JSON.stringify(updated));
       })

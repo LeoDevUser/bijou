@@ -33,6 +33,46 @@ public class EmailListener {
 
     @Async("emailTaskExecutor")
     @EventListener
+    public void handleOrderConfirmation(OrderConfirmationEvent event) {
+        Locale locale = Locale.forLanguageTag(event.language().name().toLowerCase());
+
+        Context context = new Context(locale);
+        context.setVariable("firstName", event.firstName());
+        context.setVariable("orderId", event.orderId());
+        context.setVariable("items", event.items());
+        context.setVariable("total", event.total());
+        context.setVariable("address", event.address());
+        context.setVariable("city", event.city());
+        context.setVariable("postalCode", event.postalCode());
+        context.setVariable("country", event.country());
+        context.setVariable("oxxoVoucherUrl", event.oxxoVoucherUrl());
+        context.setVariable("isOxxo", event.oxxoVoucherUrl() != null);
+
+        String htmlContent = templateEngine.process("emails/order-confirmation", context);
+
+        boolean isOxxo = event.oxxoVoucherUrl() != null;
+        log.info("sending {} email for order #{} to {}",
+            isOxxo ? "order-placed (OXXO)" : "payment-confirmed", event.orderId(), event.email());
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            String subject = messageSource.getMessage("mail.order.subject",
+                new Object[]{ event.orderId() }, locale);
+            helper.setFrom(sender);
+            helper.setTo(event.email());
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+            log.info("sent {} email for order #{} to {}",
+                isOxxo ? "order-placed (OXXO)" : "payment-confirmed", event.orderId(), event.email());
+        } catch (MessagingException e) {
+            log.error("failed to send order confirmation email for order #{} to {}", event.orderId(), event.email(), e);
+        }
+    }
+
+    @Async("emailTaskExecutor")
+    @EventListener
     public void handleRegistration(RegisterEvent event) {
         String fullName = event.firstName() + " " + event.lastName();
 

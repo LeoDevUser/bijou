@@ -20,5 +20,6 @@ public record OrderView(
     LocalDateTime createdAt,
     Status status,
     Long id,
-    Country country
+    Country country,
+    Integer installments
 ){}

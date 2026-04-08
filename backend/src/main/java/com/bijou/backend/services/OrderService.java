@@ -1,6 +1,7 @@
 package com.bijou.backend.services;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -83,6 +84,25 @@ public class OrderService {
         }
 
 
+        // Apply MSI fee if applicable (MXN only, above 2000 MXN, valid plan)
+        Integer installments = req.installments();
+        if (installments != null) {
+            if (req.currency() != Currency.MXN) {
+                throw new AppException(HttpStatus.BAD_REQUEST, "MSI_MXN_ONLY");
+            }
+            if (total.compareTo(new BigDecimal("2000")) < 0) {
+                throw new AppException(HttpStatus.BAD_REQUEST, "MSI_MINIMUM_NOT_MET");
+            }
+            BigDecimal feeRate = switch (installments) {
+                case 3  -> new BigDecimal("0.02");
+                case 6  -> new BigDecimal("0.04");
+                case 9  -> new BigDecimal("0.06");
+                case 12 -> new BigDecimal("0.08");
+                default -> throw new AppException(HttpStatus.BAD_REQUEST, "MSI_INVALID_PLAN");
+            };
+            total = total.multiply(BigDecimal.ONE.add(feeRate)).setScale(2, RoundingMode.HALF_UP);
+        }
+
         //update order and link OrderItems
         Order order = Order.builder()
             .address(req.address())
@@ -91,6 +111,7 @@ public class OrderService {
             .country(req.country())
             .orderItems(orderItems)
             .totalPrice(total)
+            .installments(installments)
             .client(client)
             .build();
         order.getOrderItems().forEach(oi -> oi.setOrder(order));
@@ -207,7 +228,8 @@ public class OrderService {
                 order.getCreatedAt(),
                 order.getStatus(),
                 order.getId(),
-                order.getCountry());
+                order.getCountry(),
+                order.getInstallments());
     }
 
     @Transactional

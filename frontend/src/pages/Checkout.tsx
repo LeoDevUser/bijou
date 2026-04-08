@@ -26,8 +26,19 @@ export default function Checkout() {
   const [savedAddress, setSavedAddress] = useState<{ address: string; city: string; postalCode: string } | null>(null);
   const [useSaved, setUseSaved] = useState(false);
   const [country, setCountry] = useState<Country>('CANADA');
+  const [installments, setInstallments] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const MSI_PLANS = [
+    { months: 3, rate: 0.02 },
+    { months: 6, rate: 0.04 },
+    { months: 9, rate: 0.06 },
+    { months: 12, rate: 0.08 },
+  ];
+  const showMsi = currency === 'MXN' && total >= 2000;
+  const selectedPlan = MSI_PLANS.find(p => p.months === installments) ?? null;
+  const finalTotal = selectedPlan ? total * (1 + selectedPlan.rate) : total;
 
   useEffect(() => {
     if (!isAuthenticated) navigate('/login');
@@ -77,8 +88,9 @@ export default function Checkout() {
         postalCode,
         country,
         currency,
+        installments: installments ?? null,
       });
-      navigate('/payment', { state: { clientSecret, total: order.total } });
+      navigate('/payment', { state: { clientSecret, total: order.total, installments: installments ?? null } });
     } catch (err) {
       const e = err as { code?: string };
       setError(e.code ?? t('checkout.error'));
@@ -169,6 +181,72 @@ export default function Checkout() {
             </p>
           )}
 
+          {showMsi && (
+            <div className="border border-border p-5">
+              <p className="text-xs uppercase tracking-widest mb-4">{t('checkout.msi.title')}</p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="pb-2 font-normal text-muted text-xs uppercase tracking-widest w-1/5">{t('checkout.msi.planCol')}</th>
+                      <th className="pb-2 font-normal text-muted text-xs uppercase tracking-widest">{t('checkout.msi.cashCol')}</th>
+                      {MSI_PLANS.map(p => (
+                        <th key={p.months} className="pb-2 font-normal text-muted text-xs uppercase tracking-widest">{t('checkout.msi.months', { n: p.months })}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    <tr>
+                      <td className="py-2 text-xs text-muted">{t('checkout.msi.totalRow')}</td>
+                      <td className="py-2">${total.toFixed(2)}</td>
+                      {MSI_PLANS.map(p => (
+                        <td key={p.months} className="py-2">${(total * (1 + p.rate)).toFixed(2)}</td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <td className="py-2 text-xs text-muted">{t('checkout.msi.monthlyRow')}</td>
+                      <td className="py-2 text-muted">—</td>
+                      {MSI_PLANS.map(p => (
+                        <td key={p.months} className="py-2">${(total * (1 + p.rate) / p.months).toFixed(2)}</td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <td className="py-2 text-xs text-muted">{t('checkout.msi.feeRow')}</td>
+                      <td className="py-2 text-muted">0%</td>
+                      {MSI_PLANS.map(p => (
+                        <td key={p.months} className="py-2 text-muted">+{(p.rate * 100).toFixed(0)}%</td>
+                      ))}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div className="flex gap-2 mt-4 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => setInstallments(null)}
+                  className={`text-xs uppercase tracking-widest px-4 py-2 border transition-colors cursor-pointer ${installments === null ? 'bg-dark text-white border-dark' : 'border-border hover:border-dark'}`}
+                >
+                  {t('checkout.msi.contado')}
+                </button>
+                {MSI_PLANS.map(p => (
+                  <button
+                    key={p.months}
+                    type="button"
+                    onClick={() => setInstallments(p.months)}
+                    className={`text-xs uppercase tracking-widest px-4 py-2 border transition-colors cursor-pointer ${installments === p.months ? 'bg-dark text-white border-dark' : 'border-border hover:border-dark'}`}
+                  >
+                    {t('checkout.msi.months', { n: p.months })}
+                  </button>
+                ))}
+              </div>
+              {installments && (
+                <p className="text-xs text-muted mt-3">
+                  {t('checkout.msi.summary', { total: finalTotal.toFixed(2), n: installments, monthly: (finalTotal / installments).toFixed(2) })}
+                </p>
+              )}
+            </div>
+          )}
+
           {error && <p className="text-red-500 text-sm">{error}</p>}
 
           <button
@@ -194,8 +272,11 @@ export default function Checkout() {
             </div>
             <div className="border-t border-border pt-4 flex justify-between text-sm font-medium">
               <span>{t('cart.total')}</span>
-              <span>{format(total)}</span>
+              <span>{format(finalTotal)}</span>
             </div>
+            {installments && (
+              <p className="text-xs text-muted mt-2">{t('checkout.msi.badge', { n: installments })}</p>
+            )}
           </div>
         </div>
       </div>

@@ -56,7 +56,7 @@ export default function Payment() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
-  const state = location.state as { clientSecret?: string; total?: number } | null;
+  const state = location.state as { clientSecret?: string; total?: number; installments?: number | null } | null;
 
   useEffect(() => {
     if (!isAuthenticated) navigate('/login');
@@ -69,10 +69,16 @@ export default function Payment() {
     <div className="max-w-xl mx-auto px-6 py-12">
       <h1 className="font-serif text-4xl font-light mb-2">{t('payment.title')}</h1>
       {state.total != null && (
-        <p className="text-muted text-sm mb-10">
+        <p className="text-muted text-sm mb-2">
           {t('payment.orderTotal')}: <span className="text-dark font-medium">${Number(state.total).toFixed(2)} MXN</span>
         </p>
       )}
+      {state.installments && (
+        <p className="text-muted text-sm mb-10">
+          {t('payment.msiPlan', { n: state.installments, monthly: (Number(state.total) / state.installments).toFixed(2) })}
+        </p>
+      )}
+      {!state.installments && <div className="mb-10" />}
       <Elements
         stripe={stripePromise}
         options={{ clientSecret: state.clientSecret, appearance: { theme: 'stripe' } }}

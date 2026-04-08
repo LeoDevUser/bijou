@@ -87,14 +87,27 @@
     "processing": "Processing...",
     "orderSummary": "Order Summary",
     "error": "Something went wrong. Please try again.",
-    "currencyNotice": "Prices in USD and CAD are estimates. All transactions are processed in MXN at the exchange rate applied by Stripe at the time of payment. Your bank may charge additional foreign transaction fees."
+    "currencyNotice": "Prices in USD and CAD are estimates. All transactions are processed in MXN at the exchange rate applied by Stripe at the time of payment. Your bank may charge additional foreign transaction fees.",
+    "msi": {
+      "title": "Installment Plans",
+      "planCol": "Plan",
+      "cashCol": "Pay in Full",
+      "totalRow": "Total",
+      "monthlyRow": "Per Month",
+      "feeRow": "Fee",
+      "contado": "Pay in Full",
+      "months": "{{n}} months",
+      "summary": "Total: ${{total}} MXN · {{n}} payments of ${{monthly}} MXN",
+      "badge": "{{n}}-month installments"
+    }
   },
   "payment": {
     "title": "Payment",
     "orderTotal": "Order Total",
     "pay": "Pay Now",
     "processing": "Processing...",
-    "error": "Payment failed. Please try again."
+    "error": "Payment failed. Please try again.",
+    "msiPlan": "Plan: {{n}} months · ${{monthly}} MXN/month"
   },
   "auth": {
     "login": "Sign In",

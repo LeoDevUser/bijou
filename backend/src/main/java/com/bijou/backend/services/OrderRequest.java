@@ -10,5 +10,6 @@ public record OrderRequest(
     String city,
     String postalCode,
     Country country,
-    Currency currency
+    Currency currency,
+    Integer installments
 ){}

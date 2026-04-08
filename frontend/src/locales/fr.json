@@ -87,14 +87,27 @@
     "processing": "Traitement en cours...",
     "orderSummary": "Résumé de la Commande",
     "error": "Une erreur est survenue. Veuillez réessayer.",
-    "currencyNotice": "Les prix en USD et CAD sont des estimations. Toutes les transactions sont traitées en MXN au taux de change appliqué par Stripe au moment du paiement. Votre banque peut facturer des frais de transaction supplémentaires."
+    "currencyNotice": "Les prix en USD et CAD sont des estimations. Toutes les transactions sont traitées en MXN au taux de change appliqué par Stripe au moment du paiement. Votre banque peut facturer des frais de transaction supplémentaires.",
+    "msi": {
+      "title": "Paiement en plusieurs fois",
+      "planCol": "Plan",
+      "cashCol": "Paiement comptant",
+      "totalRow": "Total",
+      "monthlyRow": "Par mois",
+      "feeRow": "Frais",
+      "contado": "Comptant",
+      "months": "{{n}} mois",
+      "summary": "Total : ${{total}} MXN · {{n}} paiements de ${{monthly}} MXN",
+      "badge": "{{n}} mois sans intérêts"
+    }
   },
   "payment": {
     "title": "Paiement",
     "orderTotal": "Total de la Commande",
     "pay": "Payer Maintenant",
     "processing": "Traitement en cours...",
-    "error": "Le paiement a échoué. Veuillez réessayer."
+    "error": "Le paiement a échoué. Veuillez réessayer.",
+    "msiPlan": "Plan : {{n}} mois · ${{monthly}} MXN/mois"
   },
   "auth": {
     "login": "Se Connecter",

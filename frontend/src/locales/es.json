@@ -87,14 +87,27 @@
     "processing": "Procesando...",
     "orderSummary": "Resumen del Pedido",
     "error": "Algo salió mal. Por favor, intenta de nuevo.",
-    "currencyNotice": "Los precios en USD y CAD son estimados. Todas las transacciones se procesan en MXN al tipo de cambio aplicado por Stripe al momento del pago. Tu banco puede cobrar comisiones adicionales por transacciones internacionales."
+    "currencyNotice": "Los precios en USD y CAD son estimados. Todas las transacciones se procesan en MXN al tipo de cambio aplicado por Stripe al momento del pago. Tu banco puede cobrar comisiones adicionales por transacciones internacionales.",
+    "msi": {
+      "title": "Meses sin intereses",
+      "planCol": "Plan",
+      "cashCol": "Precio contado",
+      "totalRow": "Total",
+      "monthlyRow": "Por mes",
+      "feeRow": "Cargo",
+      "contado": "Contado",
+      "months": "{{n}} meses",
+      "summary": "Total: ${{total}} MXN · {{n}} pagos de ${{monthly}} MXN",
+      "badge": "{{n}} meses sin intereses"
+    }
   },
   "payment": {
     "title": "Pago",
     "orderTotal": "Total del Pedido",
     "pay": "Pagar Ahora",
     "processing": "Procesando...",
-    "error": "El pago falló. Por favor, intenta de nuevo."
+    "error": "El pago falló. Por favor, intenta de nuevo.",
+    "msiPlan": "Plan: {{n}} meses · ${{monthly}} MXN/mes"
   },
   "auth": {
     "login": "Iniciar Sesión",
