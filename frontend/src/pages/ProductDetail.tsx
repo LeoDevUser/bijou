@@ -112,7 +112,7 @@ export default function ProductDetail() {
               )
             ) : (
               <div className="w-full h-full flex items-center justify-center text-muted text-sm uppercase tracking-widest">
-                {item.category}
+                {pickLocale(item.category.nameEn, item.category.nameFr, item.category.nameEs, i18n.language)}
               </div>
             )}
             {hasMultiple && (
@@ -152,7 +152,7 @@ export default function ProductDetail() {
 
         {/* Info */}
         <div className="flex flex-col justify-center">
-          <p className="text-xs uppercase tracking-widest text-muted mb-2">{item.category}</p>
+          <p className="text-xs uppercase tracking-widest text-muted mb-2">{pickLocale(item.category.nameEn, item.category.nameFr, item.category.nameEs, i18n.language)}</p>
           <h1 className="font-serif text-4xl md:text-5xl font-light mb-4">{name}</h1>
           {hasDiscount ? (
             <div className="flex items-center gap-3 mb-6">

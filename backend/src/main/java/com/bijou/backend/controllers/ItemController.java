@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.bijou.backend.entities.Category;
 import com.bijou.backend.repositories.SalesStats;
 import com.bijou.backend.services.CloudinaryResponse;
 import com.bijou.backend.services.CloudinaryService;
@@ -49,9 +48,9 @@ public class ItemController {
         return ResponseEntity.ok(itemService.getAllItemsSortedBySalesVolume());
     }
 
-    @GetMapping("/public/items/category/{category}")
-    public ResponseEntity<List<ItemView>> getItemsByCategory(@PathVariable Category category) {
-        return ResponseEntity.ok(itemService.getItemsByCategory(category));
+    @GetMapping("/public/items/category/{id}")
+    public ResponseEntity<List<ItemView>> getItemsByCategory(@PathVariable Long id) {
+        return ResponseEntity.ok(itemService.getItemsByCategory(id));
     }
 
     @GetMapping("/public/items/label/{id}")

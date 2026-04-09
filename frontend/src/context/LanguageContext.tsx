@@ -1,7 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import i18n from '../i18n';
-import { api } from '../api/client';
-import { getToken } from '../api/tokenStore';
 
 export type Language = 'en' | 'fr' | 'es';
 
@@ -24,9 +22,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setLanguageState(lang);
     localStorage.setItem(STORAGE_KEY, lang);
     i18n.changeLanguage(lang);
-    if (getToken()) {
-      api.account.changeLanguage(lang.toUpperCase()).catch(() => {});
-    }
   }
 
   return (

@@ -1,7 +1,8 @@
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, AnnouncementView, SiteAssetView, CollectionView, SalesStats, ItemAssetView, ThemeConfig } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, SiteAssetView, CollectionView, SalesStats, ItemAssetView, ThemeConfig } from '../types';
 import { getToken, setToken } from './tokenStore';
 
 interface LabelRequest { nameEn: string; nameFr: string; nameEs: string; }
+interface CategoryRequest { nameEn: string; nameFr: string; nameEs: string; }
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? '';
 const ADMIN = import.meta.env.VITE_ADMIN_PAGE ?? '';
@@ -81,11 +82,14 @@ export const api = {
     trending: () => request<ItemView[]>('/public/items/trending'),
     bestselling: () => request<ItemView[]>('/public/items/bestselling'),
     get: (id: number) => request<ItemView>(`/public/items/${id}`),
-    byCategory: (category: string) => request<ItemView[]>(`/public/items/category/${category}`),
+    byCategory: (categoryId: number) => request<ItemView[]>(`/public/items/category/${categoryId}`),
     byLabel: (labelId: number) => request<ItemView[]>(`/public/items/label/${labelId}`),
   },
   labels: {
     list: () => request<LabelView[]>('/public/labels'),
+  },
+  categories: {
+    list: () => request<CategoryView[]>('/public/categories'),
   },
   announcements: {
     list: () => request<AnnouncementView[]>('/public/announcements'),
@@ -192,6 +196,12 @@ export const api = {
         request<LabelView>(`/${ADMIN}/labels`, { method: 'POST', body: JSON.stringify(req) }),
       delete: (id: number) =>
         request<void>(`/${ADMIN}/labels/${id}`, { method: 'DELETE' }),
+    },
+    categories: {
+      create: (req: CategoryRequest) =>
+        request<CategoryView>(`/${ADMIN}/categories`, { method: 'POST', body: JSON.stringify(req) }),
+      delete: (id: number) =>
+        request<void>(`/${ADMIN}/categories/${id}`, { method: 'DELETE' }),
     },
     announcements: {
       list: () => request<AnnouncementView[]>(`/${ADMIN}/announcements`),

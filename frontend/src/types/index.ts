@@ -12,6 +12,13 @@ export interface ItemAssetView {
   resourceType: string;
 }
 
+export interface CategoryView {
+  id: number;
+  nameEn: string | null;
+  nameFr: string | null;
+  nameEs: string | null;
+}
+
 export interface ItemView {
   id: number;
   stock: number;
@@ -20,7 +27,7 @@ export interface ItemView {
   nameEs: string | null;
   price: number;
   labels: LabelView[];
-  category: string;
+  category: CategoryView;
   descriptionEn: string | null;
   descriptionFr: string | null;
   descriptionEs: string | null;
@@ -92,8 +99,6 @@ export interface OrderView {
   oxxo: boolean;
 }
 
-export type Category = 'NECKLACE' | 'RING' | 'EARRING' | 'MISC';
-
 export interface ItemRequest {
   nameEn: string;
   nameFr: string;
@@ -103,7 +108,7 @@ export interface ItemRequest {
   descriptionEs: string;
   price: number;
   stock: number;
-  category: Category;
+  categoryId: number;
   labelIds: number[];
   discountPercent: number | null;
 }

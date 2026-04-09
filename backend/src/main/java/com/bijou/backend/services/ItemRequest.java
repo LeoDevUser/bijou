@@ -2,8 +2,6 @@ package com.bijou.backend.services;
 
 import java.util.List;
 
-import com.bijou.backend.entities.Category;
-
 public record ItemRequest(
     int stock,
     float price,
@@ -11,7 +9,7 @@ public record ItemRequest(
     String nameFr,
     String nameEs,
     List<Long> labelIds,
-    Category category,
+    Long categoryId,
     String descriptionEn,
     String descriptionFr,
     String descriptionEs,

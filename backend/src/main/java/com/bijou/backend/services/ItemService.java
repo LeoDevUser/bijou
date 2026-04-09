@@ -15,6 +15,7 @@ import com.bijou.backend.entities.Item;
 import com.bijou.backend.entities.ItemAsset;
 import com.bijou.backend.entities.Label;
 import com.bijou.backend.exception.AppException;
+import com.bijou.backend.repositories.CategoryRepository;
 import com.bijou.backend.repositories.ItemRepository;
 import com.bijou.backend.repositories.LabelRepository;
 import com.bijou.backend.repositories.OrderRepository;
@@ -32,6 +33,7 @@ public class ItemService {
     private final CloudinaryService cloudinaryService;
     private final ItemRepository itemRepository;
     private final LabelRepository labelRepository;
+    private final CategoryRepository categoryRepository;
     private final OrderRepository orderRepository;
 
     private List<LabelView> toLabelViews(List<Label> labels) {
@@ -51,6 +53,11 @@ public class ItemService {
         return labelRepository.findAllById(labelIds);
     }
 
+    private Category resolveCategory(Long categoryId) {
+        return categoryRepository.findById(categoryId)
+            .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "CATEGORY_NOT_FOUND"));
+    }
+
     private String displayName(Item item) {
         if (item.getNameEn() != null) return item.getNameEn();
         if (item.getNameFr() != null) return item.getNameFr();
@@ -61,7 +68,7 @@ public class ItemService {
         return new ItemView(
                 item.getId(), item.getStock(),
                 item.getNameEn(), item.getNameFr(), item.getNameEs(),
-                item.getPrice(), toLabelViews(item.getLabels()), item.getCategory(),
+                item.getPrice(), toLabelViews(item.getLabels()), CategoryService.toView(item.getCategory()),
                 item.getDescriptionEn(), item.getDescriptionFr(), item.getDescriptionEs(),
                 toAssetViews(item.getAssets()),
                 item.getDiscountPercent()
@@ -72,7 +79,7 @@ public class ItemService {
         return new ItemViewVerbose(
                 item.getId(), item.getStock(),
                 item.getNameEn(), item.getNameFr(), item.getNameEs(),
-                item.getPrice(), toLabelViews(item.getLabels()), item.getCategory(),
+                item.getPrice(), toLabelViews(item.getLabels()), CategoryService.toView(item.getCategory()),
                 item.getDescriptionEn(), item.getDescriptionFr(), item.getDescriptionEs(),
                 toAssetViews(item.getAssets()),
                 item.getNbSold(), item.getNbSoldMonth(), item.getTotalSales(),
@@ -95,7 +102,7 @@ public class ItemService {
             .nameFr(req.nameFr())
             .nameEs(req.nameEs())
             .labels(resolveLabels(req.labelIds()))
-            .category(req.category())
+            .category(resolveCategory(req.categoryId()))
             .descriptionEn(req.descriptionEn())
             .descriptionFr(req.descriptionFr())
             .descriptionEs(req.descriptionEs())
@@ -114,7 +121,7 @@ public class ItemService {
         item.setStock(req.stock());
         item.setPrice(BigDecimal.valueOf(req.price()));
         item.setLabels(resolveLabels(req.labelIds()));
-        item.setCategory(req.category());
+        item.setCategory(resolveCategory(req.categoryId()));
         item.setDescriptionEn(req.descriptionEn());
         item.setDescriptionFr(req.descriptionFr());
         item.setDescriptionEs(req.descriptionEs());
@@ -199,7 +206,8 @@ public class ItemService {
         return toItemView(findItemOrThrow(id));
     }
 
-    public List<ItemView> getItemsByCategory(Category category) {
+    public List<ItemView> getItemsByCategory(Long categoryId) {
+        Category category = resolveCategory(categoryId);
         return itemRepository.findByCategoryAndActiveTrue(category)
             .stream()
             .map(this::toItemView)

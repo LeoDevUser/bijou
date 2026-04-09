@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, Category, VerboseClient, LabelView, AnnouncementView, SiteAssetView, CollectionView, SalesStats, ThemeConfig } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, SiteAssetView, CollectionView, SalesStats, ThemeConfig } from '../types';
 import { pickLocale, isItemIncomplete, isLabelIncomplete } from '../types';
 import { useTheme, THEME_DEFAULTS } from '../context/ThemeContext';
 
@@ -166,12 +166,6 @@ function ColorInput({ value: rawValue, onChange, placeholder, className: cls }: 
   );
 }
 
-const CATEGORIES: { value: Category; labelKey: string }[] = [
-  { value: 'NECKLACE', labelKey: 'home.categories.necklaces' },
-  { value: 'RING',     labelKey: 'home.categories.rings' },
-  { value: 'EARRING',  labelKey: 'home.categories.earrings' },
-  { value: 'MISC',     labelKey: 'shop.misc' },
-];
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
   AWAITING_PAYMENT: ['PROCESSING'],
@@ -427,25 +421,26 @@ interface ItemFormData {
   price: string;
   stock: string;
   discountPercent: string;
-  category: Category;
+  categoryId: number;
   labelIds: number[];
 }
 
 const emptyForm: ItemFormData = {
   nameEn: '', nameFr: '', nameEs: '',
   descriptionEn: '', descriptionFr: '', descriptionEs: '',
-  price: '', stock: '', discountPercent: '', category: 'NECKLACE', labelIds: [],
+  price: '', stock: '', discountPercent: '', categoryId: 0, labelIds: [],
 };
 
 interface ItemModalProps {
   item?: ItemView;
   allLabels: LabelView[];
+  allCategories: CategoryView[];
   onClose: () => void;
   onSaved: () => void;
 }
 
-function ItemModal({ item, allLabels, onClose, onSaved }: ItemModalProps) {
-  const { t } = useTranslation();
+function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemModalProps) {
+  const { t, i18n } = useTranslation();
   const [form, setForm] = useState<ItemFormData>(
     item
       ? {
@@ -453,9 +448,9 @@ function ItemModal({ item, allLabels, onClose, onSaved }: ItemModalProps) {
           descriptionEn: item.descriptionEn ?? '', descriptionFr: item.descriptionFr ?? '', descriptionEs: item.descriptionEs ?? '',
           price: String(item.price), stock: String(item.stock),
           discountPercent: item.discountPercent != null ? String(item.discountPercent) : '',
-          category: item.category as Category, labelIds: item.labels.map(l => l.id),
+          categoryId: item.category.id, labelIds: item.labels.map(l => l.id),
         }
-      : emptyForm
+      : { ...emptyForm, categoryId: allCategories[0]?.id ?? 0 }
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -486,7 +481,7 @@ function ItemModal({ item, allLabels, onClose, onSaved }: ItemModalProps) {
         price: parseFloat(form.price),
         stock: parseInt(form.stock),
         discountPercent: form.discountPercent ? parseInt(form.discountPercent) : null,
-        category: form.category,
+        categoryId: form.categoryId,
         labelIds: form.labelIds,
       };
       let itemId: number;
@@ -545,8 +540,12 @@ function ItemModal({ item, allLabels, onClose, onSaved }: ItemModalProps) {
           </div>
           <div>
             <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.category')}</label>
-            <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value as Category }))} className={inputClass}>
-              {CATEGORIES.map(c => <option key={c.value} value={c.value}>{t(c.labelKey)}</option>)}
+            <select value={form.categoryId} onChange={e => setForm(f => ({ ...f, categoryId: Number(e.target.value) }))} className={inputClass}>
+              {allCategories.map(c => (
+                <option key={c.id} value={c.id}>
+                  {pickLocale(c.nameEn, c.nameFr, c.nameEs, i18n.language)}
+                </option>
+              ))}
             </select>
           </div>
           <div>
@@ -567,7 +566,7 @@ function ItemModal({ item, allLabels, onClose, onSaved }: ItemModalProps) {
                           : f.labelIds.filter(id => id !== label.id),
                       }))}
                     />
-                    {label.nameEn || label.nameFr || label.nameEs}
+                    {pickLocale(label.nameEn, label.nameFr, label.nameEs, i18n.language)}
                   </label>
                 ))}
               </div>
@@ -627,26 +626,30 @@ function ItemModal({ item, allLabels, onClose, onSaved }: ItemModalProps) {
 type ProductSort = 'default' | 'sold' | 'soldMonth' | 'sales';
 
 function AdminProducts() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [items, setItems] = useState<ItemViewVerbose[]>([]);
   const [labels, setLabels] = useState<LabelView[]>([]);
+  const [categories, setCategories] = useState<CategoryView[]>([]);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState<ProductSort>('default');
   const [search, setSearch] = useState('');
   const [modal, setModal] = useState<'new' | ItemViewVerbose | null>(null);
   const [newLabel, setNewLabel] = useState({ nameEn: '', nameFr: '', nameEs: '' });
+  const [newCategory, setNewCategory] = useState({ nameEn: '', nameFr: '', nameEs: '' });
 
   useEffect(() => { load(); }, []);
 
   async function load() {
     setLoading(true);
     try {
-      const [itemData, labelData] = await Promise.all([
+      const [itemData, labelData, categoryData] = await Promise.all([
         api.admin.items.listVerbose(),
         api.labels.list(),
+        api.categories.list(),
       ]);
       setItems(itemData);
       setLabels(labelData);
+      setCategories(categoryData);
     } finally {
       setLoading(false);
     }
@@ -664,6 +667,26 @@ function AdminProducts() {
     if (!confirm(t('admin.labels.deleteConfirm'))) return;
     await api.admin.labels.delete(id);
     setLabels(await api.labels.list());
+  }
+
+  async function handleAddCategory(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newCategory.nameEn && !newCategory.nameFr && !newCategory.nameEs) return;
+    await api.admin.categories.create(newCategory);
+    setNewCategory({ nameEn: '', nameFr: '', nameEs: '' });
+    setCategories(await api.categories.list());
+  }
+
+  async function handleDeleteCategory(id: number) {
+    if (!confirm(t('admin.categories.deleteConfirm'))) return;
+    try {
+      await api.admin.categories.delete(id);
+      setCategories(await api.categories.list());
+    } catch (err: any) {
+      if (err?.status === 409 || err?.code === 'CATEGORY_HAS_ITEMS') {
+        alert(t('admin.categories.deleteHasItems'));
+      }
+    }
   }
 
   async function handleDelete(id: number) {
@@ -756,7 +779,7 @@ function AdminProducts() {
                     {incomplete && <span className="text-[10px] uppercase tracking-widest border border-amber-400 text-amber-600 px-1.5 py-0.5">{t('admin.products.incomplete')}</span>}
                     {!!item.discountPercent && <span className="text-[10px] uppercase tracking-widest border border-gold text-gold px-1.5 py-0.5">-{item.discountPercent}%</span>}
                   </div>
-                  <p className="text-xs text-muted">{t(CATEGORIES.find(c => c.value === item.category)?.labelKey ?? 'shop.misc')} · {item.discountPercent ? `$${(Number(item.price) * (1 - item.discountPercent / 100)).toFixed(2)} ` : ''}<span className={item.discountPercent ? 'line-through' : ''}>${Number(item.price).toFixed(2)}</span> · {item.stock} {t('admin.products.inStock')}</p>
+                  <p className="text-xs text-muted">{pickLocale(item.category.nameEn, item.category.nameFr, item.category.nameEs, i18n.language)} · {item.discountPercent ? `$${(Number(item.price) * (1 - item.discountPercent / 100)).toFixed(2)} ` : ''}<span className={item.discountPercent ? 'line-through' : ''}>${Number(item.price).toFixed(2)}</span> · {item.stock} {t('admin.products.inStock')}</p>
                   <p className="text-xs text-muted">
                     {item.nbSold} {t('admin.products.sold')} ({item.nbSoldMonth} {t('admin.products.thisMonth')}) · ${Number(item.totalSalesMonth).toFixed(2)} {t('admin.products.thisMonth')}
                   </p>
@@ -794,7 +817,7 @@ function AdminProducts() {
             const incomplete = isLabelIncomplete(label);
             return (
               <span key={label.id} className={`flex items-center gap-1.5 border px-3 py-1 text-xs ${incomplete ? 'border-amber-400 text-amber-700' : 'border-border'}`}>
-                {label.nameEn || label.nameFr || label.nameEs}
+                {pickLocale(label.nameEn, label.nameFr, label.nameEs, i18n.language)}
                 {incomplete && <span className="text-amber-500">!</span>}
                 <button
                   onClick={() => handleDeleteLabel(label.id)}
@@ -835,10 +858,57 @@ function AdminProducts() {
         </form>
       </div>
 
+      <div className="mt-6 pt-6 border-t border-border">
+        <p className="text-xs uppercase tracking-widest mb-4">{t('admin.categories.title')}</p>
+        <div className="flex flex-wrap gap-2 mb-3">
+          {categories.length === 0 ? (
+            <p className="text-xs text-muted">{t('admin.categories.empty')}</p>
+          ) : categories.map(cat => (
+            <span key={cat.id} className="flex items-center gap-1.5 border border-border px-3 py-1 text-xs">
+              {pickLocale(cat.nameEn, cat.nameFr, cat.nameEs, i18n.language)}
+              <button
+                onClick={() => handleDeleteCategory(cat.id)}
+                className="text-muted hover:text-dark transition-colors leading-none"
+                aria-label="delete"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+        <form onSubmit={handleAddCategory} className="flex flex-wrap gap-2 items-center">
+          <input
+            value={newCategory.nameEn}
+            onChange={e => setNewCategory(c => ({ ...c, nameEn: e.target.value }))}
+            placeholder="EN"
+            className={`${searchClass} w-28`}
+          />
+          <input
+            value={newCategory.nameFr}
+            onChange={e => setNewCategory(c => ({ ...c, nameFr: e.target.value }))}
+            placeholder="FR"
+            className={`${searchClass} w-28`}
+          />
+          <input
+            value={newCategory.nameEs}
+            onChange={e => setNewCategory(c => ({ ...c, nameEs: e.target.value }))}
+            placeholder="ES"
+            className={`${searchClass} w-28`}
+          />
+          <button
+            type="submit"
+            className="border border-border text-xs uppercase tracking-widest px-4 py-2 hover:border-dark transition-colors"
+          >
+            {t('admin.categories.add')}
+          </button>
+        </form>
+      </div>
+
       {modal !== null && (
         <ItemModal
           item={modal === 'new' ? undefined : modal}
           allLabels={labels}
+          allCategories={categories}
           onClose={() => setModal(null)}
           onSaved={() => { setModal(null); load(); }}
         />

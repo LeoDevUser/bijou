@@ -11,6 +11,7 @@ import com.bijou.backend.entities.Language;
 import com.bijou.backend.exception.AppException;
 import com.bijou.backend.entities.Role;
 import com.bijou.backend.repositories.ClientRepository;
+import com.bijou.backend.services.PasswordChangedEvent;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -147,5 +148,7 @@ public class AuthService {
         log.info("old password verified for email: {}", client.getEmail());
         client.setPassword(passwordEncoder.encode(req.newPassword()));
         clientRepository.save(client);
+        eventPublisher.publishEvent(new PasswordChangedEvent(
+            client.getEmail(), client.getFirstName(), client.getLanguage()));
     }
 }

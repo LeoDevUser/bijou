@@ -3,15 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import ProductCard from '../components/ui/ProductCard';
-import type { ItemView, LabelView } from '../types';
+import type { ItemView, LabelView, CategoryView } from '../types';
 import { pickLocale } from '../types';
-
-const CATEGORIES = [
-  { value: 'RING', labelKey: 'home.categories.rings' },
-  { value: 'NECKLACE', labelKey: 'home.categories.necklaces' },
-  { value: 'EARRING', labelKey: 'home.categories.earrings' },
-  { value: 'MISC', labelKey: 'shop.misc' },
-] as const;
 
 type SortOption = 'default' | 'bestselling' | 'price_asc' | 'price_desc';
 
@@ -23,6 +16,7 @@ export default function Shop() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [allItems, setAllItems] = useState<ItemView[]>([]);
   const [labels, setLabels] = useState<LabelView[]>([]);
+  const [categories, setCategories] = useState<CategoryView[]>([]);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState<SortOption>('default');
 
@@ -31,6 +25,7 @@ export default function Shop() {
 
   useEffect(() => {
     api.labels.list().then(setLabels).catch(console.error);
+    api.categories.list().then(setCategories).catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -59,9 +54,7 @@ export default function Shop() {
   const items = useMemo(() => {
     let result = allItems;
     if (activeCategory) {
-      result = result.filter(item =>
-        item.category.toUpperCase() === activeCategory.toUpperCase()
-      );
+      result = result.filter(item => String(item.category.id) === activeCategory);
     }
     if (resolvedLabelId !== null) {
       result = result.filter(item => item.labels.some(l => l.id === resolvedLabelId));
@@ -109,13 +102,13 @@ export default function Shop() {
           >
             {t('shop.all')}
           </button>
-          {CATEGORIES.map(cat => (
+          {categories.map(cat => (
             <button
-              key={cat.value}
-              onClick={() => setCategory(activeCategory === cat.value ? '' : cat.value)}
-              className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${activeCategory === cat.value ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
+              key={cat.id}
+              onClick={() => setCategory(activeCategory === String(cat.id) ? '' : String(cat.id))}
+              className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${activeCategory === String(cat.id) ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
             >
-              {t(cat.labelKey)}
+              {pickLocale(cat.nameEn, cat.nameFr, cat.nameEs, i18n.language)}
             </button>
           ))}
         </div>

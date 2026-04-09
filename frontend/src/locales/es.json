@@ -287,6 +287,13 @@
       "deleteConfirm": "¿Eliminar esta etiqueta? Se quitará de todos los artículos.",
       "empty": "Aún no hay etiquetas."
     },
+    "categories": {
+      "title": "Categorías",
+      "add": "Agregar",
+      "deleteConfirm": "¿Eliminar esta categoría? Fallará si tiene artículos asignados.",
+      "deleteHasItems": "No se puede eliminar: hay artículos asignados a esta categoría.",
+      "empty": "Aún no hay categorías."
+    },
     "site": {
       "assetsTitle": "Recursos de la Página de Inicio",
       "upload": "Subir",

@@ -169,6 +169,31 @@ public class EmailListener {
 
     @Async("emailTaskExecutor")
     @EventListener
+    public void handlePasswordChanged(PasswordChangedEvent event) {
+        Locale locale = Locale.forLanguageTag(event.language().name().toLowerCase());
+
+        Context context = new Context(locale);
+        context.setVariable("firstName", event.firstName());
+
+        String htmlContent = templateEngine.process("emails/password-changed", context);
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            String subject = messageSource.getMessage("mail.password.subject", null, locale);
+            helper.setFrom(sender);
+            helper.setTo(event.email());
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+            log.info("sent password-changed email to {}", event.email());
+        } catch (MessagingException e) {
+            log.error("failed to send password-changed email to {}", event.email(), e);
+        }
+    }
+
+    @Async("emailTaskExecutor")
+    @EventListener
     public void handleRegistration(RegisterEvent event) {
         String fullName = event.firstName() + " " + event.lastName();
 

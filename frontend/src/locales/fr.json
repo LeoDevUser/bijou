@@ -287,6 +287,13 @@
       "deleteConfirm": "Supprimer cette étiquette ? Elle sera retirée de tous les articles.",
       "empty": "Aucune étiquette pour l'instant."
     },
+    "categories": {
+      "title": "Catégories",
+      "add": "Ajouter",
+      "deleteConfirm": "Supprimer cette catégorie ? Échouera si des articles lui sont assignés.",
+      "deleteHasItems": "Impossible de supprimer : des articles sont assignés à cette catégorie.",
+      "empty": "Aucune catégorie pour l'instant."
+    },
     "site": {
       "assetsTitle": "Ressources de la Page d'Accueil",
       "upload": "Téléverser",

@@ -287,6 +287,13 @@
       "deleteConfirm": "Delete this label? It will be removed from all items.",
       "empty": "No labels yet."
     },
+    "categories": {
+      "title": "Categories",
+      "add": "Add",
+      "deleteConfirm": "Delete this category? This will fail if items are assigned to it.",
+      "deleteHasItems": "Cannot delete: items are assigned to this category.",
+      "empty": "No categories yet."
+    },
     "site": {
       "assetsTitle": "Landing Page Assets",
       "upload": "Upload",
