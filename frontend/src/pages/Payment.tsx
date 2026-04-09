@@ -54,7 +54,7 @@ function PaymentForm() {
 export default function Payment() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { isAuthenticated } = useAuth();
   const state = location.state as { clientSecret?: string; total?: number; installments?: number | null } | null;
 
@@ -81,7 +81,7 @@ export default function Payment() {
       {!state.installments && <div className="mb-10" />}
       <Elements
         stripe={stripePromise}
-        options={{ clientSecret: state.clientSecret, appearance: { theme: 'stripe' } }}
+        options={{ clientSecret: state.clientSecret, appearance: { theme: 'stripe' }, locale: i18n.language as 'en' | 'es' | 'fr' }}
       >
         <PaymentForm />
       </Elements>

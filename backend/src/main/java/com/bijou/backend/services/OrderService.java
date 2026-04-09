@@ -120,33 +120,6 @@ public class OrderService {
         orderRepository.save(order);
         log.info("created order #{} for client {} (total: {})", order.getId(), client.getEmail(), total);
 
-        List<OrderReceivedEvent.ItemLine> lines = order.getOrderItems().stream()
-            .map(oi -> {
-                String en = oi.getItem().getNameEn();
-                String fr = oi.getItem().getNameFr();
-                String es = oi.getItem().getNameEs();
-                String name = switch (client.getLanguage()) {
-                    case FR -> fr != null ? fr : (en != null ? en : es);
-                    case ES -> es != null ? es : (en != null ? en : fr);
-                    default -> en != null ? en : (fr != null ? fr : es);
-                };
-                return new OrderReceivedEvent.ItemLine(name, oi.getQuantity(), oi.getUnitPrice());
-            }).toList();
-
-        eventPublisher.publishEvent(new OrderReceivedEvent(
-            client.getEmail(),
-            client.getFirstName(),
-            client.getLanguage(),
-            order.getId(),
-            lines,
-            order.getTotalPrice(),
-            order.getAddress(),
-            order.getCity(),
-            order.getPostalCode(),
-            order.getCountry(),
-            order.getInstallments()
-        ));
-
         return order;
     }
 

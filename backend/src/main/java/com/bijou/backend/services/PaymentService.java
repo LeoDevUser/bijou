@@ -169,8 +169,12 @@ public class PaymentService {
         Client client = clientRepository.findById(order.getClient().getId())
             .orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "CLIENT_NOT_FOUND"));
 
-        // Always send confirmation — for cards this is the payment received email,
-        // for OXXO this is the "payment received at store" follow-up (voucher email was already sent on requires_action)
+        // For card payments, send order received first (OXXO already got the voucher email which serves this purpose)
+        if (!order.isOxxo()) {
+            eventPublisher.publishEvent(buildReceivedEvent(client, order));
+        }
+
+        // Payment confirmed email for all payment types
         eventPublisher.publishEvent(buildConfirmationEvent(client, order, null));
 
         client.setNbSuccessfulOrders(client.getNbSuccessfulOrders() + 1);
@@ -197,6 +201,35 @@ public class PaymentService {
 
         log.info("OXXO voucher generated for order #{} — client {}", order.getId(), client.getEmail());
         eventPublisher.publishEvent(buildConfirmationEvent(client, order, voucherUrl));
+    }
+
+    private OrderReceivedEvent buildReceivedEvent(Client client, Order order) {
+        List<OrderReceivedEvent.ItemLine> lines = order.getOrderItems().stream()
+            .map(oi -> {
+                String en = oi.getItem().getNameEn();
+                String fr = oi.getItem().getNameFr();
+                String es = oi.getItem().getNameEs();
+                String name = switch (client.getLanguage()) {
+                    case FR -> fr != null ? fr : (en != null ? en : es);
+                    case ES -> es != null ? es : (en != null ? en : fr);
+                    default -> en != null ? en : (fr != null ? fr : es);
+                };
+                return new OrderReceivedEvent.ItemLine(name, oi.getQuantity(), oi.getUnitPrice());
+            }).toList();
+
+        return new OrderReceivedEvent(
+            client.getEmail(),
+            client.getFirstName(),
+            client.getLanguage(),
+            order.getId(),
+            lines,
+            order.getTotalPrice(),
+            order.getAddress(),
+            order.getCity(),
+            order.getPostalCode(),
+            order.getCountry(),
+            order.getInstallments()
+        );
     }
 
     private OrderConfirmationEvent buildConfirmationEvent(Client client, Order order, String oxxoVoucherUrl) {
