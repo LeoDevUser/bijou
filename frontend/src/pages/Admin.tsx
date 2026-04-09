@@ -298,11 +298,21 @@ function AdminOrders() {
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4 text-sm">
                     <div>
                       <p className="text-xs uppercase tracking-widest text-muted mb-1">{t('admin.detail.address')}</p>
-                      <p>{o.address}</p>
+                      <p>{o.addressLine1}{o.addressLine2 ? `, ${o.addressLine2}` : ''}</p>
                     </div>
+                    {o.colonial && (
+                      <div>
+                        <p className="text-xs uppercase tracking-widest text-muted mb-1">{t('admin.detail.colonial')}</p>
+                        <p>{o.colonial}</p>
+                      </div>
+                    )}
                     <div>
                       <p className="text-xs uppercase tracking-widest text-muted mb-1">{t('admin.detail.city')}</p>
                       <p>{o.city}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-widest text-muted mb-1">{t('admin.detail.state')}</p>
+                      <p>{o.state}</p>
                     </div>
                     <div>
                       <p className="text-xs uppercase tracking-widest text-muted mb-1">{t('admin.detail.postalCode')}</p>
@@ -423,12 +433,15 @@ interface ItemFormData {
   discountPercent: string;
   categoryId: number;
   labelIds: number[];
+  material: string;
+  usmcaQualified: boolean;
 }
 
 const emptyForm: ItemFormData = {
   nameEn: '', nameFr: '', nameEs: '',
   descriptionEn: '', descriptionFr: '', descriptionEs: '',
   price: '', stock: '', discountPercent: '', categoryId: 0, labelIds: [],
+  material: '', usmcaQualified: false,
 };
 
 interface ItemModalProps {
@@ -449,6 +462,7 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
           price: String(item.price), stock: String(item.stock),
           discountPercent: item.discountPercent != null ? String(item.discountPercent) : '',
           categoryId: item.category.id, labelIds: item.labels.map(l => l.id),
+          material: item.material ?? '', usmcaQualified: item.usmcaQualified ?? false,
         }
       : { ...emptyForm, categoryId: allCategories[0]?.id ?? 0 }
   );
@@ -483,6 +497,8 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
         discountPercent: form.discountPercent ? parseInt(form.discountPercent) : null,
         categoryId: form.categoryId,
         labelIds: form.labelIds,
+        material: (form.material as import('../types').JewelryMaterial) || null,
+        usmcaQualified: form.usmcaQualified,
       };
       let itemId: number;
       if (item) {
@@ -537,7 +553,25 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
               <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.discount')}</label>
               <input type="number" min="0" max="100" placeholder="0" value={form.discountPercent} onChange={e => setForm(f => ({ ...f, discountPercent: e.target.value }))} className={inputClass} />
             </div>
+            <div>
+              <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.material')}</label>
+              <select value={form.material} onChange={e => setForm(f => ({ ...f, material: e.target.value }))} className={`${inputClass} appearance-none cursor-pointer`}>
+                <option value="">— {t('admin.modal.materialNone')} —</option>
+                <option value="SILVER">{t('admin.modal.materialSilver')}</option>
+                <option value="GOLD">{t('admin.modal.materialGold')}</option>
+                <option value="STEEL">{t('admin.modal.materialSteel')}</option>
+              </select>
+            </div>
           </div>
+          <label className="flex items-center gap-3 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={form.usmcaQualified}
+              onChange={e => setForm(f => ({ ...f, usmcaQualified: e.target.checked }))}
+              className="accent-dark"
+            />
+            <span className="text-xs uppercase tracking-widest">{t('admin.modal.usmcaQualified')}</span>
+          </label>
           <div>
             <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.category')}</label>
             <select value={form.categoryId} onChange={e => setForm(f => ({ ...f, categoryId: Number(e.target.value) }))} className={inputClass}>
@@ -778,6 +812,8 @@ function AdminProducts() {
                     {!item.active && <span className="text-[10px] uppercase tracking-widest border border-muted text-muted px-1.5 py-0.5">{t('admin.products.inactive')}</span>}
                     {incomplete && <span className="text-[10px] uppercase tracking-widest border border-amber-400 text-amber-600 px-1.5 py-0.5">{t('admin.products.incomplete')}</span>}
                     {!!item.discountPercent && <span className="text-[10px] uppercase tracking-widest border border-gold text-gold px-1.5 py-0.5">-{item.discountPercent}%</span>}
+                    {item.material && <span className="text-[10px] uppercase tracking-widest border border-border text-muted px-1.5 py-0.5">{item.material}</span>}
+                    {item.usmcaQualified && <span className="text-[10px] uppercase tracking-widest border border-green-600 text-green-700 px-1.5 py-0.5">USMCA</span>}
                   </div>
                   <p className="text-xs text-muted">{pickLocale(item.category.nameEn, item.category.nameFr, item.category.nameEs, i18n.language)} · {item.discountPercent ? `$${(Number(item.price) * (1 - item.discountPercent / 100)).toFixed(2)} ` : ''}<span className={item.discountPercent ? 'line-through' : ''}>${Number(item.price).toFixed(2)}</span> · {item.stock} {t('admin.products.inStock')}</p>
                   <p className="text-xs text-muted">
@@ -1215,15 +1251,29 @@ function VerboseRow({
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4 text-sm">
             <div>
               <p className="text-xs uppercase tracking-widest text-muted mb-1">{t('admin.detail.address')}</p>
-              <p>{u.address}</p>
+              <p>{u.addressLine1}{u.addressLine2 ? `, ${u.addressLine2}` : ''}</p>
             </div>
+            {u.colonial && (
+              <div>
+                <p className="text-xs uppercase tracking-widest text-muted mb-1">{t('admin.detail.colonial')}</p>
+                <p>{u.colonial}</p>
+              </div>
+            )}
             <div>
               <p className="text-xs uppercase tracking-widest text-muted mb-1">{t('admin.detail.city')}</p>
               <p>{u.city}</p>
             </div>
             <div>
+              <p className="text-xs uppercase tracking-widest text-muted mb-1">{t('admin.detail.state')}</p>
+              <p>{u.state}</p>
+            </div>
+            <div>
               <p className="text-xs uppercase tracking-widest text-muted mb-1">{t('admin.detail.postalCode')}</p>
               <p>{u.postalCode}</p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-widest text-muted mb-1">{t('admin.detail.phone')}</p>
+              <p>{u.phoneNumber}</p>
             </div>
             <div>
               <p className="text-xs uppercase tracking-widest text-muted mb-1">{t('admin.detail.country')}</p>

@@ -100,7 +100,7 @@ export default function Orders() {
               </div>
 
               <p className="text-xs text-muted mt-3">
-                {order.address}, {order.city}, {order.postalCode} · {order.country.replace('_', ' ')}
+                {order.addressLine1}{order.addressLine2 ? `, ${order.addressLine2}` : ''}{order.colonial ? `, ${order.colonial}` : ''}, {order.city}, {order.state}, {order.postalCode} · {order.country.replace('_', ' ')}
               </p>
 
               <div className="flex flex-wrap gap-3 mt-4">

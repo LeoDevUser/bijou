@@ -38,9 +38,15 @@ public class Order {
     @Column(nullable = false)
     private BigDecimal totalPrice;
     @Column(nullable = false)
-    private String address;
+    private String addressLine1;
+    @Column
+    private String addressLine2;
+    @Column
+    private String colonial;
     @Column(nullable = false)
     private String city;
+    @Column(nullable = false)
+    private String state;
     @Column(nullable = false)
     private String postalCode;
     private String trackingNumber;
@@ -58,6 +64,10 @@ public class Order {
     private Country country;
     private Integer installments;
     private boolean oxxo;
+    @Column
+    private BigDecimal dutyAmount;
+    @Column
+    private BigDecimal taxAmount;
 
     @PrePersist
     protected void onCreate(){

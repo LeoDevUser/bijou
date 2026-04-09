@@ -17,7 +17,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (data: { firstName: string; lastName: string; email: string; password: string; address: string; language: string }) => Promise<void>;
+  register: (data: { firstName: string; lastName: string; email: string; password: string; addressLine1: string; addressLine2?: string; colonial?: string; city: string; state: string; postalCode: string; country: string; phoneNumber: string; language: string }) => Promise<void>;
   logout: () => void;
 }
 
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRole(decodeRole(token));
   }
 
-  async function register(data: { firstName: string; lastName: string; email: string; password: string; address: string; language: string }) {
+  async function register(data: { firstName: string; lastName: string; email: string; password: string; addressLine1: string; addressLine2?: string; colonial?: string; city: string; state: string; postalCode: string; country: string; phoneNumber: string; language: string }) {
     const token = await api.auth.register(data);
     setToken(token);
     setRole(decodeRole(token));

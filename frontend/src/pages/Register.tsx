@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage, type Language } from '../context/LanguageContext';
+import { getStateOptions, getPostalCodePattern, getPostalCodePlaceholder, getPhonePlaceholder } from '../data/addressOptions';
 
 const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
   { value: 'en', label: 'English' },
@@ -10,19 +11,45 @@ const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
   { value: 'es', label: 'Español' },
 ];
 
+const COUNTRIES = [
+  { value: 'CANADA', label: 'Canada' },
+  { value: 'UNITED_STATES', label: 'United States' },
+  { value: 'MEXICO', label: 'Mexico' },
+];
+
 export default function Register() {
   const { t } = useTranslation();
   const { register } = useAuth();
   const { language, setLanguage } = useLanguage();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '', address: '', city: '', postalCode: '', country: 'CANADA', language: language });
+  const [form, setForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    country: 'CANADA',
+    phoneNumber: '',
+    addressLine1: '',
+    addressLine2: '',
+    colonial: '',
+    city: '',
+    state: '',
+    postalCode: '',
+    language: language,
+  });
   const [agreed, setAgreed] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
-    setForm(f => ({ ...f, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setForm(f => {
+      const next = { ...f, [name]: value };
+      // Reset state when country changes — the old value is invalid for the new list
+      if (name === 'country') next.state = '';
+      return next;
+    });
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -30,7 +57,21 @@ export default function Register() {
     setLoading(true);
     setError(null);
     try {
-      await register({ ...form, language: form.language.toUpperCase() });
+      await register({
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+        password: form.password,
+        country: form.country,
+        phoneNumber: form.phoneNumber,
+        addressLine1: form.addressLine1,
+        addressLine2: form.addressLine2 || undefined,
+        colonial: form.colonial || undefined,
+        city: form.city,
+        state: form.state,
+        postalCode: form.postalCode,
+        language: form.language.toUpperCase(),
+      });
       if (form.language !== language) setLanguage(form.language as Language);
       navigate('/');
     } catch (err) {
@@ -42,6 +83,9 @@ export default function Register() {
   }
 
   const inputClass = 'w-full border border-border bg-cream px-4 py-3 text-sm outline-none focus:border-dark transition-colors';
+  const labelClass = 'block text-xs uppercase tracking-widest mb-2';
+  const stateOptions = getStateOptions(form.country);
+  const stateLabel = form.country === 'CANADA' ? t('auth.province') : t('auth.state');
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-6 py-16">
@@ -50,22 +94,25 @@ export default function Register() {
         <p className="text-center text-muted text-sm mb-10">{t('auth.registerSubtitle')}</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Name */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs uppercase tracking-widest mb-2">{t('auth.firstName')}</label>
+              <label className={labelClass}>{t('auth.firstName')}</label>
               <input name="firstName" value={form.firstName} onChange={handleChange} required className={inputClass} />
             </div>
             <div>
-              <label className="block text-xs uppercase tracking-widest mb-2">{t('auth.lastName')}</label>
+              <label className={labelClass}>{t('auth.lastName')}</label>
               <input name="lastName" value={form.lastName} onChange={handleChange} required className={inputClass} />
             </div>
           </div>
+
+          {/* Credentials */}
           <div>
-            <label className="block text-xs uppercase tracking-widest mb-2">{t('auth.email')}</label>
+            <label className={labelClass}>{t('auth.email')}</label>
             <input name="email" type="email" value={form.email} onChange={handleChange} required className={inputClass} />
           </div>
           <div>
-            <label className="block text-xs uppercase tracking-widest mb-2">{t('auth.password')}</label>
+            <label className={labelClass}>{t('auth.password')}</label>
             <div className="relative">
               <input name="password" type={showPassword ? 'text' : 'password'} value={form.password} onChange={handleChange} required className={`${inputClass} pr-12`} />
               <button
@@ -87,31 +134,82 @@ export default function Register() {
               </button>
             </div>
           </div>
+
+          {/* Country — drives the rest of the address form */}
           <div>
-            <label className="block text-xs uppercase tracking-widest mb-2">{t('auth.address')}</label>
-            <input name="address" value={form.address} onChange={handleChange} required className={inputClass} />
+            <label className={labelClass}>{t('checkout.country')}</label>
+            <select name="country" value={form.country} onChange={handleChange} required className={`${inputClass} appearance-none cursor-pointer`}>
+              {COUNTRIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+            </select>
           </div>
+
+          {/* Phone */}
+          <div>
+            <label className={labelClass}>{t('auth.phoneNumber')}</label>
+            <input
+              name="phoneNumber"
+              type="tel"
+              value={form.phoneNumber}
+              onChange={handleChange}
+              required
+              placeholder={getPhonePlaceholder(form.country)}
+              className={inputClass}
+            />
+          </div>
+
+          {/* Address Line 1 */}
+          <div>
+            <label className={labelClass}>{t('auth.addressLine1')}</label>
+            <input name="addressLine1" value={form.addressLine1} onChange={handleChange} required className={inputClass} />
+          </div>
+
+          {/* Address Line 2 */}
+          <div>
+            <label className={labelClass}>{t('auth.addressLine2')}</label>
+            <input name="addressLine2" value={form.addressLine2} onChange={handleChange} className={inputClass} />
+          </div>
+
+          {/* Colonia — Mexico only */}
+          {form.country === 'MEXICO' && (
+            <div>
+              <label className={labelClass}>{t('auth.colonial')}</label>
+              <input name="colonial" value={form.colonial} onChange={handleChange} required className={inputClass} />
+            </div>
+          )}
+
+          {/* City + State/Province */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs uppercase tracking-widest mb-2">{t('auth.city')}</label>
+              <label className={labelClass}>{t('auth.city')}</label>
               <input name="city" value={form.city} onChange={handleChange} required className={inputClass} />
             </div>
             <div>
-              <label className="block text-xs uppercase tracking-widest mb-2">{t('auth.postalCode')}</label>
-              <input name="postalCode" value={form.postalCode} onChange={handleChange} required className={inputClass} />
+              <label className={labelClass}>{stateLabel}</label>
+              <select name="state" value={form.state} onChange={handleChange} required className={`${inputClass} appearance-none cursor-pointer`}>
+                <option value="" disabled>— {stateLabel} —</option>
+                {stateOptions.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
             </div>
           </div>
+
+          {/* Postal Code */}
           <div>
-            <label className="block text-xs uppercase tracking-widest mb-2">{t('checkout.country')}</label>
-            <select name="country" value={form.country} onChange={handleChange} required className={inputClass}>
-              <option value="CANADA">Canada</option>
-              <option value="UNITED_STATES">United States</option>
-              <option value="MEXICO">Mexico</option>
-            </select>
+            <label className={labelClass}>{t('auth.postalCode')}</label>
+            <input
+              name="postalCode"
+              value={form.postalCode}
+              onChange={handleChange}
+              required
+              pattern={getPostalCodePattern(form.country)}
+              placeholder={getPostalCodePlaceholder(form.country)}
+              className={inputClass}
+            />
           </div>
+
+          {/* Language */}
           <div>
-            <label className="block text-xs uppercase tracking-widest mb-2">{t('auth.language')}</label>
-            <select name="language" value={form.language} onChange={handleChange} required className={inputClass}>
+            <label className={labelClass}>{t('auth.language')}</label>
+            <select name="language" value={form.language} onChange={handleChange} required className={`${inputClass} appearance-none cursor-pointer`}>
               {LANGUAGE_OPTIONS.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}

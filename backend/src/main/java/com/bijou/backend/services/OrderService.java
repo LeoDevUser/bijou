@@ -42,6 +42,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final ItemRepository itemRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final TaxService taxService;
 
     @Transactional
     public Order create(Client client, OrderRequest req) {
@@ -86,6 +87,13 @@ public class OrderService {
         }
 
 
+        // Apply duties and taxes
+        TaxResult taxResult = taxService.calculate(orderItems, req.country(), req.currency(), total);
+        BigDecimal dutyAmount = taxResult.dutyAmount();
+        BigDecimal taxAmount  = taxResult.taxAmount();
+        total = total.add(taxResult.total());
+        log.info("tax breakdown — duty: {}, tax: {}", dutyAmount, taxAmount);
+
         // Apply MSI fee if applicable (MXN only, above 2000 MXN, valid plan)
         Integer installments = req.installments();
         if (installments != null) {
@@ -105,15 +113,26 @@ public class OrderService {
             total = total.multiply(BigDecimal.ONE.add(feeRate)).setScale(2, RoundingMode.HALF_UP);
         }
 
+        // Validate colonial for Mexico orders
+        if (req.country() == com.bijou.backend.entities.Country.MEXICO
+                && (req.colonial() == null || req.colonial().isBlank())) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "COLONIAL_REQUIRED");
+        }
+
         //update order and link OrderItems
         Order order = Order.builder()
-            .address(req.address())
+            .addressLine1(req.addressLine1())
+            .addressLine2(req.addressLine2())
+            .colonial(req.colonial())
             .city(req.city())
+            .state(req.state())
             .postalCode(req.postalCode())
             .country(req.country())
             .orderItems(orderItems)
             .totalPrice(total)
             .installments(installments)
+            .dutyAmount(dutyAmount)
+            .taxAmount(taxAmount)
             .client(client)
             .build();
         order.getOrderItems().forEach(oi -> oi.setOrder(order));
@@ -203,11 +222,46 @@ public class OrderService {
         log.info("order {} moved to PROCESSING after successful payment", order.getId());
     }
 
+    public TaxPreviewResponse taxPreview(TaxPreviewRequest req) {
+        List<Long> itemIds = req.items().stream()
+            .map(OrderItemRequest::itemId)
+            .distinct()
+            .toList();
+        Map<Long, Item> itemMap = itemRepository.findAllById(itemIds)
+            .stream()
+            .collect(Collectors.toMap(Item::getId, item -> item));
+
+        List<OrderItem> orderItems = new ArrayList<>();
+        BigDecimal subtotal = BigDecimal.ZERO;
+        for (OrderItemRequest r : req.items()) {
+            Item item = itemMap.get(r.itemId());
+            if (item == null) continue;
+            BigDecimal unitPrice = item.getDiscountPercent() != null && item.getDiscountPercent() > 0
+                ? item.getPrice().multiply(BigDecimal.valueOf(100 - item.getDiscountPercent()).movePointLeft(2))
+                : item.getPrice();
+            OrderItem oi = OrderItem.builder().item(item).quantity(r.quantity()).unitPrice(unitPrice).build();
+            orderItems.add(oi);
+            subtotal = subtotal.add(unitPrice.multiply(BigDecimal.valueOf(r.quantity())));
+        }
+
+        TaxResult taxResult = taxService.calculate(orderItems, req.country(), req.currency(), subtotal);
+        return new TaxPreviewResponse(
+            subtotal.setScale(2, RoundingMode.HALF_UP),
+            taxResult.dutyAmount(),
+            taxResult.taxAmount(),
+            subtotal.add(taxResult.total()).setScale(2, RoundingMode.HALF_UP)
+        );
+    }
+
     public OrderView toOrderView(Order order) {
         Client client = order.getClient();
-        return new OrderView(order.getAddress(),
-                client.getCity(),
-                client.getPostalCode(),
+        return new OrderView(
+                order.getAddressLine1(),
+                order.getAddressLine2(),
+                order.getColonial(),
+                order.getCity(),
+                order.getState(),
+                order.getPostalCode(),
                 client.getEmail(),
                 client.getFirstName(),
                 client.getLastName(),
@@ -233,7 +287,9 @@ public class OrderService {
                 order.getId(),
                 order.getCountry(),
                 order.getInstallments(),
-                order.isOxxo());
+                order.isOxxo(),
+                order.getDutyAmount(),
+                order.getTaxAmount());
     }
 
     @Transactional

@@ -3,6 +3,8 @@ package com.bijou.backend.services;
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.bijou.backend.entities.JewelryMaterial;
+
 public record ItemViewVerbose(
         Long id,
         Integer stock,
@@ -24,5 +26,7 @@ public record ItemViewVerbose(
         BigDecimal totalSalesQuarter,
         BigDecimal totalSalesYear,
         boolean active,
-        Integer discountPercent
+        Integer discountPercent,
+        JewelryMaterial material,
+        boolean usmcaQualified
 ) {}

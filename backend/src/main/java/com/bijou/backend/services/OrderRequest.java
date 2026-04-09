@@ -6,8 +6,11 @@ import com.bijou.backend.entities.Country;
 
 public record OrderRequest(
     List<OrderItemRequest> items,
-    String address,
+    String addressLine1,
+    String addressLine2,
+    String colonial,
     String city,
+    String state,
     String postalCode,
     Country country,
     Currency currency,

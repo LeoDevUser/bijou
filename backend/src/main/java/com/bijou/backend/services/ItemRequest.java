@@ -2,6 +2,8 @@ package com.bijou.backend.services;
 
 import java.util.List;
 
+import com.bijou.backend.entities.JewelryMaterial;
+
 public record ItemRequest(
     int stock,
     float price,
@@ -13,5 +15,7 @@ public record ItemRequest(
     String descriptionEn,
     String descriptionFr,
     String descriptionEs,
-    Integer discountPercent
+    Integer discountPercent,
+    JewelryMaterial material,
+    boolean usmcaQualified
 ) {}

@@ -43,7 +43,7 @@ public class EmailListener {
         context.setVariable("orderId", event.orderId());
         context.setVariable("items", event.items());
         context.setVariable("total", event.total());
-        context.setVariable("address", event.address());
+        context.setVariable("address", event.addressLine1());
         context.setVariable("city", event.city());
         context.setVariable("postalCode", event.postalCode());
         context.setVariable("country", event.country());
@@ -52,6 +52,18 @@ public class EmailListener {
         context.setVariable("oxxoPayment", event.oxxoPayment());
         context.setVariable("installments", event.installments());
         context.setVariable("hasMsi", event.installments() != null);
+        BigDecimal dutyAmt = event.dutyAmount() != null ? event.dutyAmount() : BigDecimal.ZERO;
+        BigDecimal taxAmt  = event.taxAmount()  != null ? event.taxAmount()  : BigDecimal.ZERO;
+        BigDecimal itemsSubtotal = event.items().stream()
+            .map(i -> i.unitPrice().multiply(BigDecimal.valueOf(i.quantity())))
+            .reduce(BigDecimal.ZERO, BigDecimal::add)
+            .setScale(2, RoundingMode.HALF_UP);
+        context.setVariable("itemsSubtotal", itemsSubtotal);
+        context.setVariable("dutyAmount", dutyAmt);
+        context.setVariable("taxAmount", taxAmt);
+        context.setVariable("hasDuty", dutyAmt.compareTo(BigDecimal.ZERO) > 0);
+        context.setVariable("hasTax", taxAmt.compareTo(BigDecimal.ZERO) > 0);
+        context.setVariable("hasTaxBreakdown", dutyAmt.add(taxAmt).compareTo(BigDecimal.ZERO) > 0);
         if (event.installments() != null) {
             BigDecimal monthly = event.total().divide(
                 BigDecimal.valueOf(event.installments()), 2, RoundingMode.HALF_UP);
@@ -99,12 +111,24 @@ public class EmailListener {
         context.setVariable("orderId", event.orderId());
         context.setVariable("items", event.items());
         context.setVariable("total", event.total());
-        context.setVariable("address", event.address());
+        context.setVariable("address", event.addressLine1());
         context.setVariable("city", event.city());
         context.setVariable("postalCode", event.postalCode());
         context.setVariable("country", event.country());
         context.setVariable("installments", event.installments());
         context.setVariable("hasMsi", event.installments() != null);
+        BigDecimal dutyAmtR = event.dutyAmount() != null ? event.dutyAmount() : BigDecimal.ZERO;
+        BigDecimal taxAmtR  = event.taxAmount()  != null ? event.taxAmount()  : BigDecimal.ZERO;
+        BigDecimal itemsSubtotalR = event.items().stream()
+            .map(i -> i.unitPrice().multiply(BigDecimal.valueOf(i.quantity())))
+            .reduce(BigDecimal.ZERO, BigDecimal::add)
+            .setScale(2, RoundingMode.HALF_UP);
+        context.setVariable("itemsSubtotal", itemsSubtotalR);
+        context.setVariable("dutyAmount", dutyAmtR);
+        context.setVariable("taxAmount", taxAmtR);
+        context.setVariable("hasDuty", dutyAmtR.compareTo(BigDecimal.ZERO) > 0);
+        context.setVariable("hasTax", taxAmtR.compareTo(BigDecimal.ZERO) > 0);
+        context.setVariable("hasTaxBreakdown", dutyAmtR.add(taxAmtR).compareTo(BigDecimal.ZERO) > 0);
         if (event.installments() != null) {
             BigDecimal monthly = event.total().divide(
                 BigDecimal.valueOf(event.installments()), 2, RoundingMode.HALF_UP);

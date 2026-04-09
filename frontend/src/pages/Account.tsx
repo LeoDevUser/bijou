@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage, type Language } from '../context/LanguageContext';
 import { api } from '../api/client';
+import { getStateOptions, getPostalCodePattern, getPostalCodePlaceholder, getPhonePlaceholder } from '../data/addressOptions';
 
 const ADMIN_URL = import.meta.env.VITE_ADMIN_PAGE ?? '';
 
@@ -17,10 +18,14 @@ interface Profile {
   firstName: string;
   lastName: string;
   email: string;
-  address: string;
+  addressLine1: string;
+  addressLine2: string | null;
+  colonial: string | null;
   city: string;
+  state: string;
   postalCode: string;
   country: string;
+  phoneNumber: string;
   language: string;
 }
 
@@ -58,7 +63,10 @@ export default function Account() {
   const [emailMsg, setEmailMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [emailLoading, setEmailLoading] = useState(false);
 
-  const [addressForm, setAddressForm] = useState({ address: '', city: '', postalCode: '', country: 'CANADA' });
+  const [addressForm, setAddressForm] = useState({
+    addressLine1: '', addressLine2: '', colonial: '',
+    city: '', state: '', postalCode: '', country: 'CANADA', phoneNumber: '',
+  });
   const [addressMsg, setAddressMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [addressLoading, setAddressLoading] = useState(false);
 
@@ -69,7 +77,16 @@ export default function Account() {
   useEffect(() => {
     api.account.getProfile().then(p => {
       setProfile(p);
-      setAddressForm({ address: p.address, city: p.city, postalCode: p.postalCode, country: p.country });
+      setAddressForm({
+        addressLine1: p.addressLine1,
+        addressLine2: p.addressLine2 ?? '',
+        colonial: p.colonial ?? '',
+        city: p.city,
+        state: p.state,
+        postalCode: p.postalCode,
+        country: p.country,
+        phoneNumber: p.phoneNumber,
+      });
       setLang(p.language.toLowerCase() as Language);
     });
   }, []);
@@ -115,7 +132,17 @@ export default function Account() {
     try {
       await api.account.changeAddress(addressForm);
       setAddressMsg({ type: 'success', text: t('account.address.success') });
-      setProfile(p => p ? { ...p, ...addressForm } : p);
+      setProfile(p => p ? {
+        ...p,
+        addressLine1: addressForm.addressLine1,
+        addressLine2: addressForm.addressLine2 || null,
+        colonial: addressForm.colonial || null,
+        city: addressForm.city,
+        state: addressForm.state,
+        postalCode: addressForm.postalCode,
+        country: addressForm.country,
+        phoneNumber: addressForm.phoneNumber,
+      } : p);
     } catch {
       setAddressMsg({ type: 'error', text: t('account.address.error') });
     } finally {
@@ -157,46 +184,112 @@ export default function Account() {
 
       <div className="space-y-6">
         <Section title={t('account.address.title')}>
-          <form onSubmit={handleAddress} autoComplete="off" className="space-y-4">
-            <input
-              value={addressForm.address}
-              onChange={e => setAddressForm(f => ({ ...f, address: e.target.value }))}
-              required
-              className={inputClass}
-              placeholder={t('account.address.placeholder')}
-            />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <input
-                value={addressForm.city}
-                onChange={e => setAddressForm(f => ({ ...f, city: e.target.value }))}
-                required
-                className={inputClass}
-                placeholder={t('auth.city')}
-              />
-              <input
-                value={addressForm.postalCode}
-                onChange={e => setAddressForm(f => ({ ...f, postalCode: e.target.value }))}
-                required
-                className={inputClass}
-                placeholder={t('auth.postalCode')}
-              />
-            </div>
-            <select
-              value={addressForm.country}
-              onChange={e => setAddressForm(f => ({ ...f, country: e.target.value }))}
-              className={inputClass}
-            >
-              <option value="CANADA">Canada</option>
-              <option value="UNITED_STATES">United States</option>
-              <option value="MEXICO">Mexico</option>
-            </select>
-            <div className="flex justify-end">
-              <button type="submit" disabled={addressLoading} className={btnClass}>
-                {addressLoading ? '...' : t('account.address.save')}
-              </button>
-            </div>
-            <StatusMsg msg={addressMsg} />
-          </form>
+          {(() => {
+            const stateOptions = getStateOptions(addressForm.country);
+            const stateLabel = addressForm.country === 'CANADA' ? t('auth.province') : t('auth.state');
+            return (
+              <form onSubmit={handleAddress} autoComplete="off" className="space-y-4">
+                {/* Country */}
+                <div>
+                  <label className="block text-xs uppercase tracking-widest mb-2">{t('checkout.country')}</label>
+                  <select
+                    value={addressForm.country}
+                    onChange={e => setAddressForm(f => ({ ...f, country: e.target.value, state: '' }))}
+                    className={`${inputClass} appearance-none cursor-pointer`}
+                  >
+                    <option value="CANADA">Canada</option>
+                    <option value="UNITED_STATES">United States</option>
+                    <option value="MEXICO">Mexico</option>
+                  </select>
+                </div>
+                {/* Phone */}
+                <div>
+                  <label className="block text-xs uppercase tracking-widest mb-2">{t('auth.phoneNumber')}</label>
+                  <input
+                    type="tel"
+                    value={addressForm.phoneNumber}
+                    onChange={e => setAddressForm(f => ({ ...f, phoneNumber: e.target.value }))}
+                    required
+                    placeholder={getPhonePlaceholder(addressForm.country)}
+                    className={inputClass}
+                  />
+                </div>
+                {/* Address Line 1 */}
+                <div>
+                  <label className="block text-xs uppercase tracking-widest mb-2">{t('auth.addressLine1')}</label>
+                  <input
+                    value={addressForm.addressLine1}
+                    onChange={e => setAddressForm(f => ({ ...f, addressLine1: e.target.value }))}
+                    required
+                    className={inputClass}
+                  />
+                </div>
+                {/* Address Line 2 */}
+                <div>
+                  <label className="block text-xs uppercase tracking-widest mb-2">{t('auth.addressLine2')}</label>
+                  <input
+                    value={addressForm.addressLine2}
+                    onChange={e => setAddressForm(f => ({ ...f, addressLine2: e.target.value }))}
+                    className={inputClass}
+                  />
+                </div>
+                {/* Colonia — Mexico only */}
+                {addressForm.country === 'MEXICO' && (
+                  <div>
+                    <label className="block text-xs uppercase tracking-widest mb-2">{t('auth.colonial')}</label>
+                    <input
+                      value={addressForm.colonial}
+                      onChange={e => setAddressForm(f => ({ ...f, colonial: e.target.value }))}
+                      required
+                      className={inputClass}
+                    />
+                  </div>
+                )}
+                {/* City + State/Province */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs uppercase tracking-widest mb-2">{t('auth.city')}</label>
+                    <input
+                      value={addressForm.city}
+                      onChange={e => setAddressForm(f => ({ ...f, city: e.target.value }))}
+                      required
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs uppercase tracking-widest mb-2">{stateLabel}</label>
+                    <select
+                      value={addressForm.state}
+                      onChange={e => setAddressForm(f => ({ ...f, state: e.target.value }))}
+                      required
+                      className={`${inputClass} appearance-none cursor-pointer`}
+                    >
+                      <option value="" disabled>— {stateLabel} —</option>
+                      {stateOptions.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                </div>
+                {/* Postal Code */}
+                <div>
+                  <label className="block text-xs uppercase tracking-widest mb-2">{t('auth.postalCode')}</label>
+                  <input
+                    value={addressForm.postalCode}
+                    onChange={e => setAddressForm(f => ({ ...f, postalCode: e.target.value }))}
+                    required
+                    pattern={getPostalCodePattern(addressForm.country)}
+                    placeholder={getPostalCodePlaceholder(addressForm.country)}
+                    className={inputClass}
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <button type="submit" disabled={addressLoading} className={btnClass}>
+                    {addressLoading ? '...' : t('account.address.save')}
+                  </button>
+                </div>
+                <StatusMsg msg={addressMsg} />
+              </form>
+            );
+          })()}
         </Section>
 
         <Section title={t('account.language.title')}>

@@ -43,13 +43,22 @@ public class Client implements UserDetails {
     @Column(nullable = false, unique = true)
     private String email;
     @Column(nullable = false)
-    private String address;
-    @Column(nullable = false)
-    private String postalCode;
+    private String addressLine1;
+    @Column
+    private String addressLine2;
+    @Column
+    private String colonial;
     @Column(nullable = false)
     private String city;
     @Column(nullable = false)
+    private String state;
+    @Column(nullable = false)
+    private String postalCode;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private Country country;
+    @Column(nullable = false)
+    private String phoneNumber;
     @Column(nullable = false)
     private LocalDateTime createdOn;
     @OneToMany(mappedBy = "client", fetch = FetchType.LAZY)

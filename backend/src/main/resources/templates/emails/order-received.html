@@ -147,7 +147,38 @@
                     <tr>
                         <td style="padding:0 40px 40px 40px;">
                             <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                                <tr th:if="${hasMsi}">
+                                <!-- Items subtotal (shown when tax breakdown exists) -->
+                                <tr th:if="${hasTaxBreakdown}">
+                                    <td align="right" style="border-top:1px solid #333333;padding-top:10px;padding-bottom:4px;">
+                                        <span style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#666666;"
+                                              th:text="#{mail.order.subtotal}">Subtotal</span>
+                                        &nbsp;&nbsp;
+                                        <span style="font-size:13px;color:#aaaaaa;"
+                                              th:text="'$' + ${#numbers.formatDecimal(itemsSubtotal, 1, 'COMMA', 2, 'POINT')} + ' MXN'">$0.00 MXN</span>
+                                    </td>
+                                </tr>
+                                <!-- Import duty -->
+                                <tr th:if="${hasDuty}">
+                                    <td align="right" style="padding-bottom:4px;">
+                                        <span style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#666666;"
+                                              th:text="#{mail.order.duty}">Import Duty</span>
+                                        &nbsp;&nbsp;
+                                        <span style="font-size:13px;color:#aaaaaa;"
+                                              th:text="'+$' + ${#numbers.formatDecimal(dutyAmount, 1, 'COMMA', 2, 'POINT')} + ' MXN'">+$0.00 MXN</span>
+                                    </td>
+                                </tr>
+                                <!-- Tax / IVA / GST -->
+                                <tr th:if="${hasTax}">
+                                    <td align="right" style="padding-bottom:4px;">
+                                        <span style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#666666;"
+                                              th:text="#{mail.order.tax}">Tax</span>
+                                        &nbsp;&nbsp;
+                                        <span style="font-size:13px;color:#aaaaaa;"
+                                              th:text="'+$' + ${#numbers.formatDecimal(taxAmount, 1, 'COMMA', 2, 'POINT')} + ' MXN'">+$0.00 MXN</span>
+                                    </td>
+                                </tr>
+                                <!-- MSI pre-fee subtotal (only show when no tax breakdown; otherwise items subtotal is already shown above) -->
+                                <tr th:if="${hasMsi and !hasTaxBreakdown}">
                                     <td align="right" style="border-top:1px solid #333333;padding-top:10px;padding-bottom:4px;">
                                         <span style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#666666;"
                                               th:text="#{mail.order.subtotal}">Subtotal</span>

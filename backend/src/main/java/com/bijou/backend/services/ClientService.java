@@ -44,10 +44,14 @@ public class ClientService {
                 client.getFirstName(),
                 client.getLastName(),
                 client.getEmail(),
-                client.getAddress(),
-                client.getPostalCode(),
+                client.getAddressLine1(),
+                client.getAddressLine2(),
+                client.getColonial(),
                 client.getCity(),
+                client.getState(),
+                client.getPostalCode(),
                 client.getCountry().name(),
+                client.getPhoneNumber(),
                 client.getLanguage().name());
     }
 
@@ -65,10 +69,14 @@ public class ClientService {
                 client.getFirstName(),
                 client.getLastName(),
                 client.getEmail(),
-                client.getAddress(),
-                client.getPostalCode(),
+                client.getAddressLine1(),
+                client.getAddressLine2(),
+                client.getColonial(),
                 client.getCity(),
+                client.getState(),
+                client.getPostalCode(),
                 client.getCountry().name(),
+                client.getPhoneNumber(),
                 client.getLanguage().name(),
                 client.getCreatedOn(),
                 client.getRole(),
@@ -101,10 +109,18 @@ public class ClientService {
     }
 
     public void updateAddress(Client client, AddressRequest req) {
-        client.setAddress(req.address());
-        client.setPostalCode(req.postalCode());
+        Country country = Country.valueOf(req.country());
+        if (country == Country.MEXICO && (req.colonial() == null || req.colonial().isBlank())) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "COLONIAL_REQUIRED");
+        }
+        client.setAddressLine1(req.addressLine1());
+        client.setAddressLine2(req.addressLine2());
+        client.setColonial(req.colonial());
         client.setCity(req.city());
-        client.setCountry(Country.valueOf(req.country()));
+        client.setState(req.state());
+        client.setPostalCode(req.postalCode());
+        client.setCountry(country);
+        client.setPhoneNumber(req.phoneNumber());
         clientRepository.save(client);
         log.info("updated address of {}", client.getEmail());
     }

@@ -22,6 +22,8 @@ import com.bijou.backend.services.OrderRequest;
 import com.bijou.backend.services.OrderService;
 import com.bijou.backend.services.OrderView;
 import com.bijou.backend.services.PaymentService;
+import com.bijou.backend.services.TaxPreviewRequest;
+import com.bijou.backend.services.TaxPreviewResponse;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +52,11 @@ public class OrderController {
             log.error("payment intent creation failed after order saved: {}", e.getMessage());
             throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "ORDER_PAYMENT_INIT_FAILED");
         }
+    }
+
+    @PostMapping("/api/orders/preview")
+    public ResponseEntity<TaxPreviewResponse> previewTax(@RequestBody TaxPreviewRequest req) {
+        return ResponseEntity.ok(orderService.taxPreview(req));
     }
 
     @GetMapping("/api/orders")

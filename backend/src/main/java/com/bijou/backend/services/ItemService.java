@@ -71,7 +71,9 @@ public class ItemService {
                 item.getPrice(), toLabelViews(item.getLabels()), CategoryService.toView(item.getCategory()),
                 item.getDescriptionEn(), item.getDescriptionFr(), item.getDescriptionEs(),
                 toAssetViews(item.getAssets()),
-                item.getDiscountPercent()
+                item.getDiscountPercent(),
+                item.getMaterial(),
+                item.isUsmcaQualified()
             );
     }
 
@@ -85,7 +87,9 @@ public class ItemService {
                 item.getNbSold(), item.getNbSoldMonth(), item.getTotalSales(),
                 item.getTotalSalesWeek(), item.getTotalSalesMonth(), item.getTotalSalesQuarter(),
                 item.getTotalSalesYear(), item.isActive(),
-                item.getDiscountPercent()
+                item.getDiscountPercent(),
+                item.getMaterial(),
+                item.isUsmcaQualified()
             );
     }
 
@@ -107,6 +111,8 @@ public class ItemService {
             .descriptionFr(req.descriptionFr())
             .descriptionEs(req.descriptionEs())
             .discountPercent(req.discountPercent())
+            .material(req.material())
+            .usmcaQualified(req.usmcaQualified())
             .build();
         itemRepository.save(item);
         log.info("created item #{} ({})", item.getId(), displayName(item));
@@ -126,6 +132,8 @@ public class ItemService {
         item.setDescriptionFr(req.descriptionFr());
         item.setDescriptionEs(req.descriptionEs());
         item.setDiscountPercent(req.discountPercent());
+        item.setMaterial(req.material());
+        item.setUsmcaQualified(req.usmcaQualified());
         itemRepository.save(item);
         log.info("updated item #{} ({})", id, displayName(item));
         return toItemView(item);

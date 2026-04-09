@@ -1,4 +1,4 @@
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, SiteAssetView, CollectionView, SalesStats, ItemAssetView, ThemeConfig } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, SiteAssetView, CollectionView, SalesStats, ItemAssetView, ThemeConfig, TaxPreview } from '../types';
 import { getToken, setToken } from './tokenStore';
 
 interface LabelRequest { nameEn: string; nameFr: string; nameEs: string; }
@@ -61,7 +61,7 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       }).then(r => r.token),
-    register: (data: { firstName: string; lastName: string; email: string; password: string; address: string; city: string; postalCode: string; country: string; language: string }) =>
+    register: (data: { firstName: string; lastName: string; email: string; password: string; addressLine1: string; addressLine2?: string; colonial?: string; city: string; state: string; postalCode: string; country: string; phoneNumber: string; language: string }) =>
       request<{ token: string }>('/auth/register', {
         method: 'POST',
         body: JSON.stringify(data),
@@ -107,8 +107,11 @@ export const api = {
     list: () => request<OrderView[]>('/api/orders'),
     create: (data: {
       items: { itemId: number; quantity: number }[];
-      address: string;
+      addressLine1: string;
+      addressLine2?: string | null;
+      colonial?: string | null;
       city: string;
+      state: string;
       postalCode: string;
       country: string;
       currency: string;
@@ -118,6 +121,8 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(data),
       }),
+    taxPreview: (data: { items: { itemId: number; quantity: number }[]; country: string; currency: string }) =>
+      request<TaxPreview>('/api/orders/preview', { method: 'POST', body: JSON.stringify(data) }),
     cancel: (id: number) =>
       request<void>(`/api/orders/${id}/cancel`, { method: 'PATCH' }),
     getClientSecret: (id: number) =>
@@ -126,12 +131,12 @@ export const api = {
   },
   account: {
     getProfile: () =>
-      request<{ firstName: string; lastName: string; email: string; address: string; city: string; postalCode: string; country: string; language: string }>('/account/profile'),
+      request<{ firstName: string; lastName: string; email: string; addressLine1: string; addressLine2: string | null; colonial: string | null; city: string; state: string; postalCode: string; country: string; phoneNumber: string; language: string }>('/account/profile'),
     changePassword: (oldPassword: string, newPassword: string) =>
       request<void>('/account/password', { method: 'PATCH', body: JSON.stringify({ oldPassword, newPassword }) }),
     changeEmail: (password: string, newEmail: string) =>
       request<void>('/account/email', { method: 'PATCH', body: JSON.stringify({ password, newEmail }) }),
-    changeAddress: (req: { address: string; city: string; postalCode: string; country: string }) =>
+    changeAddress: (req: { addressLine1: string; addressLine2?: string; colonial?: string; city: string; state: string; postalCode: string; country: string; phoneNumber: string }) =>
       request<void>('/account/address', { method: 'PATCH', body: JSON.stringify(req) }),
     changeLanguage: (newLanguage: string) =>
       request<void>(`/account/language?newLanguage=${encodeURIComponent(newLanguage)}`, { method: 'PATCH' }),

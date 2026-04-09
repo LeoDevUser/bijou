@@ -33,6 +33,8 @@ export interface ItemView {
   descriptionEs: string | null;
   assets: ItemAssetView[];
   discountPercent: number | null;
+  material: JewelryMaterial | null;
+  usmcaQualified: boolean;
 }
 
 export interface ItemViewVerbose extends ItemView {
@@ -83,8 +85,11 @@ export type Currency = 'CAD' | 'USD' | 'MXN';
 
 export interface OrderView {
   id: number;
-  address: string;
+  addressLine1: string;
+  addressLine2: string | null;
+  colonial: string | null;
   city: string;
+  state: string;
   postalCode: string;
   email: string;
   firstName: string;
@@ -97,7 +102,11 @@ export interface OrderView {
   country: Country;
   installments: number | null;
   oxxo: boolean;
+  dutyAmount: number | null;
+  taxAmount: number | null;
 }
+
+export type JewelryMaterial = 'SILVER' | 'GOLD' | 'STEEL';
 
 export interface ItemRequest {
   nameEn: string;
@@ -111,6 +120,8 @@ export interface ItemRequest {
   categoryId: number;
   labelIds: number[];
   discountPercent: number | null;
+  material: JewelryMaterial | null;
+  usmcaQualified: boolean;
 }
 
 export interface VerboseClient {
@@ -118,16 +129,27 @@ export interface VerboseClient {
   firstName: string;
   lastName: string;
   email: string;
-  address: string;
-  postalCode: string;
+  addressLine1: string;
+  addressLine2: string | null;
+  colonial: string | null;
   city: string;
+  state: string;
+  postalCode: string;
   country: string;
+  phoneNumber: string;
   language: string;
   createdOn: string;
   role: string;
   stripeCustomerId: string | null;
   nbSuccessfulOrders: number;
   moneySpent: number;
+}
+
+export interface TaxPreview {
+  subtotal: number;
+  dutyAmount: number;
+  taxAmount: number;
+  total: number;
 }
 
 export interface CartItem {

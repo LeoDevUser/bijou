@@ -51,11 +51,6 @@ public class AuthService {
         return pswd.length() >= 8 && pswd.length() <= 30 && checkChars(pswd);
     }
 
-    private boolean validAddress(String addy) {
-        //may change this later
-        return !addy.isBlank();
-    }
-
     public AuthTokenPair register(RegisterRequest req) {
         log.info("registration attempt for email {}", req.email());
         String email = req.email();
@@ -68,19 +63,29 @@ public class AuthService {
             log.warn("invalid password, need a password between 8 and 30 characters with one uppercase, one lowercase, one digit, one special character");
             throw new AppException(HttpStatus.BAD_REQUEST, "PASSWORD_INVALID");
         }
-        if (!validAddress(req.address())) {
-            log.warn("invalid address");
+        if (req.addressLine1() == null || req.addressLine1().isBlank()) {
+            log.warn("invalid address: addressLine1 is blank");
             throw new AppException(HttpStatus.BAD_REQUEST, "ADDRESS_INVALID");
+        }
+
+        Country country = Country.valueOf(req.country());
+        if (country == Country.MEXICO && (req.colonial() == null || req.colonial().isBlank())) {
+            log.warn("colonial is required for Mexican addresses");
+            throw new AppException(HttpStatus.BAD_REQUEST, "COLONIAL_REQUIRED");
         }
 
         Language lang = Language.valueOf(req.language());
 
         String encoded = passwordEncoder.encode(pswd);
         Client client = Client.builder()
-            .address(req.address())
+            .addressLine1(req.addressLine1())
+            .addressLine2(req.addressLine2())
+            .colonial(req.colonial())
             .city(req.city())
+            .state(req.state())
             .postalCode(req.postalCode())
-            .country(Country.valueOf(req.country()))
+            .country(country)
+            .phoneNumber(req.phoneNumber())
             .firstName(req.firstName())
             .email(email)
             .lastName(req.lastName())

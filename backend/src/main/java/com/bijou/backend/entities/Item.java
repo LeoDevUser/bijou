@@ -2,6 +2,8 @@ package com.bijou.backend.entities;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
@@ -76,4 +78,9 @@ public class Item {
     private String descriptionFr;
     private String descriptionEs;
     private Integer discountPercent;
+    @Enumerated(EnumType.STRING)
+    private JewelryMaterial material;
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean usmcaQualified = false;
 }

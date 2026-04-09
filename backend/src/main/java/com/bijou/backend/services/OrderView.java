@@ -8,8 +8,11 @@ import com.bijou.backend.entities.Country;
 import com.bijou.backend.entities.Status;
 
 public record OrderView(
-    String address,
+    String addressLine1,
+    String addressLine2,
+    String colonial,
     String city,
+    String state,
     String postalCode,
     String email,
     String firstName,
@@ -22,5 +25,7 @@ public record OrderView(
     Long id,
     Country country,
     Integer installments,
-    boolean oxxo
+    boolean oxxo,
+    BigDecimal dutyAmount,
+    BigDecimal taxAmount
 ){}
