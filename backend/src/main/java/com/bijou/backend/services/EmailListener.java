@@ -174,6 +174,7 @@ public class EmailListener {
 
         Context context = new Context(locale);
         context.setVariable("firstName", event.firstName());
+        context.setVariable("email", event.email());
 
         String htmlContent = templateEngine.process("emails/password-changed", context);
 

@@ -94,64 +94,70 @@ export default function Shop() {
       {/* Filters */}
       <div className="mb-10 space-y-3">
         {/* Category pills */}
-        <div className="flex flex-wrap gap-2 items-center">
-          <span className="text-xs uppercase tracking-widest text-muted w-16 shrink-0">{t('shop.category')}</span>
-          <button
-            onClick={() => setCategory('')}
-            className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${!activeCategory ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
-          >
-            {t('shop.all')}
-          </button>
-          {categories.map(cat => (
+        <div className="space-y-2">
+          <span className="text-xs uppercase tracking-widest text-muted">{t('shop.category')}</span>
+          <div className="flex flex-wrap gap-2">
             <button
-              key={cat.id}
-              onClick={() => setCategory(activeCategory === String(cat.id) ? '' : String(cat.id))}
-              className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${activeCategory === String(cat.id) ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
+              onClick={() => setCategory('')}
+              className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${!activeCategory ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
             >
-              {pickLocale(cat.nameEn, cat.nameFr, cat.nameEs, i18n.language)}
+              {t('shop.all')}
             </button>
-          ))}
+            {categories.map(cat => (
+              <button
+                key={cat.id}
+                onClick={() => setCategory(activeCategory === String(cat.id) ? '' : String(cat.id))}
+                className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${activeCategory === String(cat.id) ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
+              >
+                {pickLocale(cat.nameEn, cat.nameFr, cat.nameEs, i18n.language)}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Label pills — only shown when labels exist */}
         {labels.length > 0 && (
-          <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-xs uppercase tracking-widest text-muted w-16 shrink-0">{t('shop.label')}</span>
-            <button
-              onClick={() => setLabel('')}
-              className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${resolvedLabelId === null ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
-            >
-              {t('shop.all')}
-            </button>
-            {labels.map(label => (
+          <div className="space-y-2">
+            <span className="text-xs uppercase tracking-widest text-muted">{t('shop.label')}</span>
+            <div className="flex flex-wrap gap-2">
               <button
-                key={label.id}
-                onClick={() => setLabel(resolvedLabelId === label.id ? '' : String(label.id))}
-                className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${resolvedLabelId === label.id ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
+                onClick={() => setLabel('')}
+                className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${resolvedLabelId === null ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
               >
-                {pickLocale(label.nameEn, label.nameFr, label.nameEs, i18n.language)}
+                {t('shop.all')}
               </button>
-            ))}
+              {labels.map(label => (
+                <button
+                  key={label.id}
+                  onClick={() => setLabel(resolvedLabelId === label.id ? '' : String(label.id))}
+                  className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${resolvedLabelId === label.id ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
+                >
+                  {pickLocale(label.nameEn, label.nameFr, label.nameEs, i18n.language)}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
         {/* Sort */}
-        <div className="flex flex-wrap gap-2 items-center">
-          <span className="text-xs uppercase tracking-widest text-muted w-16 shrink-0">{t('shop.sort')}</span>
-          {([
-            ['default',     t('shop.sortDefault')],
-            ['bestselling', t('shop.sortBestselling')],
-            ['price_asc',   t('shop.sortPriceAsc')],
-            ['price_desc',  t('shop.sortPriceDesc')],
-          ] as [SortOption, string][]).map(([value, label]) => (
-            <button
-              key={value}
-              onClick={() => setSort(value)}
-              className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${sort === value ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="space-y-2">
+          <span className="text-xs uppercase tracking-widest text-muted">{t('shop.sort')}</span>
+          <div className="flex flex-wrap gap-2">
+            {([
+              ['default',     t('shop.sortDefault')],
+              ['bestselling', t('shop.sortBestselling')],
+              ['price_asc',   t('shop.sortPriceAsc')],
+              ['price_desc',  t('shop.sortPriceDesc')],
+            ] as [SortOption, string][]).map(([value, label]) => (
+              <button
+                key={value}
+                onClick={() => setSort(value)}
+                className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${sort === value ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Clear all */}
