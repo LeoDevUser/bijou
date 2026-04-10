@@ -61,7 +61,8 @@
     "addToCart": "Ajouter au Panier",
     "added": "Ajouté",
     "inStock": "en stock",
-    "outOfStock": "Rupture de Stock"
+    "outOfStock": "Rupture de Stock",
+    "zoomHint": "zoomez avec la molette ou avec deux doigts"
   },
   "cart": {
     "title": "Votre Panier",

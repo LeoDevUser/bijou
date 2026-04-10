@@ -61,7 +61,8 @@
     "addToCart": "Add to Cart",
     "added": "Added",
     "inStock": "in stock",
-    "outOfStock": "Out of Stock"
+    "outOfStock": "Out of Stock",
+    "zoomHint": "scroll or pinch to zoom"
   },
   "cart": {
     "title": "Your Cart",

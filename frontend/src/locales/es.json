@@ -61,7 +61,8 @@
     "addToCart": "Añadir al Carrito",
     "added": "Añadido",
     "inStock": "en stock",
-    "outOfStock": "Sin Stock"
+    "outOfStock": "Sin Stock",
+    "zoomHint": "acerca con la rueda o con dos dedos"
   },
   "cart": {
     "title": "Tu Carrito",
