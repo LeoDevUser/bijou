@@ -118,7 +118,16 @@
     "pay": "Pagar Ahora",
     "processing": "Procesando...",
     "error": "El pago falló. Por favor, intenta de nuevo.",
-    "msiPlan": "Plan: {{n}} meses · ${{monthly}} MXN/mes"
+    "msiPlan": "Plan: {{n}} meses · ${{monthly}} MXN/mes",
+    "oxxo": {
+      "pending": "Voucher OXXO listo.",
+      "instructions": "Usa el voucher indicado arriba para pagar en cualquier tienda OXXO. Tu pedido se confirmará al recibir el pago."
+    },
+    "bankTransfer": {
+      "pending": "Instrucciones de transferencia listas.",
+      "instructions": "Usa los datos bancarios indicados arriba para completar tu transferencia. Tu pedido se confirmará al recibir los fondos (normalmente 1–3 días hábiles).",
+      "viewOrders": "Ver mis pedidos"
+    }
   },
   "auth": {
     "login": "Iniciar Sesión",

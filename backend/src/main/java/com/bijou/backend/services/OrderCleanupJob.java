@@ -32,6 +32,10 @@ public class OrderCleanupJob {
         log.info("stale order cleanup: found {} orders to cancel", staleOrders.size());
 
         for (Order order : staleOrders) {
+            if (order.isBankTransfer()) {
+                log.info("skipping stale cleanup for order #{} — bank transfer pending", order.getId());
+                continue;
+            }
             try {
                 String intentId = orderService.cancel(order.getClient(), order.getId());
                 if(intentId != null) paymentService.cancelIntent(intentId);

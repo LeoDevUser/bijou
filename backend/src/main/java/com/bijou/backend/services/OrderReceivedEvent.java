@@ -20,7 +20,8 @@ public record OrderReceivedEvent(
     String city,
     String postalCode,
     Country country,
-    Integer installments
+    Integer installments,
+    boolean bankTransfer
 ) {
     public record ItemLine(String name, int quantity, BigDecimal unitPrice) {}
 }

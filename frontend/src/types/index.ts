@@ -102,6 +102,7 @@ export interface OrderView {
   country: Country;
   installments: number | null;
   oxxo: boolean;
+  bankTransfer: boolean;
   dutyAmount: number | null;
   taxAmount: number | null;
   handlingFee: number | null;

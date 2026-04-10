@@ -64,6 +64,7 @@ public class Order {
     private Country country;
     private Integer installments;
     private boolean oxxo;
+    private boolean bankTransfer;
     @Column
     private BigDecimal dutyAmount;
     @Column

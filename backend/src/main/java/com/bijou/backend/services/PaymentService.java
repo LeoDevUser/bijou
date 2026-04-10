@@ -43,11 +43,11 @@ public class PaymentService {
         try {
             String customerId = resolveCustomer(client);
             long amountCents = order.getTotalPrice().multiply(BigDecimal.valueOf(100)).longValue();
-            boolean isMsi = order.getInstallments() != null && currency == Currency.MXN;
+            boolean isMsi = order.getInstallments() != null;
 
             PaymentIntentCreateParams.Builder paramsBuilder = PaymentIntentCreateParams.builder()
                 .setAmount(amountCents)
-                .setCurrency(currency.toString())
+                .setCurrency("mxn")
                 .setCustomer(customerId)
                 .putMetadata("orderId", order.getId().toString());
 
@@ -68,12 +68,29 @@ public class PaymentService {
                             .build()
                     );
             } else {
-                paramsBuilder.setAutomaticPaymentMethods(
-                    PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
-                        .setEnabled(true)
-                        .setAllowRedirects(PaymentIntentCreateParams.AutomaticPaymentMethods.AllowRedirects.NEVER)
-                        .build()
-                );
+                // All charges are MXN — always offer card and bank transfer
+                paramsBuilder
+                    .addPaymentMethodType("card")
+                    .addPaymentMethodType("customer_balance")
+                    .setPaymentMethodOptions(
+                        PaymentIntentCreateParams.PaymentMethodOptions.builder()
+                            .setCustomerBalance(
+                                PaymentIntentCreateParams.PaymentMethodOptions.CustomerBalance.builder()
+                                    .setFundingType(PaymentIntentCreateParams.PaymentMethodOptions.CustomerBalance.FundingType.BANK_TRANSFER)
+                                    .setBankTransfer(
+                                        PaymentIntentCreateParams.PaymentMethodOptions.CustomerBalance.BankTransfer.builder()
+                                            .setType(PaymentIntentCreateParams.PaymentMethodOptions.CustomerBalance.BankTransfer.Type.MX_BANK_TRANSFER)
+                                            .build()
+                                    )
+                                    .build()
+                            )
+                            .build()
+                    );
+
+                // OXXO has a hard 10,000 MXN limit enforced by Stripe at intent creation
+                if (amountCents <= 1_000_000L) {
+                    paramsBuilder.addPaymentMethodType("oxxo");
+                }
             }
 
             PaymentIntent intent = PaymentIntent.create(paramsBuilder.build());
@@ -128,6 +145,7 @@ public class PaymentService {
         switch (event.getType()) {
             case "payment_intent.succeeded"       -> handleSuccess(intent);
             case "payment_intent.requires_action" -> handleRequiresAction(intent);
+            case "payment_intent.processing"      -> handleProcessing(intent);
             case "payment_intent.payment_failed"  -> handleFailure(intent);
             case "payment_intent.created"         -> log.info("payment intent created");
             default -> log.info("unhandled stripe event type: {}", event.getType());
@@ -169,8 +187,8 @@ public class PaymentService {
         Client client = clientRepository.findById(order.getClient().getId())
             .orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "CLIENT_NOT_FOUND"));
 
-        // For card payments, send order received first (OXXO already got the voucher email which serves this purpose)
-        if (!order.isOxxo()) {
+        // For card payments, send order received first (OXXO/bank transfer already got it earlier)
+        if (!order.isOxxo() && !order.isBankTransfer()) {
             eventPublisher.publishEvent(buildReceivedEvent(client, order));
         }
 
@@ -185,22 +203,33 @@ public class PaymentService {
     }
 
     private void handleRequiresAction(PaymentIntent intent) {
-        if (intent.getNextAction() == null
-                || intent.getNextAction().getOxxoDisplayDetails() == null) return;
+        if (intent.getNextAction() == null) return;
 
         Order order = findOrderOrLog(intent.getId());
         if (order == null) return;
         if (order.getStatus() != Status.AWAITING_PAYMENT) return;
 
-        String voucherUrl = intent.getNextAction().getOxxoDisplayDetails().getHostedVoucherUrl();
         Client client = clientRepository.findById(order.getClient().getId())
             .orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "CLIENT_NOT_FOUND"));
 
-        order.setOxxo(true);
-        orderRepository.save(order);
+        if (intent.getNextAction().getOxxoDisplayDetails() != null) {
+            String voucherUrl = intent.getNextAction().getOxxoDisplayDetails().getHostedVoucherUrl();
+            order.setOxxo(true);
+            orderRepository.save(order);
+            log.info("OXXO voucher generated for order #{} — client {}", order.getId(), client.getEmail());
+            eventPublisher.publishEvent(buildConfirmationEvent(client, order, voucherUrl));
+        } else if (intent.getNextAction().getDisplayBankTransferInstructions() != null) {
+            order.setBankTransfer(true);
+            orderRepository.save(order);
+            log.info("bank transfer instructions issued for order #{} — client {}", order.getId(), client.getEmail());
+            eventPublisher.publishEvent(buildReceivedEvent(client, order));
+        }
+    }
 
-        log.info("OXXO voucher generated for order #{} — client {}", order.getId(), client.getEmail());
-        eventPublisher.publishEvent(buildConfirmationEvent(client, order, voucherUrl));
+    private void handleProcessing(PaymentIntent intent) {
+        Order order = findOrderOrLog(intent.getId());
+        if (order == null) return;
+        log.info("bank transfer processing for order #{} — funds received by Stripe, awaiting settlement", order.getId());
     }
 
     private OrderReceivedEvent buildReceivedEvent(Client client, Order order) {
@@ -231,7 +260,8 @@ public class PaymentService {
             order.getCity(),
             order.getPostalCode(),
             order.getCountry(),
-            order.getInstallments()
+            order.getInstallments(),
+            order.isBankTransfer()
         );
     }
 
@@ -265,7 +295,8 @@ public class PaymentService {
             order.getCountry(),
             oxxoVoucherUrl,
             order.getInstallments(),
-            order.isOxxo()
+            order.isOxxo(),
+            order.isBankTransfer()
         );
     }
 

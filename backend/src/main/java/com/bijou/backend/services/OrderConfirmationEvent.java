@@ -20,9 +20,10 @@ public record OrderConfirmationEvent(
     String city,
     String postalCode,
     Country country,
-    String oxxoVoucherUrl,  // null for card payments
-    Integer installments,   // null if not MSI
-    boolean oxxoPayment     // true if order was paid via OXXO method
+    String oxxoVoucherUrl,   // null for card/bank transfer payments
+    Integer installments,    // null if not MSI
+    boolean oxxoPayment,     // true if order was paid via OXXO method
+    boolean bankTransfer     // true if order was paid via bank transfer
 ) {
     public record ItemLine(String name, int quantity, BigDecimal unitPrice) {}
 }

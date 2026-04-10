@@ -141,6 +141,7 @@ public class BrevoEmailService {
         ctx.setVariable("oxxoVoucherUrl", event.oxxoVoucherUrl());
         ctx.setVariable("isOxxo", event.oxxoVoucherUrl() != null);
         ctx.setVariable("oxxoPayment", event.oxxoPayment());
+        ctx.setVariable("isBankTransfer", event.bankTransfer());
         ctx.setVariable("installments", event.installments());
         ctx.setVariable("hasMsi", event.installments() != null);
         BigDecimal dutyAmt     = event.dutyAmount()   != null ? event.dutyAmount()   : BigDecimal.ZERO;
@@ -209,6 +210,7 @@ public class BrevoEmailService {
         ctx.setVariable("hasTax", taxAmt.compareTo(BigDecimal.ZERO) > 0);
         ctx.setVariable("hasHandlingFee", handlingAmt.compareTo(BigDecimal.ZERO) > 0);
         ctx.setVariable("hasTaxBreakdown", dutyAmt.add(taxAmt).add(handlingAmt).compareTo(BigDecimal.ZERO) > 0);
+        ctx.setVariable("isBankTransfer", event.bankTransfer());
         if (event.installments() != null) {
             BigDecimal monthly = event.total().divide(BigDecimal.valueOf(event.installments()), 2, RoundingMode.HALF_UP);
             ctx.setVariable("monthlyPayment", monthly);

@@ -52,7 +52,11 @@
                     <!-- Body text -->
                     <tr>
                         <td align="center" style="padding:0 60px 40px 60px;">
-                            <p style="font-size:15px;line-height:1.8;color:#aaaaaa;margin:0;text-align:center;"
+                            <p th:if="${isBankTransfer}" style="font-size:15px;line-height:1.8;color:#aaaaaa;margin:0;text-align:center;"
+                               th:text="#{mail.received.body.banktransfer}">
+                                We've reserved your order and are awaiting your bank transfer.
+                            </p>
+                            <p th:unless="${isBankTransfer}" style="font-size:15px;line-height:1.8;color:#aaaaaa;margin:0;text-align:center;"
                                th:text="#{mail.received.body}">
                                 We've received your order and it's being prepared.
                             </p>
@@ -96,8 +100,14 @@
                                         <p th:if="${hasMsi}" style="font-size:11px;color:#888888;margin:0 0 8px 0;"
                                            th:text="#{mail.payment.msi.stripe}">Stripe handles your installments.</p>
 
+                                        <!-- Bank Transfer -->
+                                        <p th:if="${isBankTransfer}" style="font-size:13px;color:#cccccc;margin:0 0 4px 0;"
+                                           th:text="#{mail.payment.banktransfer}">Bank Transfer</p>
+                                        <p th:if="${isBankTransfer}" style="font-size:11px;color:#888888;margin:0 0 4px 0;"
+                                           th:text="#{mail.payment.banktransfer.pending}">Transfer pending.</p>
+
                                         <!-- Regular / OXXO (not yet determined at order creation) -->
-                                        <p th:unless="${hasMsi}" style="font-size:13px;color:#cccccc;margin:0 0 4px 0;"
+                                        <p th:if="${!isBankTransfer and !hasMsi}" style="font-size:13px;color:#cccccc;margin:0 0 4px 0;"
                                            th:text="#{mail.payment.card.or.oxxo}">Card or OXXO</p>
 
                                         <p style="font-size:11px;color:#555555;margin:8px 0 0 0;"

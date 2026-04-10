@@ -16,6 +16,7 @@ function PaymentForm() {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pendingType, setPendingType] = useState<'oxxo' | 'bank_transfer' | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -31,8 +32,15 @@ function PaymentForm() {
       setError(result.error.message ?? t('payment.error'));
       setLoading(false);
     } else {
+      const status = result.paymentIntent?.status;
+      const nextActionType = result.paymentIntent?.next_action?.type;
       clear();
-      navigate('/orders', { state: { justPaid: true } });
+      if (status === 'requires_action' || status === 'processing') {
+        setPendingType(nextActionType === 'oxxo_display_details' ? 'oxxo' : 'bank_transfer');
+        setLoading(false);
+      } else {
+        navigate('/orders', { state: { justPaid: true } });
+      }
     }
   }
 
@@ -40,13 +48,31 @@ function PaymentForm() {
     <form onSubmit={handleSubmit} className="space-y-6">
       <PaymentElement />
       {error && <p className="text-red-500 text-sm">{error}</p>}
-      <button
-        type="submit"
-        disabled={loading || !stripe}
-        className="w-full bg-dark text-white text-xs uppercase tracking-widest py-4 hover:bg-gold transition-colors disabled:opacity-50 cursor-pointer"
-      >
-        {loading ? t('payment.processing') : t('payment.pay')}
-      </button>
+      {pendingType ? (
+        <div className="border border-border p-5 space-y-3">
+          <p className="text-sm font-medium">
+            {pendingType === 'oxxo' ? t('payment.oxxo.pending') : t('payment.bankTransfer.pending')}
+          </p>
+          <p className="text-xs text-muted">
+            {pendingType === 'oxxo' ? t('payment.oxxo.instructions') : t('payment.bankTransfer.instructions')}
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate('/orders')}
+            className="text-xs uppercase tracking-widest border border-dark px-5 py-2.5 hover:bg-dark hover:text-white transition-colors cursor-pointer"
+          >
+            {t('payment.bankTransfer.viewOrders')}
+          </button>
+        </div>
+      ) : (
+        <button
+          type="submit"
+          disabled={loading || !stripe}
+          className="w-full bg-dark text-white text-xs uppercase tracking-widest py-4 hover:bg-gold transition-colors disabled:opacity-50 cursor-pointer"
+        >
+          {loading ? t('payment.processing') : t('payment.pay')}
+        </button>
+      )}
     </form>
   );
 }

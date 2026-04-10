@@ -118,7 +118,16 @@
     "pay": "Payer Maintenant",
     "processing": "Traitement en cours...",
     "error": "Le paiement a échoué. Veuillez réessayer.",
-    "msiPlan": "Plan : {{n}} mois · ${{monthly}} MXN/mois"
+    "msiPlan": "Plan : {{n}} mois · ${{monthly}} MXN/mois",
+    "oxxo": {
+      "pending": "Bon OXXO prêt.",
+      "instructions": "Utilisez le bon affiché ci-dessus pour payer dans n'importe quel magasin OXXO. Votre commande sera confirmée à réception du paiement."
+    },
+    "bankTransfer": {
+      "pending": "Instructions de virement prêtes.",
+      "instructions": "Utilisez les coordonnées bancaires affichées ci-dessus pour effectuer votre virement. Votre commande sera confirmée à réception des fonds (généralement 1–3 jours ouvrables).",
+      "viewOrders": "Voir mes commandes"
+    }
   },
   "auth": {
     "login": "Se Connecter",

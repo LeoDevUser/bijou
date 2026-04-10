@@ -291,6 +291,7 @@ public class OrderService {
                 order.getCountry(),
                 order.getInstallments(),
                 order.isOxxo(),
+                order.isBankTransfer(),
                 order.getDutyAmount(),
                 order.getTaxAmount(),
                 order.getHandlingFee());

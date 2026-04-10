@@ -26,6 +26,7 @@ public record OrderView(
     Country country,
     Integer installments,
     boolean oxxo,
+    boolean bankTransfer,
     BigDecimal dutyAmount,
     BigDecimal taxAmount,
     BigDecimal handlingFee
