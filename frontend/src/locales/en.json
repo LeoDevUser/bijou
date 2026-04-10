@@ -90,12 +90,14 @@
     "currencyNotice": "Prices in USD and CAD are estimates. All transactions are processed in MXN at the exchange rate applied by Stripe at the time of payment. Your bank may charge additional foreign transaction fees.",
     "duty": "Import Duty",
     "tax": "Tax",
+    "handling": "International Handling",
     "taxedSubtotal": "Subtotal (incl. taxes)",
     "tooltip": {
       "dutyUs": "Customs duty for U.S. shipments: material-based rate + 15% Section 122 surcharge on non-USMCA items. A 3% buffer is added to cover exchange rate fluctuations.",
       "dutyCa": "8.5% MFN customs duty on non-USMCA items. A 3% buffer is added to cover exchange rate fluctuations.",
       "taxMx": "16% IVA applies to silver and steel jewelry. Gold jewelry is exempt under the domestic gold exemption.",
-      "taxCa": "13% GST/HST applied on the duty-inclusive value of your order."
+      "taxCa": "13% GST/HST applied on the duty-inclusive value of your order.",
+      "handling": "This fee covers the guaranteed pre-payment of all border duties and taxes. By paying this now, your package will clear customs automatically with no additional bills or delays upon delivery."
     },
     "msi": {
       "title": "Installment Plans",
@@ -184,7 +186,8 @@
       "admins": "Admins",
       "site": "Site",
       "stats": "Sales",
-      "theme": "Theme"
+      "theme": "Theme",
+      "settings": "Settings"
     },
     "search": {
       "orderPlaceholder": "Search by order ID or email...",
@@ -266,10 +269,10 @@
       "labelsPlaceholder": "gold, sterling silver",
       "discount": "Discount %",
       "material": "Material",
-      "materialNone": "No Material",
       "materialSilver": "Silver (HTS 7113.11)",
       "materialGold": "Gold (HTS 7113.19)",
       "materialSteel": "Steel (HTS 7117.19)",
+      "materialOther": "Other (HTS 7119.00)",
       "usmcaQualified": "USMCA Qualified (0% duty)",
       "image": "Image",
       "media": "Media",
@@ -377,6 +380,23 @@
       "cardButtonText": "Button Text",
       "save": "Save Theme",
       "reset": "Reset to Defaults"
+    },
+    "settings": {
+      "title": "Email / SMTP Relay",
+      "relayActive": "Relay active",
+      "relayDisabled": "Relay disabled",
+      "disable": "Disable",
+      "enable": "Enable",
+      "reasons": {
+        "RATE_LIMIT_EXHAUSTED": "Rate limit exhausted by Brevo",
+        "RATE_LIMIT_EXCEEDED": "Rate limit exceeded (429)",
+        "MONTHLY_LIMIT_REACHED": "300-email monthly cap reached"
+      },
+      "counterLabel": "Emails sent this month",
+      "counterReset": "Resets automatically on the 1st of each month.",
+      "quotaTitle": "Last known Brevo quota",
+      "quotaRemaining": "{{count}} calls remaining in current window",
+      "quotaReset": "Window resets: {{date}}"
     }
   },
   "account": {

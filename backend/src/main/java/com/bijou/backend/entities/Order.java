@@ -68,6 +68,8 @@ public class Order {
     private BigDecimal dutyAmount;
     @Column
     private BigDecimal taxAmount;
+    @Column
+    private BigDecimal handlingFee;
 
     @PrePersist
     protected void onCreate(){

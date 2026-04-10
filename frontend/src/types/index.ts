@@ -104,9 +104,10 @@ export interface OrderView {
   oxxo: boolean;
   dutyAmount: number | null;
   taxAmount: number | null;
+  handlingFee: number | null;
 }
 
-export type JewelryMaterial = 'SILVER' | 'GOLD' | 'STEEL';
+export type JewelryMaterial = 'SILVER' | 'GOLD' | 'STEEL' | 'OTHER';
 
 export interface ItemRequest {
   nameEn: string;
@@ -120,7 +121,7 @@ export interface ItemRequest {
   categoryId: number;
   labelIds: number[];
   discountPercent: number | null;
-  material: JewelryMaterial | null;
+  material: JewelryMaterial;
   usmcaQualified: boolean;
 }
 
@@ -149,6 +150,7 @@ export interface TaxPreview {
   subtotal: number;
   dutyAmount: number;
   taxAmount: number;
+  handlingFee: number;
   total: number;
 }
 
@@ -207,6 +209,14 @@ export interface ThemeConfig {
   siteTextMuted: string | null;
   siteTextAccent: string | null;
   siteSeparator: string | null;
+}
+
+export interface AppSettings {
+  smtpRelayEnabled: boolean;
+  emailsSentThisMonth: number;
+  rateLimitRemaining: number | null;
+  rateLimitReset: number | null;
+  disabledReason: string | null;
 }
 
 export interface SiteAssetView {

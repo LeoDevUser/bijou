@@ -6,9 +6,11 @@ package com.bijou.backend.entities;
  * HTS 7113.11 — Silver jewelry
  * HTS 7113.19 — Gold jewelry
  * HTS 7117.19 — Steel (base-metal) jewelry
+ * HTS 7119.00 — Other articles of precious metal or metal-clad (Other category)
  */
 public enum JewelryMaterial {
     SILVER,
     GOLD,
-    STEEL
+    STEEL,
+    OTHER
 }

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, SiteAssetView, CollectionView, SalesStats, ThemeConfig } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, SiteAssetView, CollectionView, SalesStats, ThemeConfig, AppSettings } from '../types';
 import { pickLocale, isItemIncomplete, isLabelIncomplete } from '../types';
 import { useTheme, THEME_DEFAULTS } from '../context/ThemeContext';
 
@@ -441,7 +441,7 @@ const emptyForm: ItemFormData = {
   nameEn: '', nameFr: '', nameEs: '',
   descriptionEn: '', descriptionFr: '', descriptionEs: '',
   price: '', stock: '', discountPercent: '', categoryId: 0, labelIds: [],
-  material: '', usmcaQualified: false,
+  material: 'SILVER', usmcaQualified: false,
 };
 
 interface ItemModalProps {
@@ -497,7 +497,7 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
         discountPercent: form.discountPercent ? parseInt(form.discountPercent) : null,
         categoryId: form.categoryId,
         labelIds: form.labelIds,
-        material: (form.material as import('../types').JewelryMaterial) || null,
+        material: form.material as JewelryMaterial,
         usmcaQualified: form.usmcaQualified,
       };
       let itemId: number;
@@ -555,11 +555,11 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
             </div>
             <div>
               <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.material')}</label>
-              <select value={form.material} onChange={e => setForm(f => ({ ...f, material: e.target.value }))} className={`${inputClass} appearance-none cursor-pointer`}>
-                <option value="">— {t('admin.modal.materialNone')} —</option>
+              <select value={form.material} onChange={e => setForm(f => ({ ...f, material: e.target.value }))} required className={`${inputClass} appearance-none cursor-pointer`}>
                 <option value="SILVER">{t('admin.modal.materialSilver')}</option>
                 <option value="GOLD">{t('admin.modal.materialGold')}</option>
                 <option value="STEEL">{t('admin.modal.materialSteel')}</option>
+                <option value="OTHER">{t('admin.modal.materialOther')}</option>
               </select>
             </div>
           </div>
@@ -2128,9 +2128,101 @@ function AdminTheme() {
   );
 }
 
+// ── AdminSettings ─────────────────────────────────────────────────────────────
+
+function AdminSettings() {
+  const { t } = useTranslation();
+  const [settings, setSettings] = useState<AppSettings | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [toggling, setToggling] = useState(false);
+
+  useEffect(() => { load(); }, []);
+
+  async function load() {
+    setLoading(true);
+    try { setSettings(await api.admin.settings.get()); }
+    finally { setLoading(false); }
+  }
+
+  async function handleToggle() {
+    if (!settings) return;
+    setToggling(true);
+    try { setSettings(await api.admin.settings.setRelay(!settings.smtpRelayEnabled)); }
+    finally { setToggling(false); }
+  }
+
+  const resetDate = settings?.rateLimitReset
+    ? new Date(settings.rateLimitReset * 1000).toLocaleString()
+    : null;
+
+  const pct = settings ? Math.min(100, (settings.emailsSentThisMonth / 300) * 100) : 0;
+
+  return (
+    <div className="max-w-lg space-y-8">
+      <p className="text-xs uppercase tracking-widest text-muted">{t('admin.settings.title')}</p>
+
+      {loading ? (
+        <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="h-8 bg-[#F0EDE8] animate-pulse" />)}</div>
+      ) : !settings ? null : (
+        <>
+          {/* Status + toggle */}
+          <div className="flex items-center justify-between border border-border p-4">
+            <div className="flex items-center gap-3">
+              <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${settings.smtpRelayEnabled ? 'bg-green-500' : 'bg-red-400'}`} />
+              <span className="text-sm">{settings.smtpRelayEnabled ? t('admin.settings.relayActive') : t('admin.settings.relayDisabled')}</span>
+              {!settings.smtpRelayEnabled && settings.disabledReason && (
+                <span className="text-xs text-muted">— {t(`admin.settings.reasons.${settings.disabledReason}`, { defaultValue: settings.disabledReason })}</span>
+              )}
+            </div>
+            <button
+              onClick={handleToggle}
+              disabled={toggling}
+              className={`text-xs uppercase tracking-widest border px-4 py-2 transition-colors disabled:opacity-50 cursor-pointer ${
+                settings.smtpRelayEnabled
+                  ? 'border-red-300 text-red-500 hover:border-red-500'
+                  : 'border-dark bg-dark text-white hover:bg-gold hover:border-gold'
+              }`}
+            >
+              {toggling ? '...' : settings.smtpRelayEnabled ? t('admin.settings.disable') : t('admin.settings.enable')}
+            </button>
+          </div>
+
+          {/* Monthly counter */}
+          <div>
+            <div className="flex justify-between text-xs text-muted mb-2">
+              <span>{t('admin.settings.counterLabel')}</span>
+              <span>{settings.emailsSentThisMonth} / 300</span>
+            </div>
+            <div className="h-1.5 bg-[#F0EDE8] w-full">
+              <div
+                className={`h-full transition-all ${pct >= 100 ? 'bg-red-400' : pct >= 80 ? 'bg-amber-400' : 'bg-green-500'}`}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            <p className="text-xs text-muted mt-1.5">{t('admin.settings.counterReset')}</p>
+          </div>
+
+          {/* Rate limit info */}
+          {(settings.rateLimitRemaining !== null || resetDate) && (
+            <div className="border border-border p-4 space-y-1.5">
+              <p className="text-xs uppercase tracking-widest text-muted mb-2">{t('admin.settings.quotaTitle')}</p>
+              {settings.rateLimitRemaining !== null && (
+                <p className="text-sm">{t('admin.settings.quotaRemaining', { count: settings.rateLimitRemaining })}</p>
+              )}
+              {resetDate && (
+                <p className="text-xs text-muted">{t('admin.settings.quotaReset', { date: resetDate })}</p>
+              )}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-type Tab = 'orders' | 'products' | 'stats' | 'users' | 'admins' | 'site' | 'theme';
+type Tab = 'orders' | 'products' | 'stats' | 'users' | 'admins' | 'site' | 'theme' | 'settings';
 
 export default function Admin() {
   const { t } = useTranslation();
@@ -2144,6 +2236,7 @@ export default function Admin() {
     { key: 'admins', label: t('admin.tabs.admins') },
     { key: 'site', label: t('admin.tabs.site') },
     { key: 'theme', label: t('admin.tabs.theme') },
+    { key: 'settings', label: t('admin.tabs.settings') },
   ];
 
   return (
@@ -2172,6 +2265,7 @@ export default function Admin() {
       {tab === 'admins' && <AdminAdmins />}
       {tab === 'site' && <AdminSite />}
       {tab === 'theme' && <AdminTheme />}
+      {tab === 'settings' && <AdminSettings />}
     </div>
   );
 }

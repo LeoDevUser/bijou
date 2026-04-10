@@ -79,6 +79,7 @@ public class Item {
     private String descriptionEs;
     private Integer discountPercent;
     @Enumerated(EnumType.STRING)
+    @Column(nullable=false)
     private JewelryMaterial material;
     @Builder.Default
     @Column(nullable = false)

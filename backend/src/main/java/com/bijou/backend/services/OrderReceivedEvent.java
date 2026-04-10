@@ -15,6 +15,7 @@ public record OrderReceivedEvent(
     BigDecimal total,
     BigDecimal dutyAmount,
     BigDecimal taxAmount,
+    BigDecimal handlingFee,
     String addressLine1,
     String city,
     String postalCode,

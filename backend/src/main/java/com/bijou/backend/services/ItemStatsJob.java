@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ItemStatsJob {
     private final ItemRepository itemRepository;
+    private final AppSettingsService appSettingsService;
 
     // Every Sunday at Midnight (0 0 0 * * SUN)
     @Scheduled(cron = "0 0 0 * * SUN")
@@ -29,6 +30,7 @@ public class ItemStatsJob {
     public void resetMonthlyStats() {
         itemRepository.resetNbSoldMonth();
         itemRepository.resetSalesMonth();
+        appSettingsService.resetMonthlyCounter();
         log.info("monthly sales reset done");
     }
 

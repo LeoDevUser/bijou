@@ -6,5 +6,6 @@ public record TaxPreviewResponse(
     BigDecimal subtotal,
     BigDecimal dutyAmount,
     BigDecimal taxAmount,
+    BigDecimal handlingFee,
     BigDecimal total
 ) {}

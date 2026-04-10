@@ -43,8 +43,7 @@ public class CategorySeeder implements ApplicationRunner {
             Category.builder().nameEn("Cufflinks").nameFr("Boutons de manchette").nameEs("Mancuernillas").build(),
             Category.builder().nameEn("Tie Clips").nameFr("Pinces à cravate").nameEs("Pizacorbatas").build(),
             Category.builder().nameEn("Watches").nameFr("Montres").nameEs("Reloj").build(),
-            Category.builder().nameEn("Accessories").nameFr("Accessoires").nameEs("Complementos").build(),
-            Category.builder().nameEn("Fresh Skincare").nameFr("Soins frais").nameEs("Productos skincare frescos").build()
+            Category.builder().nameEn("Accessories").nameFr("Accessoires").nameEs("Complementos").build()
         ));
     }
 }

@@ -32,6 +32,7 @@ import com.bijou.backend.entities.OrderItem;
  *   Silver (HTS 7113.11): 5.0% + 15% = 20.0%
  *   Gold   (HTS 7113.19): 5.5% + 15% = 20.5%
  *   Steel  (HTS 7117.19): 11.0% + 15% = 26.0%
+ *   Other  (HTS 7119.00): 11.0% + 15% = 26.0%
  *
  * Canada
  * ------
@@ -63,11 +64,18 @@ public class TaxService {
     private static final BigDecimal US_BASE_SILVER = new BigDecimal("0.05");   // HTS 7113.11
     private static final BigDecimal US_BASE_GOLD   = new BigDecimal("0.055");  // HTS 7113.19
     private static final BigDecimal US_BASE_STEEL  = new BigDecimal("0.11");   // HTS 7117.19
+    private static final BigDecimal US_BASE_OTHER  = new BigDecimal("0.11");   // HTS 7119.00
 
     // Canada ─────────────────────────────────────────────────────────────────────
     private static final BigDecimal CA_MFN_RATE       = new BigDecimal("0.085");
     private static final BigDecimal CA_GST_HST_RATE   = new BigDecimal("0.13");
     private static final BigDecimal CA_GST_THRESHOLD  = new BigDecimal("40");   // CAD
+
+    // International handling ─────────────────────────────────────────────────────
+    /** Minimum $15 USD disbursement/handling fee for US and CA orders, or 2% of order subtotal — whichever is greater.
+     *  Converted to MXN at the base exchange rate (no slippage buffer — this is a fixed carrier charge). */
+    private static final BigDecimal INTL_HANDLING_MIN_USD = new BigDecimal("15.00");
+    private static final BigDecimal INTL_HANDLING_PCT     = new BigDecimal("0.02");
 
     // Mexico ─────────────────────────────────────────────────────────────────────
     private static final BigDecimal MX_IVA_STANDARD = new BigDecimal("0.16");
@@ -94,11 +102,17 @@ public class TaxService {
         BigDecimal duty = BigDecimal.ZERO;
         BigDecimal tax  = BigDecimal.ZERO;
 
+        BigDecimal handling = BigDecimal.ZERO;
+
         switch (country) {
-            case UNITED_STATES -> duty = calcUsDuty(orderItems);
+            case UNITED_STATES -> {
+                duty     = calcUsDuty(orderItems);
+                handling = intlHandlingFeeMxn(subtotal);
+            }
             case CANADA -> {
-                duty = calcCaDuty(orderItems);
-                tax  = calcCaGst(subtotal.add(duty), currency);
+                duty     = calcCaDuty(orderItems);
+                tax      = calcCaGst(subtotal.add(duty), currency);
+                handling = intlHandlingFeeMxn(subtotal);
             }
             // country == MEXICO → domestic shipment; exports carry 0% IVA and are handled elsewhere
             case MEXICO -> tax = calcMxIva(orderItems);
@@ -106,8 +120,17 @@ public class TaxService {
 
         return new TaxResult(
             duty.setScale(2, RoundingMode.HALF_UP),
-            tax.setScale(2, RoundingMode.HALF_UP)
+            tax.setScale(2, RoundingMode.HALF_UP),
+            handling.setScale(2, RoundingMode.HALF_UP)
         );
+    }
+
+    // ── International handling ───────────────────────────────────────────────────
+
+    private BigDecimal intlHandlingFeeMxn(BigDecimal subtotalMxn) {
+        BigDecimal minFee = INTL_HANDLING_MIN_USD.divide(mxnToUsdBaseRate, 2, RoundingMode.HALF_UP);
+        BigDecimal pctFee = subtotalMxn.multiply(INTL_HANDLING_PCT).setScale(2, RoundingMode.HALF_UP);
+        return minFee.max(pctFee);
     }
 
     // ── United States ────────────────────────────────────────────────────────────
@@ -129,11 +152,11 @@ public class TaxService {
     }
 
     private BigDecimal usBaseRate(JewelryMaterial material) {
-        if (material == null) return BigDecimal.ZERO;
         return switch (material) {
             case SILVER -> US_BASE_SILVER;
             case GOLD   -> US_BASE_GOLD;
             case STEEL  -> US_BASE_STEEL;
+            case OTHER  -> US_BASE_OTHER;
         };
     }
 
@@ -177,10 +200,9 @@ public class TaxService {
     }
 
     private BigDecimal mxIvaRate(JewelryMaterial material) {
-        if (material == null) return MX_IVA_STANDARD;
         return switch (material) {
-            case GOLD          -> BigDecimal.ZERO;     // 0% IVA — domestic gold jewelry exemption
-            case SILVER, STEEL -> MX_IVA_STANDARD;    // 16% IVA
+            case GOLD                -> BigDecimal.ZERO;      // 0% IVA — domestic gold jewelry exemption
+            case SILVER, STEEL, OTHER -> MX_IVA_STANDARD;    // 16% IVA
         };
     }
 }

@@ -27,5 +27,6 @@ public record OrderView(
     Integer installments,
     boolean oxxo,
     BigDecimal dutyAmount,
-    BigDecimal taxAmount
+    BigDecimal taxAmount,
+    BigDecimal handlingFee
 ){}

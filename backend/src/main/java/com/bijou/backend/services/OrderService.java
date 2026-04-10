@@ -87,12 +87,13 @@ public class OrderService {
         }
 
 
-        // Apply duties and taxes
+        // Apply duties, taxes, and international handling fee
         TaxResult taxResult = taxService.calculate(orderItems, req.country(), req.currency(), total);
-        BigDecimal dutyAmount = taxResult.dutyAmount();
-        BigDecimal taxAmount  = taxResult.taxAmount();
+        BigDecimal dutyAmount    = taxResult.dutyAmount();
+        BigDecimal taxAmount     = taxResult.taxAmount();
+        BigDecimal handlingFee   = taxResult.handlingFee();
         total = total.add(taxResult.total());
-        log.info("tax breakdown — duty: {}, tax: {}", dutyAmount, taxAmount);
+        log.info("tax breakdown — duty: {}, tax: {}, handling: {}", dutyAmount, taxAmount, handlingFee);
 
         // Apply MSI fee if applicable (MXN only, above 2000 MXN, valid plan)
         Integer installments = req.installments();
@@ -133,6 +134,7 @@ public class OrderService {
             .installments(installments)
             .dutyAmount(dutyAmount)
             .taxAmount(taxAmount)
+            .handlingFee(handlingFee)
             .client(client)
             .build();
         order.getOrderItems().forEach(oi -> oi.setOrder(order));
@@ -249,6 +251,7 @@ public class OrderService {
             subtotal.setScale(2, RoundingMode.HALF_UP),
             taxResult.dutyAmount(),
             taxResult.taxAmount(),
+            taxResult.handlingFee(),
             subtotal.add(taxResult.total()).setScale(2, RoundingMode.HALF_UP)
         );
     }
@@ -289,7 +292,8 @@ public class OrderService {
                 order.getInstallments(),
                 order.isOxxo(),
                 order.getDutyAmount(),
-                order.getTaxAmount());
+                order.getTaxAmount(),
+                order.getHandlingFee());
     }
 
     @Transactional

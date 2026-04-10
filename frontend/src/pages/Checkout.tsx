@@ -362,7 +362,7 @@ export default function Checkout() {
                 </div>
               ))}
             </div>
-            {taxPreview && (taxPreview.dutyAmount > 0 || taxPreview.taxAmount > 0) && (
+            {taxPreview && (taxPreview.dutyAmount > 0 || taxPreview.taxAmount > 0 || taxPreview.handlingFee > 0) && (
               <div className="space-y-1 border-t border-border pt-3 mb-3">
                 <div className="flex justify-between text-sm text-muted">
                   <span>{t('cart.subtotal')}</span>
@@ -378,6 +378,12 @@ export default function Checkout() {
                   <div className="flex justify-between text-sm text-muted">
                     <span className="flex items-center">{t('checkout.tax')}<TaxTooltip text={taxTooltip} /></span>
                     <span>+{format(taxPreview.taxAmount)}</span>
+                  </div>
+                )}
+                {taxPreview.handlingFee > 0 && (
+                  <div className="flex justify-between text-sm text-muted">
+                    <span className="flex items-center">{t('checkout.handling')}<TaxTooltip text={t('checkout.tooltip.handling')} /></span>
+                    <span>+{format(taxPreview.handlingFee)}</span>
                   </div>
                 )}
               </div>

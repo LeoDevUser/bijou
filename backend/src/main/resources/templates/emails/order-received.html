@@ -177,6 +177,16 @@
                                               th:text="'+$' + ${#numbers.formatDecimal(taxAmount, 1, 'COMMA', 2, 'POINT')} + ' MXN'">+$0.00 MXN</span>
                                     </td>
                                 </tr>
+                                <!-- International handling fee -->
+                                <tr th:if="${hasHandlingFee}">
+                                    <td align="right" style="padding-bottom:4px;">
+                                        <span style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#666666;"
+                                              th:text="#{mail.order.handling}">International Handling</span>
+                                        &nbsp;&nbsp;
+                                        <span style="font-size:13px;color:#aaaaaa;"
+                                              th:text="'+$' + ${#numbers.formatDecimal(handlingFee, 1, 'COMMA', 2, 'POINT')} + ' MXN'">+$0.00 MXN</span>
+                                    </td>
+                                </tr>
                                 <!-- MSI pre-fee subtotal (only show when no tax breakdown; otherwise items subtotal is already shown above) -->
                                 <tr th:if="${hasMsi and !hasTaxBreakdown}">
                                     <td align="right" style="border-top:1px solid #333333;padding-top:10px;padding-bottom:4px;">

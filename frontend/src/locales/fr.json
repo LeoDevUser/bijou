@@ -90,12 +90,14 @@
     "currencyNotice": "Les prix en USD et CAD sont des estimations. Toutes les transactions sont traitées en MXN au taux de change appliqué par Stripe au moment du paiement. Votre banque peut facturer des frais de transaction supplémentaires.",
     "duty": "Droits de douane",
     "tax": "Taxe",
+    "handling": "Frais de traitement international",
     "taxedSubtotal": "Sous-total (taxes incluses)",
     "tooltip": {
       "dutyUs": "Droits de douane américains : taux selon le matériau + surtaxe de 15% (Section 122) sur les articles non-ACEUM. Un tampon de 3% est appliqué pour couvrir les fluctuations de taux de change.",
       "dutyCa": "Droits de douane NPF de 8,5% sur les articles non-ACEUM. Un tampon de 3% est appliqué pour couvrir les fluctuations de taux de change.",
       "taxMx": "La TVA de 16% s'applique aux bijoux en argent et en acier. Les bijoux en or sont exonérés.",
-      "taxCa": "TPS/TVH de 13% appliquée sur la valeur de votre commande incluant les droits de douane."
+      "taxCa": "TPS/TVH de 13% appliquée sur la valeur de votre commande incluant les droits de douane.",
+      "handling": "Ces frais couvrent le prépaiement garanti de tous les droits et taxes frontaliers. En payant maintenant, votre colis passera la douane automatiquement, sans frais supplémentaires ni retards à la livraison."
     },
     "msi": {
       "title": "Paiement en plusieurs fois",
@@ -184,7 +186,8 @@
       "admins": "Admins",
       "site": "Site",
       "stats": "Ventes",
-      "theme": "Thème"
+      "theme": "Thème",
+      "settings": "Paramètres"
     },
     "search": {
       "orderPlaceholder": "Rechercher par ID de commande ou e-mail...",
@@ -266,10 +269,10 @@
       "labelsPlaceholder": "or, argent sterling",
       "discount": "Remise %",
       "material": "Matériau",
-      "materialNone": "Sans Matériau",
       "materialSilver": "Argent (HTS 7113.11)",
       "materialGold": "Or (HTS 7113.19)",
       "materialSteel": "Acier (HTS 7117.19)",
+      "materialOther": "Autre (HTS 7119.00)",
       "usmcaQualified": "Qualifié USMCA (0% droits)",
       "image": "Image",
       "media": "Médias",
@@ -377,6 +380,23 @@
       "cardButtonText": "Texte du Bouton",
       "save": "Enregistrer le Thème",
       "reset": "Réinitialiser"
+    },
+    "settings": {
+      "title": "Email / Relais SMTP",
+      "relayActive": "Relais actif",
+      "relayDisabled": "Relais désactivé",
+      "disable": "Désactiver",
+      "enable": "Activer",
+      "reasons": {
+        "RATE_LIMIT_EXHAUSTED": "Limite de taux Brevo épuisée",
+        "RATE_LIMIT_EXCEEDED": "Limite de taux dépassée (429)",
+        "MONTHLY_LIMIT_REACHED": "Plafond mensuel de 300 emails atteint"
+      },
+      "counterLabel": "Emails envoyés ce mois-ci",
+      "counterReset": "Réinitialisation automatique le 1er de chaque mois.",
+      "quotaTitle": "Dernier quota Brevo connu",
+      "quotaRemaining": "{{count}} appels restants dans la fenêtre actuelle",
+      "quotaReset": "Fenêtre réinitialisée : {{date}}"
     }
   },
   "account": {

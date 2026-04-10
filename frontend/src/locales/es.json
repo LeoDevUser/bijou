@@ -90,12 +90,14 @@
     "currencyNotice": "Los precios en USD y CAD son estimados. Todas las transacciones se procesan en MXN al tipo de cambio aplicado por Stripe al momento del pago. Tu banco puede cobrar comisiones adicionales por transacciones internacionales.",
     "duty": "Arancel de importación",
     "tax": "Impuesto",
+    "handling": "Manejo internacional",
     "taxedSubtotal": "Subtotal (impuestos incluidos)",
     "tooltip": {
       "dutyUs": "Arancel aduanal para envíos a EE.UU.: tasa según material + 15% de recargo Sección 122 en artículos no-TLCAN. Se agrega un margen del 3% para cubrir fluctuaciones cambiarias.",
       "dutyCa": "Arancel NMF del 8.5% en artículos no-TLCAN. Se agrega un margen del 3% para cubrir fluctuaciones cambiarias.",
       "taxMx": "El IVA del 16% aplica a joyería de plata y acero. La joyería de oro está exenta.",
-      "taxCa": "GST/HST del 13% aplicado sobre el valor de tu pedido incluidos los aranceles."
+      "taxCa": "GST/HST del 13% aplicado sobre el valor de tu pedido incluidos los aranceles.",
+      "handling": "Este cargo cubre el prepago garantizado de todos los aranceles e impuestos fronterizos. Al pagarlo ahora, tu paquete pasará la aduana automáticamente, sin cargos adicionales ni retrasos en la entrega."
     },
     "msi": {
       "title": "Meses sin intereses",
@@ -184,7 +186,8 @@
       "admins": "Admins",
       "site": "Sitio",
       "stats": "Ventas",
-      "theme": "Tema"
+      "theme": "Tema",
+      "settings": "Configuración"
     },
     "search": {
       "orderPlaceholder": "Buscar por ID de pedido o correo...",
@@ -266,10 +269,10 @@
       "labelsPlaceholder": "oro, plata esterlina",
       "discount": "Descuento %",
       "material": "Material",
-      "materialNone": "Sin Material",
       "materialSilver": "Plata (HTS 7113.11)",
       "materialGold": "Oro (HTS 7113.19)",
       "materialSteel": "Acero (HTS 7117.19)",
+      "materialOther": "Otro (HTS 7119.00)",
       "usmcaQualified": "Calificado USMCA (0% arancel)",
       "image": "Imagen",
       "media": "Multimedia",
@@ -377,6 +380,23 @@
       "cardButtonText": "Texto del Botón",
       "save": "Guardar Tema",
       "reset": "Restaurar Predeterminados"
+    },
+    "settings": {
+      "title": "Email / Retransmisión SMTP",
+      "relayActive": "Retransmisión activa",
+      "relayDisabled": "Retransmisión desactivada",
+      "disable": "Desactivar",
+      "enable": "Activar",
+      "reasons": {
+        "RATE_LIMIT_EXHAUSTED": "Límite de tasa de Brevo agotado",
+        "RATE_LIMIT_EXCEEDED": "Límite de tasa excedido (429)",
+        "MONTHLY_LIMIT_REACHED": "Límite mensual de 300 correos alcanzado"
+      },
+      "counterLabel": "Correos enviados este mes",
+      "counterReset": "Se restablece automáticamente el 1° de cada mes.",
+      "quotaTitle": "Última cuota Brevo conocida",
+      "quotaRemaining": "{{count}} llamadas restantes en la ventana actual",
+      "quotaReset": "Ventana se restablece: {{date}}"
     }
   },
   "account": {
