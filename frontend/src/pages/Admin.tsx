@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, SiteAssetView, CollectionView, SalesStats, ThemeConfig, AppSettings } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, SiteAssetView, CollectionView, SalesStats, ThemeConfig, AppSettings, BrevoQuota } from '../types';
 import { pickLocale, isItemIncomplete, isLabelIncomplete } from '../types';
 import { useTheme, THEME_DEFAULTS } from '../context/ThemeContext';
 
@@ -2133,15 +2133,24 @@ function AdminTheme() {
 function AdminSettings() {
   const { t } = useTranslation();
   const [settings, setSettings] = useState<AppSettings | null>(null);
+  const [quota, setQuota] = useState<BrevoQuota | null | 'error'>('error');
   const [loading, setLoading] = useState(true);
+  const [quotaLoading, setQuotaLoading] = useState(true);
   const [toggling, setToggling] = useState(false);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); loadQuota(); }, []);
 
   async function load() {
     setLoading(true);
     try { setSettings(await api.admin.settings.get()); }
     finally { setLoading(false); }
+  }
+
+  async function loadQuota() {
+    setQuotaLoading(true);
+    try { setQuota(await api.admin.settings.brevoQuota()); }
+    catch { setQuota('error'); }
+    finally { setQuotaLoading(false); }
   }
 
   async function handleToggle() {
@@ -2151,11 +2160,9 @@ function AdminSettings() {
     finally { setToggling(false); }
   }
 
-  const resetDate = settings?.rateLimitReset
-    ? new Date(settings.rateLimitReset * 1000).toLocaleString()
-    : null;
-
-  const pct = settings ? Math.min(100, (settings.emailsSentThisMonth / 300) * 100) : 0;
+  const quotaPct = quota && quota !== 'error'
+    ? Math.min(100, (quota.sentToday / quota.dailyLimit) * 100)
+    : 0;
 
   return (
     <div className="max-w-lg space-y-8">
@@ -2187,33 +2194,28 @@ function AdminSettings() {
             </button>
           </div>
 
-          {/* Monthly counter */}
-          <div>
-            <div className="flex justify-between text-xs text-muted mb-2">
-              <span>{t('admin.settings.counterLabel')}</span>
-              <span>{settings.emailsSentThisMonth} / 300</span>
-            </div>
-            <div className="h-1.5 bg-[#F0EDE8] w-full">
-              <div
-                className={`h-full transition-all ${pct >= 100 ? 'bg-red-400' : pct >= 80 ? 'bg-amber-400' : 'bg-green-500'}`}
-                style={{ width: `${pct}%` }}
-              />
-            </div>
-            <p className="text-xs text-muted mt-1.5">{t('admin.settings.counterReset')}</p>
+          {/* Brevo daily quota */}
+          <div className="border border-border p-4 space-y-2">
+            <p className="text-xs uppercase tracking-widest text-muted mb-2">{t('admin.settings.quotaTitle')}</p>
+            {quotaLoading ? (
+              <p className="text-xs text-muted">{t('admin.settings.quotaLoading')}</p>
+            ) : quota === 'error' || quota === null ? (
+              <p className="text-xs text-red-400">{t('admin.settings.quotaError')}</p>
+            ) : (
+              <>
+                <div className="flex justify-between text-xs text-muted mb-1">
+                  <span>{t('admin.settings.quotaSent', { sent: quota.sentToday, limit: quota.dailyLimit })}</span>
+                  <span>{t('admin.settings.quotaRemaining', { count: quota.remaining })}</span>
+                </div>
+                <div className="h-1.5 bg-[#F0EDE8] w-full">
+                  <div
+                    className={`h-full transition-all ${quotaPct >= 100 ? 'bg-red-400' : quotaPct >= 80 ? 'bg-amber-400' : 'bg-green-500'}`}
+                    style={{ width: `${quotaPct}%` }}
+                  />
+                </div>
+              </>
+            )}
           </div>
-
-          {/* Rate limit info */}
-          {(settings.rateLimitRemaining !== null || resetDate) && (
-            <div className="border border-border p-4 space-y-1.5">
-              <p className="text-xs uppercase tracking-widest text-muted mb-2">{t('admin.settings.quotaTitle')}</p>
-              {settings.rateLimitRemaining !== null && (
-                <p className="text-sm">{t('admin.settings.quotaRemaining', { count: settings.rateLimitRemaining })}</p>
-              )}
-              {resetDate && (
-                <p className="text-xs text-muted">{t('admin.settings.quotaReset', { date: resetDate })}</p>
-              )}
-            </div>
-          )}
         </>
       )}
     </div>

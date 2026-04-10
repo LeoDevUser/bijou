@@ -388,15 +388,13 @@
       "disable": "Disable",
       "enable": "Enable",
       "reasons": {
-        "RATE_LIMIT_EXHAUSTED": "Rate limit exhausted by Brevo",
-        "RATE_LIMIT_EXCEEDED": "Rate limit exceeded (429)",
-        "MONTHLY_LIMIT_REACHED": "300-email monthly cap reached"
+        "RATE_LIMIT_EXCEEDED": "Rate limit exceeded (429)"
       },
-      "counterLabel": "Emails sent this month",
-      "counterReset": "Resets automatically on the 1st of each month.",
-      "quotaTitle": "Last known Brevo quota",
-      "quotaRemaining": "{{count}} calls remaining in current window",
-      "quotaReset": "Window resets: {{date}}"
+      "quotaTitle": "Brevo daily quota",
+      "quotaSent": "{{sent}} / {{limit}} sent today",
+      "quotaRemaining": "{{count}} remaining",
+      "quotaError": "Could not fetch quota from Brevo",
+      "quotaLoading": "Loading quota..."
     }
   },
   "account": {

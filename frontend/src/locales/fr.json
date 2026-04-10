@@ -388,15 +388,13 @@
       "disable": "Désactiver",
       "enable": "Activer",
       "reasons": {
-        "RATE_LIMIT_EXHAUSTED": "Limite de taux Brevo épuisée",
-        "RATE_LIMIT_EXCEEDED": "Limite de taux dépassée (429)",
-        "MONTHLY_LIMIT_REACHED": "Plafond mensuel de 300 emails atteint"
+        "RATE_LIMIT_EXCEEDED": "Limite de taux dépassée (429)"
       },
-      "counterLabel": "Emails envoyés ce mois-ci",
-      "counterReset": "Réinitialisation automatique le 1er de chaque mois.",
-      "quotaTitle": "Dernier quota Brevo connu",
-      "quotaRemaining": "{{count}} appels restants dans la fenêtre actuelle",
-      "quotaReset": "Fenêtre réinitialisée : {{date}}"
+      "quotaTitle": "Quota journalier Brevo",
+      "quotaSent": "{{sent}} / {{limit}} envoyés aujourd'hui",
+      "quotaRemaining": "{{count}} restants",
+      "quotaError": "Impossible de récupérer le quota Brevo",
+      "quotaLoading": "Chargement du quota..."
     }
   },
   "account": {

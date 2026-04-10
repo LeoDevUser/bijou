@@ -1,4 +1,4 @@
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, SiteAssetView, CollectionView, SalesStats, ItemAssetView, ThemeConfig, TaxPreview, AppSettings } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, SiteAssetView, CollectionView, SalesStats, ItemAssetView, ThemeConfig, TaxPreview, AppSettings, BrevoQuota } from '../types';
 import { getToken, setToken } from './tokenStore';
 
 interface LabelRequest { nameEn: string; nameFr: string; nameEs: string; }
@@ -279,6 +279,7 @@ export const api = {
       get: () => request<AppSettings>(`/${ADMIN}/settings`),
       setRelay: (enabled: boolean) =>
         request<AppSettings>(`/${ADMIN}/settings/relay`, { method: 'PATCH', body: JSON.stringify({ enabled }) }),
+      brevoQuota: () => request<BrevoQuota>(`/${ADMIN}/settings/brevo-quota`),
     },
     users: {
       listVerbose: () => request<VerboseClient[]>(`/account/${ADMIN}/clients/verbose`),

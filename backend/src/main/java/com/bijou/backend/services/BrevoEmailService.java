@@ -2,6 +2,7 @@ package com.bijou.backend.services;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -71,32 +72,39 @@ public class BrevoEmailService {
         );
 
         try {
-            ResponseEntity<Map> response = restTemplate.exchange(
-                BREVO_API_URL,
-                HttpMethod.POST,
-                new HttpEntity<>(body, headers),
-                Map.class
-            );
-
-            int remaining = parseHeader(response.getHeaders(), "x-sib-ratelimit-remaining", Integer.MAX_VALUE);
-            long resetEpoch = parseHeader(response.getHeaders(), "x-sib-ratelimit-reset", 0L);
-            appSettingsService.recordSent(remaining, resetEpoch);
-            log.info("email sent to {} via Brevo (remaining quota: {})", to, remaining);
-
+            restTemplate.exchange(BREVO_API_URL, HttpMethod.POST, new HttpEntity<>(body, headers), Map.class);
+            log.info("email sent to {} via Brevo", to);
         } catch (HttpClientErrorException e) {
-            HttpHeaders respHeaders = e.getResponseHeaders();
-            int remaining = respHeaders != null
-                ? parseHeader(respHeaders, "x-sib-ratelimit-remaining", -1) : -1;
-            long resetEpoch = respHeaders != null
-                ? parseHeader(respHeaders, "x-sib-ratelimit-reset", 0L) : 0L;
-
             if (e.getStatusCode().value() == 429) {
-                appSettingsService.autoDisable("RATE_LIMIT_EXCEEDED", remaining, resetEpoch);
+                appSettingsService.autoDisable("RATE_LIMIT_EXCEEDED");
             } else {
                 log.error("Brevo API error sending to {} — HTTP {}: {}", to, e.getStatusCode().value(), e.getResponseBodyAsString());
             }
         } catch (Exception e) {
             log.error("unexpected error sending email to {}: {}", to, e.getMessage(), e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public BrevoQuotaView fetchDailyQuota() {
+        String today = LocalDate.now().toString();
+        String url = "https://api.brevo.com/v3/smtp/statistics/reports?startDate=" + today + "&endDate=" + today;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("api-key", apiKey);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+
+        try {
+            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), Map.class);
+            List<Map<String, Object>> reports = (List<Map<String, Object>>) response.getBody().get("reports");
+            int sentToday = 0;
+            if (reports != null && !reports.isEmpty()) {
+                sentToday = ((Number) reports.get(0).getOrDefault("requests", 0)).intValue();
+            }
+            return new BrevoQuotaView(sentToday, Math.max(0, 300 - sentToday), 300);
+        } catch (Exception e) {
+            log.error("failed to fetch Brevo daily quota: {}", e.getMessage());
+            return null;
         }
     }
 
@@ -113,18 +121,6 @@ public class BrevoEmailService {
         } catch (Exception e) {
             log.error("direct SMTP send failed for {}: {}", to, e.getMessage(), e);
         }
-    }
-
-    private int parseHeader(HttpHeaders headers, String name, int fallback) {
-        List<String> values = headers.get(name);
-        if (values == null || values.isEmpty()) return fallback;
-        try { return Integer.parseInt(values.get(0).trim()); } catch (NumberFormatException e) { return fallback; }
-    }
-
-    private long parseHeader(HttpHeaders headers, String name, long fallback) {
-        List<String> values = headers.get(name);
-        if (values == null || values.isEmpty()) return fallback;
-        try { return Long.parseLong(values.get(0).trim()); } catch (NumberFormatException e) { return fallback; }
     }
 
     // ── Event handlers ────────────────────────────────────────────────────────

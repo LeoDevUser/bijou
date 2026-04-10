@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.bijou.backend.services.AppSettingsService;
 import com.bijou.backend.services.AppSettingsToggleRequest;
 import com.bijou.backend.services.AppSettingsView;
+import com.bijou.backend.services.BrevoEmailService;
+import com.bijou.backend.services.BrevoQuotaView;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 public class AppSettingsController {
 
     private final AppSettingsService appSettingsService;
+    private final BrevoEmailService brevoEmailService;
 
     @Value("${ADMIN_PAGE}")
     private String adminPage;
@@ -30,5 +33,11 @@ public class AppSettingsController {
     @PatchMapping("/${ADMIN_PAGE}/settings/relay")
     public ResponseEntity<AppSettingsView> toggleRelay(@RequestBody AppSettingsToggleRequest req) {
         return ResponseEntity.ok(appSettingsService.setRelayEnabled(req.enabled()));
+    }
+
+    @GetMapping("/${ADMIN_PAGE}/settings/brevo-quota")
+    public ResponseEntity<BrevoQuotaView> getBrevoQuota() {
+        BrevoQuotaView quota = brevoEmailService.fetchDailyQuota();
+        return quota != null ? ResponseEntity.ok(quota) : ResponseEntity.status(502).build();
     }
 }

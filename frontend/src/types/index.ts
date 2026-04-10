@@ -213,10 +213,13 @@ export interface ThemeConfig {
 
 export interface AppSettings {
   smtpRelayEnabled: boolean;
-  emailsSentThisMonth: number;
-  rateLimitRemaining: number | null;
-  rateLimitReset: number | null;
   disabledReason: string | null;
+}
+
+export interface BrevoQuota {
+  sentToday: number;
+  remaining: number;
+  dailyLimit: number;
 }
 
 export interface SiteAssetView {

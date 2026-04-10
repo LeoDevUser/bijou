@@ -22,13 +22,6 @@ public class AppSettings {
     private Long id;
 
     private boolean smtpRelayEnabled;
-    private int emailsSentThisMonth;
-
-    /** Last known remaining calls in the current Brevo rate-limit window. */
-    private Integer rateLimitRemaining;
-
-    /** Epoch seconds at which the current Brevo rate-limit window resets. */
-    private Long rateLimitReset;
 
     /** Human-readable reason the relay was auto-disabled, null when enabled. */
     private String disabledReason;

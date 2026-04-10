@@ -23,7 +23,6 @@ public class AppSettingsSeeder implements ApplicationRunner {
         appSettingsRepository.save(AppSettings.builder()
             .id(1L)
             .smtpRelayEnabled(true)
-            .emailsSentThisMonth(0)
             .build());
     }
 }

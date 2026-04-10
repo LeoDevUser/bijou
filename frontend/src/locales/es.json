@@ -388,15 +388,13 @@
       "disable": "Desactivar",
       "enable": "Activar",
       "reasons": {
-        "RATE_LIMIT_EXHAUSTED": "Límite de tasa de Brevo agotado",
-        "RATE_LIMIT_EXCEEDED": "Límite de tasa excedido (429)",
-        "MONTHLY_LIMIT_REACHED": "Límite mensual de 300 correos alcanzado"
+        "RATE_LIMIT_EXCEEDED": "Límite de tasa excedido (429)"
       },
-      "counterLabel": "Correos enviados este mes",
-      "counterReset": "Se restablece automáticamente el 1° de cada mes.",
-      "quotaTitle": "Última cuota Brevo conocida",
-      "quotaRemaining": "{{count}} llamadas restantes en la ventana actual",
-      "quotaReset": "Ventana se restablece: {{date}}"
+      "quotaTitle": "Cuota diaria de Brevo",
+      "quotaSent": "{{sent}} / {{limit}} enviados hoy",
+      "quotaRemaining": "{{count}} restantes",
+      "quotaError": "No se pudo obtener la cuota de Brevo",
+      "quotaLoading": "Cargando cuota..."
     }
   },
   "account": {
