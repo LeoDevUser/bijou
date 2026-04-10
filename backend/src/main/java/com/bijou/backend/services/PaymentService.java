@@ -222,7 +222,7 @@ public class PaymentService {
             order.setBankTransfer(true);
             orderRepository.save(order);
             log.info("bank transfer instructions issued for order #{} — client {}", order.getId(), client.getEmail());
-            eventPublisher.publishEvent(buildReceivedEvent(client, order));
+            eventPublisher.publishEvent(buildBankTransferEvent(client, order, intent));
         }
     }
 
@@ -297,6 +297,55 @@ public class PaymentService {
             order.getInstallments(),
             order.isOxxo(),
             order.isBankTransfer()
+        );
+    }
+
+    private BankTransferInstructionsEvent buildBankTransferEvent(Client client, Order order, PaymentIntent intent) {
+        var instructions = intent.getNextAction().getDisplayBankTransferInstructions();
+
+        String clabe = null;
+        String bankName = null;
+        if (instructions.getFinancialAddresses() != null) {
+            for (var addr : instructions.getFinancialAddresses()) {
+                if ("spei".equals(addr.getType()) && addr.getSpei() != null) {
+                    clabe    = addr.getSpei().getClabe();
+                    bankName = addr.getSpei().getBankName();
+                    break;
+                }
+            }
+        }
+
+        List<BankTransferInstructionsEvent.ItemLine> lines = order.getOrderItems().stream()
+            .map(oi -> {
+                String en = oi.getItem().getNameEn();
+                String fr = oi.getItem().getNameFr();
+                String es = oi.getItem().getNameEs();
+                String name = switch (client.getLanguage()) {
+                    case FR -> fr != null ? fr : (en != null ? en : es);
+                    case ES -> es != null ? es : (en != null ? en : fr);
+                    default -> en != null ? en : (fr != null ? fr : es);
+                };
+                return new BankTransferInstructionsEvent.ItemLine(name, oi.getQuantity(), oi.getUnitPrice());
+            }).toList();
+
+        return new BankTransferInstructionsEvent(
+            client.getEmail(),
+            client.getFirstName(),
+            client.getLanguage(),
+            order.getId(),
+            lines,
+            order.getTotalPrice(),
+            order.getDutyAmount()  != null ? order.getDutyAmount()  : BigDecimal.ZERO,
+            order.getTaxAmount()   != null ? order.getTaxAmount()   : BigDecimal.ZERO,
+            order.getHandlingFee() != null ? order.getHandlingFee() : BigDecimal.ZERO,
+            order.getAddressLine1(),
+            order.getCity(),
+            order.getPostalCode(),
+            order.getCountry(),
+            clabe,
+            bankName,
+            instructions.getReference(),
+            instructions.getHostedInstructionsUrl()
         );
     }
 

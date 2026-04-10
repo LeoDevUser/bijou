@@ -231,6 +231,44 @@ public class BrevoEmailService {
 
     @Async("emailTaskExecutor")
     @EventListener
+    public void handleBankTransferInstructions(BankTransferInstructionsEvent event) {
+        Locale locale = Locale.forLanguageTag(event.language().name().toLowerCase());
+        Context ctx = new Context(locale);
+        ctx.setVariable("firstName", event.firstName());
+        ctx.setVariable("orderId", event.orderId());
+        ctx.setVariable("items", event.items());
+        ctx.setVariable("total", event.total());
+        ctx.setVariable("address", event.addressLine1());
+        ctx.setVariable("city", event.city());
+        ctx.setVariable("postalCode", event.postalCode());
+        ctx.setVariable("country", event.country());
+        ctx.setVariable("clabe", event.clabe());
+        ctx.setVariable("bankName", event.bankName());
+        ctx.setVariable("reference", event.reference());
+        ctx.setVariable("hostedInstructionsUrl", event.hostedInstructionsUrl());
+        BigDecimal dutyAmt     = event.dutyAmount()  != null ? event.dutyAmount()  : BigDecimal.ZERO;
+        BigDecimal taxAmt      = event.taxAmount()   != null ? event.taxAmount()   : BigDecimal.ZERO;
+        BigDecimal handlingAmt = event.handlingFee() != null ? event.handlingFee() : BigDecimal.ZERO;
+        BigDecimal itemsSubtotal = event.items().stream()
+            .map(i -> i.unitPrice().multiply(BigDecimal.valueOf(i.quantity())))
+            .reduce(BigDecimal.ZERO, BigDecimal::add)
+            .setScale(2, RoundingMode.HALF_UP);
+        ctx.setVariable("itemsSubtotal", itemsSubtotal);
+        ctx.setVariable("dutyAmount", dutyAmt);
+        ctx.setVariable("taxAmount", taxAmt);
+        ctx.setVariable("handlingFee", handlingAmt);
+        ctx.setVariable("hasDuty", dutyAmt.compareTo(BigDecimal.ZERO) > 0);
+        ctx.setVariable("hasTax", taxAmt.compareTo(BigDecimal.ZERO) > 0);
+        ctx.setVariable("hasHandlingFee", handlingAmt.compareTo(BigDecimal.ZERO) > 0);
+        ctx.setVariable("hasTaxBreakdown", dutyAmt.add(taxAmt).add(handlingAmt).compareTo(BigDecimal.ZERO) > 0);
+
+        String subject = messageSource.getMessage("mail.banktransfer.subject", new Object[]{ event.orderId() }, locale);
+        send(event.email(), subject, templateEngine.process("emails/bank-transfer", ctx));
+        log.info("sent bank-transfer instructions email for order #{} to {}", event.orderId(), event.email());
+    }
+
+    @Async("emailTaskExecutor")
+    @EventListener
     public void handleOrderShipped(OrderShippedEvent event) {
         Locale locale = Locale.forLanguageTag(event.language().name().toLowerCase());
         Context ctx = new Context(locale);
