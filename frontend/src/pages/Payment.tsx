@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { Elements, ExpressCheckoutElement, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -17,9 +17,9 @@ function PaymentForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingType, setPendingType] = useState<'oxxo' | 'bank_transfer' | null>(null);
+  const [hasWallets, setHasWallets] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function completePayment() {
     if (!stripe || !elements) return;
     setLoading(true);
     setError(null);
@@ -44,8 +44,26 @@ function PaymentForm() {
     }
   }
 
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    await completePayment();
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <ExpressCheckoutElement
+        onConfirm={completePayment}
+        onReady={({ availablePaymentMethods }) => {
+          setHasWallets(!!availablePaymentMethods && Object.values(availablePaymentMethods).some(Boolean));
+        }}
+      />
+      {hasWallets && (
+        <div className="flex items-center gap-3">
+          <div className="flex-1 border-t border-border" />
+          <span className="text-xs text-muted uppercase tracking-widest">{t('payment.or')}</span>
+          <div className="flex-1 border-t border-border" />
+        </div>
+      )}
       <PaymentElement />
       {error && <p className="text-red-500 text-sm">{error}</p>}
       {pendingType ? (
@@ -81,13 +99,14 @@ export default function Payment() {
   const location = useLocation();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const state = location.state as { clientSecret?: string; total?: number; installments?: number | null } | null;
 
   useEffect(() => {
+    if (isLoading) return;
     if (!isAuthenticated) navigate('/login');
     else if (!state?.clientSecret) navigate('/orders');
-  }, [isAuthenticated, state, navigate]);
+  }, [isLoading, isAuthenticated, state, navigate]);
 
   if (!state?.clientSecret) return null;
 

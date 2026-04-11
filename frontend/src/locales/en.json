@@ -128,7 +128,8 @@
       "pending": "Bank transfer instructions ready.",
       "instructions": "Use the account details shown above to complete your transfer. Your order will be confirmed once the funds arrive (usually 1–3 business days).",
       "viewOrders": "View My Orders"
-    }
+    },
+    "or": "or"
   },
   "auth": {
     "login": "Sign In",

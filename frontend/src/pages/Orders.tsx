@@ -17,7 +17,7 @@ const STATUS_COLOR: Record<string, string> = {
 
 export default function Orders() {
   const { t, i18n } = useTranslation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [orders, setOrders] = useState<OrderView[]>([]);
@@ -26,6 +26,7 @@ export default function Orders() {
   const [payingId, setPayingId] = useState<number | null>(null);
 
   useEffect(() => {
+    if (isLoading) return;
     if (!isAuthenticated) { navigate('/login'); return; }
     api.orders.list()
       .then(setOrders)
@@ -39,7 +40,7 @@ export default function Orders() {
       }, 1000);
       return () => clearTimeout(id);
     }
-  }, [isAuthenticated, navigate, location.state]);
+  }, [isLoading, isAuthenticated, navigate, location.state]);
 
   async function handlePay(order: OrderView) {
     setPayingId(order.id);

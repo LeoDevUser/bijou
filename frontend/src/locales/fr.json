@@ -128,7 +128,8 @@
       "pending": "Instructions de virement prêtes.",
       "instructions": "Utilisez les coordonnées bancaires affichées ci-dessus pour effectuer votre virement. Votre commande sera confirmée à réception des fonds (généralement 1–3 jours ouvrables).",
       "viewOrders": "Voir mes commandes"
-    }
+    },
+    "or": "ou"
   },
   "auth": {
     "login": "Se Connecter",

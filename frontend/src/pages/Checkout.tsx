@@ -18,7 +18,7 @@ export default function Checkout() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { items, total } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const { currency, format } = useCurrency();
 
   type AddrForm = {
@@ -51,9 +51,10 @@ export default function Checkout() {
   const finalTotal = selectedPlan ? taxedTotal * (1 + selectedPlan.rate) : taxedTotal;
 
   useEffect(() => {
+    if (isLoading) return;
     if (!isAuthenticated) navigate('/login');
     else if (items.length === 0) navigate('/cart');
-  }, [isAuthenticated, items.length, navigate]);
+  }, [isLoading, isAuthenticated, items.length, navigate]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
