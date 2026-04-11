@@ -200,6 +200,9 @@ function AdminOrders() {
   const [changingStatus, setChangingStatus] = useState<number | null>(null);
   const [trackingInput, setTrackingInput] = useState<Record<number, string>>({});
   const [savingTracking, setSavingTracking] = useState<number | null>(null);
+  const [uploadingFactura, setUploadingFactura] = useState<number | null>(null);
+  const [sendingFactura, setSendingFactura] = useState<number | null>(null);
+  const [facturaSent, setFacturaSent] = useState<number | null>(null);
 
   useEffect(() => { load(); }, [statusFilter, countryFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -411,6 +414,60 @@ function AdminOrders() {
                         ))}
                       </select>
                       {changingStatus === o.id && <span className="text-xs text-muted">...</span>}
+                    </div>
+                  )}
+                  {o.country === 'MEXICO' && (
+                    <div className="mt-4 flex flex-wrap items-center gap-3">
+                      <p className="text-xs uppercase tracking-widest text-muted">{t('admin.orders.factura')}</p>
+                      {o.facturaUrl && (
+                        <>
+                          <a
+                            href={o.facturaUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs underline text-muted hover:text-dark transition-colors"
+                          >
+                            {t('admin.orders.viewFactura')}
+                          </a>
+                          <button
+                            onClick={async () => {
+                              setSendingFactura(o.id);
+                              try {
+                                await api.admin.orders.sendFactura(o.id);
+                                setFacturaSent(o.id);
+                                setTimeout(() => setFacturaSent(null), 3000);
+                              } finally {
+                                setSendingFactura(null);
+                              }
+                            }}
+                            disabled={sendingFactura === o.id}
+                            className="border border-border px-3 py-1.5 text-xs hover:bg-[#F7F5F0] transition-colors disabled:opacity-50 cursor-pointer"
+                          >
+                            {sendingFactura === o.id ? '...' : facturaSent === o.id ? t('admin.orders.facturaSent') : t('admin.orders.sendFactura')}
+                          </button>
+                        </>
+                      )}
+                      <label className="border border-border px-3 py-1.5 text-xs hover:bg-[#F7F5F0] transition-colors cursor-pointer">
+                        {uploadingFactura === o.id ? '...' : o.facturaUrl ? t('admin.orders.replaceFactura') : t('admin.orders.uploadFactura')}
+                        <input
+                          type="file"
+                          accept="application/pdf"
+                          className="hidden"
+                          disabled={uploadingFactura === o.id}
+                          onChange={async e => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            setUploadingFactura(o.id);
+                            try {
+                              const updated = await api.admin.orders.uploadFactura(o.id, file);
+                              setOrders(prev => prev.map(x => x.id === o.id ? updated : x));
+                            } finally {
+                              setUploadingFactura(null);
+                              e.target.value = '';
+                            }
+                          }}
+                        />
+                      </label>
                     </div>
                   )}
                 </div>

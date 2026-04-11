@@ -211,7 +211,13 @@
       "changeStatus": "Cambiar Estado",
       "setTracking": "Número de Seguimiento",
       "trackingPlaceholder": "Ingresar número de seguimiento",
-      "save": "Guardar"
+      "save": "Guardar",
+      "factura": "Factura",
+      "viewFactura": "Ver PDF",
+      "uploadFactura": "Subir Factura",
+      "replaceFactura": "Reemplazar Factura",
+      "sendFactura": "Enviar al Cliente",
+      "facturaSent": "¡Enviado!"
     },
     "detail": {
       "address": "Dirección",

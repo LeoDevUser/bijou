@@ -26,6 +26,7 @@ public class CloudinaryService {
     private static final Set<String> ALLOWED_IMAGE_TYPES = new HashSet<>(List.of("image/png", "image/jpeg", "image/webp"));
     private static final Set<String> ALLOWED_VIDEO_TYPES = new HashSet<>(List.of("video/mp4", "video/webm", "video/quicktime"));
     private static final long MAX_VIDEO_BYTES = 50L * 1024 * 1024;
+    private static final long MAX_PDF_BYTES = 10L * 1024 * 1024;
 
     public CloudinaryResponse upload(MultipartFile file) {
         if (file.isEmpty()) {
@@ -83,6 +84,38 @@ public class CloudinaryService {
         } catch (IOException e) {
             log.error("error uploading video: {}", e.getMessage());
             throw new AppException(HttpStatus.UNPROCESSABLE_CONTENT, "VIDEO_UPLOAD_FAILED");
+        }
+    }
+
+    public CloudinaryResponse uploadPdf(MultipartFile file) {
+        if (file.isEmpty()) {
+            log.warn("attempted to upload an empty file");
+            throw new AppException(HttpStatus.BAD_REQUEST, "FILE_EMPTY");
+        }
+
+        if (!"application/pdf".equals(file.getContentType())) {
+            log.warn("only PDF files are accepted for factura upload");
+            throw new AppException(HttpStatus.BAD_REQUEST, "PDF_FORMAT_INVALID");
+        }
+
+        if (file.getSize() > MAX_PDF_BYTES) {
+            log.warn("PDF exceeds 10MB limit");
+            throw new AppException(HttpStatus.BAD_REQUEST, "PDF_TOO_LARGE");
+        }
+
+        try {
+            Map<?,?> res = cloudinary.uploader().upload(file.getBytes(),
+                ObjectUtils.asMap("resource_type", "raw", "format", "pdf"));
+            log.info("uploaded factura PDF");
+            return new CloudinaryResponse(
+                (String) res.get("public_id"),
+                (String) res.get("secure_url"),
+                "pdf",
+                ((Number) res.get("bytes")).longValue()
+            );
+        } catch (IOException e) {
+            log.error("error uploading factura PDF: {}", e.getMessage());
+            throw new AppException(HttpStatus.UNPROCESSABLE_CONTENT, "PDF_UPLOAD_FAILED");
         }
     }
 

@@ -29,5 +29,6 @@ public record OrderView(
     boolean bankTransfer,
     BigDecimal dutyAmount,
     BigDecimal taxAmount,
-    BigDecimal handlingFee
+    BigDecimal handlingFee,
+    String facturaUrl
 ){}

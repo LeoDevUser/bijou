@@ -298,6 +298,20 @@ public class BrevoEmailService {
 
     @Async("emailTaskExecutor")
     @EventListener
+    public void handleFacturaEmail(FacturaEmailEvent event) {
+        Locale locale = Locale.forLanguageTag(event.language().name().toLowerCase());
+        Context ctx = new Context(locale);
+        ctx.setVariable("firstName", event.firstName());
+        ctx.setVariable("orderId", event.orderId());
+        ctx.setVariable("facturaUrl", event.facturaUrl());
+
+        String subject = messageSource.getMessage("mail.factura.subject", new Object[]{ event.orderId() }, locale);
+        send(event.email(), subject, templateEngine.process("emails/factura", ctx));
+        log.info("sent factura email for order #{} to {}", event.orderId(), event.email());
+    }
+
+    @Async("emailTaskExecutor")
+    @EventListener
     public void handleRegistration(RegisterEvent event) {
         Locale locale = Locale.forLanguageTag(event.language().name().toLowerCase());
         Context ctx = new Context(locale);

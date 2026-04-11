@@ -71,6 +71,10 @@ public class Order {
     private BigDecimal taxAmount;
     @Column
     private BigDecimal handlingFee;
+    @Column
+    private String facturaUrl;
+    @Column
+    private String facturaId;
 
     @PrePersist
     protected void onCreate(){

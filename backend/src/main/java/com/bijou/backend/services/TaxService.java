@@ -12,96 +12,162 @@ import com.bijou.backend.entities.JewelryMaterial;
 import com.bijou.backend.entities.OrderItem;
 
 /**
- * ships from Mexico → US / CA / MX domestic
+ * Ships from Mexico → US / CA / MX domestic.
  *
- * Global settings
- * ---------------
- * All Bijou Monde transactions are processed in MXN. Customs duties for US/CA orders are
- * assessed on the USD customs value, but since the customer is charged in MXN we must convert.
- * Mathematically: dutyMxn = itemMxn × (baseRate × 1.03) × dutyRate / baseRate
- *                          = itemMxn × dutyRate × 1.03
- * The base rate cancels, leaving a flat 3% buffer (MXN_TO_USD_BUFFER_FACTOR) on top of the
- * duty amount. This 3% cushion covers exchange-rate slippage between order time and the point
- * at which duties are actually remitted. IVA and GST/HST are sales taxes and carry no FX risk,
- * so the buffer is NOT applied to them.
+ * ─── Global ──────────────────────────────────────────────────────────────────
+ * All Bijou Monde transactions are processed in MXN. Customs duties for US/CA
+ * orders are assessed on the USD/CAD customs value, but since the customer is
+ * charged in MXN we must convert.
  *
- * United States (no de minimis)
- * ------------------------------
- * USMCA-qualified items: 0% duty.
- * Non-USMCA: base material rate + 15% Section 122 surcharge.
- *   Silver (HTS 7113.11): 5.0% + 15% = 20.0%
- *   Gold   (HTS 7113.19): 5.5% + 15% = 20.5%
- *   Steel  (HTS 7117.19): 11.0% + 15% = 26.0%
- *   Other  (HTS 7119.00): 11.0% + 15% = 26.0%
+ * Mathematically: dutyMxn = itemMxn × dutyRate × mxnToUsdBufferFactor
+ * The MXN→USD base rate cancels, leaving a configurable slippage buffer
+ * (default 1.5 %) on top of the duty amount. This cushion covers
+ * exchange-rate movement between order time and duty remittance.
+ * IVA and GST/HST are sales taxes with no FX risk, so the buffer is NOT
+ * applied to them.
  *
- * Canada
- * ------
- * USMCA-qualified items: 0% duty.
- * Non-USMCA: 8.5% MFN flat rate.
- * GST/HST (13%) applied on the duty-inclusive value for orders whose subtotal exceeds $40 CAD
- * (threshold checked only when the order currency is CAD; otherwise GST always applies).
+ * ─── United States ───────────────────────────────────────────────────────────
+ * As of August 29, 2025 (EO 14324) the US $800 de minimis duty-free threshold
+ * is suspended for all countries. Every shipment — regardless of value — is now
+ * subject to applicable duties. No de minimis check is applied here.
  *
- * Mexico (domestic only — export orders carry 0% IVA)
- * ----------------------------------------------------
- * Silver / Steel: 16% IVA.
- * Gold: 0% IVA (hardcoded exemption for domestic gold jewelry).
+ * USMCA-qualified items: 0 % duty.
+ * Non-USMCA: base HTS rate + 15 % Section 122 surcharge.
+ *   Silver (HTS 7113.11): 5.0 % + 15 % = 20.0 %
+ *   Gold   (HTS 7113.19): 5.5 % + 15 % = 20.5 %
+ *   Steel  (HTS 7117.19): 11.0 % + 15 % = 26.0 %
+ *   Other  (HTS 7119.00): 11.0 % + 15 % = 26.0 %
+ *
+ * ─── Canada (CUSMA/USMCA courier thresholds, CBSA CN 20-18) ─────────────────
+ * These thresholds apply to courier shipments shipped from Mexico (or the US)
+ * where the goods have entered Mexican commerce. They do NOT apply to postal/
+ * mail shipments (which fall under the lower CAD $20 threshold).
+ *
+ * Duty de minimis : CAD $150  → orders at or below this value owe 0 % MFN duty
+ * Tax  de minimis : CAD $40   → orders at or below this value owe 0 % GST/HST
+ *
+ * USMCA-qualified items: 0 % duty (regardless of order value).
+ * Non-USMCA items above CAD $150: 8.5 % MFN flat rate.
+ * GST/HST (13 %) applied on the duty-inclusive value for orders whose
+ * duty-inclusive subtotal exceeds CAD $40 (converted from MXN at the injected
+ * MXN→CAD rate).
+ *
+ * ─── Mexico (domestic) ───────────────────────────────────────────────────────
+ * Silver / Steel / Other: 16 % IVA.
+ * Gold: 0 % IVA — domestic gold jewelry exemption.
+ * Export orders carry 0 % IVA and are handled in a separate flow.
  */
 @Service
 public class TaxService {
 
+    // ── Injected exchange rates ───────────────────────────────────────────────
+
     /**
-     * Base MXN→USD exchange rate injected from application.properties.
-     * Default ~0.05 (1 MXN ≈ 0.05 USD). The 3% slippage buffer is applied at runtime.
+     * Base MXN → USD rate (e.g. 0.05 ≈ 1 MXN = $0.05 USD).
+     * The slippage buffer is applied at runtime via mxnToUsdBufferFactor.
      */
     @Value("${tax.mxn.to.usd.base-rate:0.05}")
     private BigDecimal mxnToUsdBaseRate;
 
-    // Global ─────────────────────────────────────────────────────────────────────
-    private static final BigDecimal MXN_TO_USD_BUFFER_FACTOR = new BigDecimal("1.03");
+    /**
+     * MXN → CAD rate used to evaluate Canada's de minimis thresholds.
+     * Default ≈ 0.073 (1 MXN ≈ 0.073 CAD). Update periodically.
+     * No slippage buffer is applied here — the CAD thresholds are fixed amounts
+     * and carry no FX risk between order time and duty remittance.
+     */
+    @Value("${tax.mxn.to.cad.rate:0.073}")
+    private BigDecimal mxnToCadRate;
 
-    // United States ──────────────────────────────────────────────────────────────
+    // ── Global ────────────────────────────────────────────────────────────────
+
+    /**
+     * FX slippage buffer applied to duty amounts collected in MXN.
+     * Covers exchange-rate movement between order time and duty remittance.
+     * Default 1.5 % — adjust via {@code tax.mxn.to.usd.buffer-factor} property.
+     */
+    @Value("${tax.mxn.to.usd.buffer-factor:1.015}")
+    private BigDecimal mxnToUsdBufferFactor;
+
+    // ── United States ─────────────────────────────────────────────────────────
+
     private static final BigDecimal US_SECTION_122_SURCHARGE = new BigDecimal("0.15");
     private static final BigDecimal US_BASE_SILVER = new BigDecimal("0.05");   // HTS 7113.11
     private static final BigDecimal US_BASE_GOLD   = new BigDecimal("0.055");  // HTS 7113.19
     private static final BigDecimal US_BASE_STEEL  = new BigDecimal("0.11");   // HTS 7117.19
     private static final BigDecimal US_BASE_OTHER  = new BigDecimal("0.11");   // HTS 7119.00
 
-    // Canada ─────────────────────────────────────────────────────────────────────
-    private static final BigDecimal CA_MFN_RATE       = new BigDecimal("0.085");
-    private static final BigDecimal CA_GST_HST_RATE   = new BigDecimal("0.13");
-    private static final BigDecimal CA_GST_THRESHOLD  = new BigDecimal("40");   // CAD
+    // ── Canada ────────────────────────────────────────────────────────────────
 
-    // International handling ─────────────────────────────────────────────────────
-    /** Minimum $15 USD disbursement/handling fee for US and CA orders, or 2% of order subtotal — whichever is greater.
-     *  Converted to MXN at the base exchange rate (no slippage buffer — this is a fixed carrier charge). */
+    /** MFN duty rate for non-USMCA goods above the CAD $150 duty de minimis. */
+    private static final BigDecimal CA_MFN_RATE = new BigDecimal("0.085");
+
+    private static final BigDecimal CA_GST_HST_RATE = new BigDecimal("0.13");
+
+    /**
+     * CUSMA courier duty de minimis: CAD $150.
+     * Per-item check: if an individual item's value in CAD is at or below this
+     * threshold, no MFN duty is assessed on that item.
+     * Source: CBSA Customs Notice 20-18; CUSMA Article 7.8(1)(f).
+     */
+    private static final BigDecimal CA_DUTY_DE_MINIMIS_CAD = new BigDecimal("150");
+
+    /**
+     * CUSMA courier tax de minimis: CAD $40.
+     * Applied to the duty-inclusive order total converted to CAD.
+     * If the total is at or below this threshold, GST/HST is waived.
+     * Source: CBSA Customs Notice 20-18; CUSMA Article 7.8(1)(f).
+     *
+     * NOTE: This threshold applies ONLY to courier shipments shipped from
+     * Mexico or the US where goods have entered Mexican/US commerce.
+     * Postal/mail shipments use a lower CAD $20 threshold and are not
+     * currently modelled here.
+     */
+    private static final BigDecimal CA_TAX_DE_MINIMIS_CAD = new BigDecimal("40");
+
+    // ── International handling ────────────────────────────────────────────────
+
+    /**
+     * Minimum USD handling/disbursement fee for cross-border (US and CA) orders.
+     * Converted to MXN at the base rate — no slippage buffer because this is a
+     * fixed carrier charge, not a customs assessment.
+     */
     private static final BigDecimal INTL_HANDLING_MIN_USD = new BigDecimal("15.00");
     private static final BigDecimal INTL_HANDLING_PCT     = new BigDecimal("0.02");
 
-    // Mexico ─────────────────────────────────────────────────────────────────────
+    // ── Mexico ────────────────────────────────────────────────────────────────
+
     private static final BigDecimal MX_IVA_STANDARD = new BigDecimal("0.16");
 
-    // ─────────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * Returns the effective MXN→USD rate including the 3% slippage buffer.
+     * Returns the effective MXN → USD rate including the 3 % slippage buffer.
+     * Exposed for use by other services (e.g. landed-cost display).
      */
     public BigDecimal effectiveMxnToUsdRate() {
-        return mxnToUsdBaseRate.multiply(MXN_TO_USD_BUFFER_FACTOR).setScale(6, RoundingMode.HALF_UP);
+        return mxnToUsdBaseRate
+                .multiply(mxnToUsdBufferFactor)
+                .setScale(6, RoundingMode.HALF_UP);
     }
 
     /**
-     * Calculates duties and taxes for an order.
+     * Calculates duties, taxes, and the international handling fee for an order.
      *
-     * @param orderItems items in the order (each carries {@code material} and {@code usmcaQualified} on the Item)
+     * <p>All monetary inputs and outputs are in MXN.</p>
+     *
+     * @param orderItems items in the order — each carries {@code material} and
+     *                   {@code usmcaQualified} on the item entity
      * @param country    destination country
-     * @param currency   billing currency — used for the Canada GST/HST $40 CAD threshold check
-     * @param subtotal   pre-tax order subtotal in the billing currency
-     * @return a {@link TaxResult} containing the separate duty and tax amounts
+     * @param subtotal   pre-tax order subtotal in MXN
+     * @return a {@link TaxResult} with duty, tax, and handling amounts (all MXN)
      */
-    public TaxResult calculate(List<OrderItem> orderItems, Country country, Currency currency, BigDecimal subtotal) {
-        BigDecimal duty = BigDecimal.ZERO;
-        BigDecimal tax  = BigDecimal.ZERO;
+    public TaxResult calculate(
+            List<OrderItem> orderItems,
+            Country country,
+            BigDecimal subtotal) {
 
+        BigDecimal duty     = BigDecimal.ZERO;
+        BigDecimal tax      = BigDecimal.ZERO;
         BigDecimal handling = BigDecimal.ZERO;
 
         switch (country) {
@@ -111,42 +177,56 @@ public class TaxService {
             }
             case CANADA -> {
                 duty     = calcCaDuty(orderItems);
-                tax      = calcCaGst(subtotal.add(duty), currency);
+                tax      = calcCaGst(subtotal.add(duty));
                 handling = intlHandlingFeeMxn(subtotal);
             }
-            // country == MEXICO → domestic shipment; exports carry 0% IVA and are handled elsewhere
             case MEXICO -> tax = calcMxIva(orderItems);
         }
 
         return new TaxResult(
-            duty.setScale(2, RoundingMode.HALF_UP),
-            tax.setScale(2, RoundingMode.HALF_UP),
-            handling.setScale(2, RoundingMode.HALF_UP)
+                duty    .setScale(2, RoundingMode.HALF_UP),
+                tax     .setScale(2, RoundingMode.HALF_UP),
+                handling.setScale(2, RoundingMode.HALF_UP)
         );
     }
 
-    // ── International handling ───────────────────────────────────────────────────
+    // ── International handling ────────────────────────────────────────────────
 
     private BigDecimal intlHandlingFeeMxn(BigDecimal subtotalMxn) {
-        BigDecimal minFee = INTL_HANDLING_MIN_USD.divide(mxnToUsdBaseRate, 2, RoundingMode.HALF_UP);
-        BigDecimal pctFee = subtotalMxn.multiply(INTL_HANDLING_PCT).setScale(2, RoundingMode.HALF_UP);
+        // Convert the flat USD minimum to MXN at the base rate (no buffer —
+        // this is a carrier charge, not a customs liability).
+        BigDecimal minFee = INTL_HANDLING_MIN_USD
+                .divide(mxnToUsdBaseRate, 2, RoundingMode.HALF_UP);
+        BigDecimal pctFee = subtotalMxn
+                .multiply(INTL_HANDLING_PCT)
+                .setScale(2, RoundingMode.HALF_UP);
         return minFee.max(pctFee);
     }
 
-    // ── United States ────────────────────────────────────────────────────────────
+    // ── United States ─────────────────────────────────────────────────────────
 
+    /**
+     * Calculates US import duty in MXN.
+     *
+     * <p>The US $800 de minimis exemption has been suspended for all countries
+     * effective August 29, 2025 (EO 14324, continued February 2026).
+     * All non-USMCA items are therefore dutiable regardless of order value.</p>
+     *
+     * <p>Math: dutyMxn = itemMxn × (baseRate + section122) × 1.03
+     * The MXN→USD base rate cancels in the full conversion chain, leaving only
+     * the 3 % slippage buffer on top of the MXN duty amount.</p>
+     */
     private BigDecimal calcUsDuty(List<OrderItem> orderItems) {
-        // All prices are in MXN. Duty is assessed on the USD customs value, so we simulate:
-        //   dutyMxn = (itemMxn × baseRate × 1.03) × dutyRate / baseRate
-        //           = itemMxn × dutyRate × 1.03
-        // The base rate cancels; the net effect is a 3% slippage buffer on the MXN duty
-        // amount, protecting against FX movement between order time and duty remittance.
         BigDecimal total = BigDecimal.ZERO;
         for (OrderItem oi : orderItems) {
-            if (oi.getItem().isUsmcaQualified()) continue; // 0% duty
-            BigDecimal itemValue = oi.getUnitPrice().multiply(BigDecimal.valueOf(oi.getQuantity()));
-            BigDecimal rate = usBaseRate(oi.getItem().getMaterial()).add(US_SECTION_122_SURCHARGE);
-            total = total.add(itemValue.multiply(rate).multiply(MXN_TO_USD_BUFFER_FACTOR));
+            if (oi.getItem().isUsmcaQualified()) continue; // 0 % duty
+
+            BigDecimal itemValueMxn = oi.getUnitPrice()
+                    .multiply(BigDecimal.valueOf(oi.getQuantity()));
+            BigDecimal rate = usBaseRate(oi.getItem().getMaterial())
+                    .add(US_SECTION_122_SURCHARGE);
+            total = total.add(
+                    itemValueMxn.multiply(rate).multiply(mxnToUsdBufferFactor));
         }
         return total;
     }
@@ -160,49 +240,84 @@ public class TaxService {
         };
     }
 
-    // ── Canada ───────────────────────────────────────────────────────────────────
+    // ── Canada ────────────────────────────────────────────────────────────────
 
+    /**
+     * Calculates Canadian MFN duty in MXN.
+     *
+     * <p>Per CBSA CN 20-18 (CUSMA courier thresholds):
+     * <ul>
+     *   <li>USMCA-qualified items: 0 % duty regardless of value.</li>
+     *   <li>Non-USMCA items at or below CAD $150 per item: 0 % duty
+     *       (duty de minimis — converted from MXN at the injected CAD rate).</li>
+     *   <li>Non-USMCA items above CAD $150: 8.5 % MFN + 3 % slippage buffer.</li>
+     * </ul>
+     * </p>
+     */
     private BigDecimal calcCaDuty(List<OrderItem> orderItems) {
-        // Same MXN_TO_USD_BUFFER_FACTOR logic as US: 3% cushion on duty collected in MXN.
         BigDecimal total = BigDecimal.ZERO;
         for (OrderItem oi : orderItems) {
-            if (oi.getItem().isUsmcaQualified()) continue; // 0% duty
-            BigDecimal itemValue = oi.getUnitPrice().multiply(BigDecimal.valueOf(oi.getQuantity()));
-            total = total.add(itemValue.multiply(CA_MFN_RATE).multiply(MXN_TO_USD_BUFFER_FACTOR));
+            if (oi.getItem().isUsmcaQualified()) continue; // 0 % duty
+
+            BigDecimal itemValueMxn = oi.getUnitPrice()
+                    .multiply(BigDecimal.valueOf(oi.getQuantity()));
+
+            // Convert item value to CAD to evaluate the CAD $150 duty de minimis.
+            BigDecimal itemValueCad = itemValueMxn
+                    .multiply(mxnToCadRate)
+                    .setScale(2, RoundingMode.HALF_UP);
+
+            if (itemValueCad.compareTo(CA_DUTY_DE_MINIMIS_CAD) <= 0) continue; // under $150 CAD
+
+            total = total.add(
+                    itemValueMxn.multiply(CA_MFN_RATE).multiply(mxnToUsdBufferFactor));
         }
         return total;
     }
 
     /**
-     * GST/HST (13%) is applied on the duty-inclusive value.
-     * When the billing currency is CAD, the threshold ($40 CAD) is checked directly.
-     * For any other currency the threshold cannot be reliably compared without a conversion
-     * rate, so GST/HST is applied unconditionally.
+     * Calculates Canadian GST/HST (13 %) in MXN.
+     *
+     * <p>Per CBSA CN 20-18 (CUSMA courier thresholds):
+     * GST/HST is waived when the duty-inclusive order total, converted to CAD,
+     * is at or below CAD $40. Above the threshold, 13 % applies on the full
+     * duty-inclusive value.
+     *
+     * <p>The comparison is always performed in CAD using the injected MXN→CAD
+     * rate, avoiding the currency-mismatch bug that would occur if the MXN
+     * amount were compared directly to the CAD threshold.
+     *
+     * @param dutyInclusiveValueMxn subtotal + duty, in MXN
      */
-    private BigDecimal calcCaGst(BigDecimal dutyInclusiveValue, Currency currency) {
-        if (currency == Currency.CAD && dutyInclusiveValue.compareTo(CA_GST_THRESHOLD) <= 0) {
+    private BigDecimal calcCaGst(BigDecimal dutyInclusiveValueMxn) {
+        BigDecimal dutyInclusiveValueCad = dutyInclusiveValueMxn
+                .multiply(mxnToCadRate)
+                .setScale(2, RoundingMode.HALF_UP);
+
+        if (dutyInclusiveValueCad.compareTo(CA_TAX_DE_MINIMIS_CAD) <= 0) {
             return BigDecimal.ZERO;
         }
-        return dutyInclusiveValue.multiply(CA_GST_HST_RATE);
+        return dutyInclusiveValueMxn.multiply(CA_GST_HST_RATE);
     }
 
-    // ── Mexico (domestic) ────────────────────────────────────────────────────────
+    // ── Mexico (domestic) ─────────────────────────────────────────────────────
 
     private BigDecimal calcMxIva(List<OrderItem> orderItems) {
         BigDecimal total = BigDecimal.ZERO;
         for (OrderItem oi : orderItems) {
             BigDecimal ivaRate = mxIvaRate(oi.getItem().getMaterial());
             if (ivaRate.compareTo(BigDecimal.ZERO) == 0) continue;
-            BigDecimal itemValue = oi.getUnitPrice().multiply(BigDecimal.valueOf(oi.getQuantity()));
-            total = total.add(itemValue.multiply(ivaRate));
+            BigDecimal itemValueMxn = oi.getUnitPrice()
+                    .multiply(BigDecimal.valueOf(oi.getQuantity()));
+            total = total.add(itemValueMxn.multiply(ivaRate));
         }
         return total;
     }
 
     private BigDecimal mxIvaRate(JewelryMaterial material) {
         return switch (material) {
-            case GOLD                -> BigDecimal.ZERO;      // 0% IVA — domestic gold jewelry exemption
-            case SILVER, STEEL, OTHER -> MX_IVA_STANDARD;    // 16% IVA
+            case GOLD              -> BigDecimal.ZERO;  // 0 % — domestic gold jewelry exemption
+            case SILVER, STEEL, OTHER -> MX_IVA_STANDARD; // 16 %
         };
     }
 }

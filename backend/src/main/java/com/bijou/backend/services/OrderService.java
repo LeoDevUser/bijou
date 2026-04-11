@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.bijou.backend.entities.Client;
 import com.bijou.backend.exception.AppException;
@@ -43,6 +44,7 @@ public class OrderService {
     private final ItemRepository itemRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final TaxService taxService;
+    private final CloudinaryService cloudinaryService;
 
     @Transactional
     public Order create(Client client, OrderRequest req) {
@@ -88,7 +90,7 @@ public class OrderService {
 
 
         // Apply duties, taxes, and international handling fee
-        TaxResult taxResult = taxService.calculate(orderItems, req.country(), req.currency(), total);
+        TaxResult taxResult = taxService.calculate(orderItems, req.country(), total);
         BigDecimal dutyAmount    = taxResult.dutyAmount();
         BigDecimal taxAmount     = taxResult.taxAmount();
         BigDecimal handlingFee   = taxResult.handlingFee();
@@ -246,7 +248,7 @@ public class OrderService {
             subtotal = subtotal.add(unitPrice.multiply(BigDecimal.valueOf(r.quantity())));
         }
 
-        TaxResult taxResult = taxService.calculate(orderItems, req.country(), req.currency(), subtotal);
+        TaxResult taxResult = taxService.calculate(orderItems, req.country(), subtotal);
         return new TaxPreviewResponse(
             subtotal.setScale(2, RoundingMode.HALF_UP),
             taxResult.dutyAmount(),
@@ -294,7 +296,8 @@ public class OrderService {
                 order.isBankTransfer(),
                 order.getDutyAmount(),
                 order.getTaxAmount(),
-                order.getHandlingFee());
+                order.getHandlingFee(),
+                order.getFacturaUrl());
     }
 
     @Transactional
@@ -397,5 +400,45 @@ public class OrderService {
         order.setTrackingNumber(tracking);
         orderRepository.save(order);
         log.info("set tracking number {} for order {}", order.getTrackingNumber(),order.getId());
+    }
+
+    public void sendFacturaEmail(Long id) {
+        Order order = orderRepository.findById(id).orElseThrow(() ->
+                new AppException(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND"));
+
+        if (order.getFacturaUrl() == null) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "FACTURA_NOT_UPLOADED");
+        }
+
+        Client client = order.getClient();
+        eventPublisher.publishEvent(new FacturaEmailEvent(
+                client.getEmail(),
+                client.getFirstName(),
+                client.getLanguage(),
+                order.getId(),
+                order.getFacturaUrl()
+        ));
+        log.info("dispatched factura email event for order {}", id);
+    }
+
+    @Transactional
+    public OrderView uploadFactura(Long id, MultipartFile file) {
+        Order order = orderRepository.findById(id).orElseThrow(() ->
+                new AppException(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND"));
+
+        if (order.getCountry() != Country.MEXICO) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "FACTURA_MEXICO_ONLY");
+        }
+
+        if (order.getFacturaId() != null) {
+            cloudinaryService.delete(order.getFacturaId(), "raw");
+        }
+
+        CloudinaryResponse uploaded = cloudinaryService.uploadPdf(file);
+        order.setFacturaId(uploaded.imageId());
+        order.setFacturaUrl(uploaded.url());
+        orderRepository.save(order);
+        log.info("uploaded factura for order {}", id);
+        return toOrderView(order);
     }
 }

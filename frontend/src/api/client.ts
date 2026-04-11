@@ -274,6 +274,20 @@ export const api = {
         request<void>(`/${ADMIN}/orders/status`, { method: 'PATCH', body: JSON.stringify({ id, status }) }),
       setTracking: (id: number, tracking: string) =>
         request<void>(`/${ADMIN}/orders/tracking`, { method: 'PATCH', body: JSON.stringify({ id, tracking }) }),
+      sendFactura: (id: number) =>
+        request<void>(`/${ADMIN}/orders/${id}/factura/send`, { method: 'POST' }),
+      uploadFactura: async (id: number, file: File): Promise<OrderView> => {
+        const form = new FormData();
+        form.append('file', file);
+        const res = await fetch(`${BASE_URL}/${ADMIN}/orders/${id}/factura`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: authHeaders(),
+          body: form,
+        });
+        if (!res.ok) { const body = await res.json().catch(() => ({})); throw { status: res.status, ...body }; }
+        return res.json();
+      },
     },
     settings: {
       get: () => request<AppSettings>(`/${ADMIN}/settings`),

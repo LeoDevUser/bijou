@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.bijou.backend.entities.Client;
@@ -104,6 +106,19 @@ public class OrderController {
     @PatchMapping("/${ADMIN_PAGE}/orders/tracking")
     public ResponseEntity<Void> changeStatus(@Valid @RequestBody TrackingChangeRequest req) {
         orderService.setTracking(req.id(), req.tracking());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/${ADMIN_PAGE}/orders/{id}/factura")
+    public ResponseEntity<OrderView> uploadFactura(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(orderService.uploadFactura(id, file));
+    }
+
+    @PostMapping("/${ADMIN_PAGE}/orders/{id}/factura/send")
+    public ResponseEntity<Void> sendFactura(@PathVariable Long id) {
+        orderService.sendFacturaEmail(id);
         return ResponseEntity.ok().build();
     }
 }

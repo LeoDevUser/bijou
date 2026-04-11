@@ -211,7 +211,13 @@
       "changeStatus": "Change Status",
       "setTracking": "Tracking Number",
       "trackingPlaceholder": "Enter tracking number",
-      "save": "Save"
+      "save": "Save",
+      "factura": "Factura",
+      "viewFactura": "View PDF",
+      "uploadFactura": "Upload Factura",
+      "replaceFactura": "Replace Factura",
+      "sendFactura": "Send to Client",
+      "facturaSent": "Sent!"
     },
     "detail": {
       "address": "Address",

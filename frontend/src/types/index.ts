@@ -106,6 +106,7 @@ export interface OrderView {
   dutyAmount: number | null;
   taxAmount: number | null;
   handlingFee: number | null;
+  facturaUrl: string | null;
 }
 
 export type JewelryMaterial = 'SILVER' | 'GOLD' | 'STEEL' | 'OTHER';
