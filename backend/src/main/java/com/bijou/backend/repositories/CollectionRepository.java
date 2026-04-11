@@ -8,4 +8,5 @@ import com.bijou.backend.entities.Collection;
 
 public interface CollectionRepository extends JpaRepository<Collection, Long> {
     List<Collection> findAllByOrderByIdAsc();
+    List<Collection> findByLabels_Id(Long labelId);
 }

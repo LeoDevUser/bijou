@@ -177,12 +177,9 @@ export interface AnnouncementView {
   ctaCollectionId: number | null;
 }
 
-export interface CollectionView {
+export interface CollectionSiteAssetView {
   id: number;
-  labelId: number | null;
-  labelNameEn: string | null;
-  labelNameFr: string | null;
-  labelNameEs: string | null;
+  slot: string;
   imageUrl: string | null;
   imageId: string | null;
   resourceType: string;
@@ -193,6 +190,43 @@ export interface CollectionView {
   subheaderFr: string | null;
   subheaderEs: string | null;
   color: string | null;
+  ctaCategory: string | null;
+  ctaLabelId: number | null;
+}
+
+export interface CollectionThemeView {
+  navbarBg: string | null;
+  navbarText: string | null;
+  navbarTextSelected: string | null;
+  navbarTextInactive: string | null;
+  announcementBg: string | null;
+  announcementText: string | null;
+  siteBg: string | null;
+  siteText: string | null;
+  cardText: string | null;
+  cardButtonBg: string | null;
+  cardButtonText: string | null;
+  navbarSeparator: string | null;
+  siteTextMuted: string | null;
+  siteTextAccent: string | null;
+  siteSeparator: string | null;
+}
+
+export interface CollectionView {
+  id: number;
+  labels: LabelView[];
+  imageUrl: string | null;
+  imageId: string | null;
+  resourceType: string;
+  headerEn: string | null;
+  headerFr: string | null;
+  headerEs: string | null;
+  subheaderEn: string | null;
+  subheaderFr: string | null;
+  subheaderEs: string | null;
+  color: string | null;
+  siteAssets: CollectionSiteAssetView[];
+  theme: CollectionThemeView | null;
 }
 
 export interface ThemeConfig {

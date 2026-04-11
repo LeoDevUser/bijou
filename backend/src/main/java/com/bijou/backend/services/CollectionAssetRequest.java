@@ -1,14 +1,13 @@
 package com.bijou.backend.services;
 
-import java.util.List;
-
-public record CollectionRequest(
-        List<Long> labelIds,
+public record CollectionAssetRequest(
         String headerEn,
         String headerFr,
         String headerEs,
         String subheaderEn,
         String subheaderFr,
         String subheaderEs,
-        String color) {
+        String color,
+        String ctaCategory,
+        Long ctaLabelId) {
 }

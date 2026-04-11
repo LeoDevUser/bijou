@@ -1,4 +1,4 @@
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, SiteAssetView, CollectionView, SalesStats, ItemAssetView, ThemeConfig, TaxPreview, AppSettings, BrevoQuota } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, SiteAssetView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ItemAssetView, ThemeConfig, TaxPreview, AppSettings, BrevoQuota } from '../types';
 import { getToken, setToken } from './tokenStore';
 
 interface LabelRequest { nameEn: string; nameFr: string; nameEs: string; }
@@ -99,6 +99,9 @@ export const api = {
   },
   collections: {
     list: () => request<CollectionView[]>('/public/collections'),
+    getById: (id: number) => request<CollectionView>(`/public/collections/${id}`),
+    items: (id: number) => request<ItemView[]>(`/public/collections/${id}/items`),
+    trending: (id: number) => request<ItemView[]>(`/public/collections/${id}/items/trending`),
   },
   theme: {
     get: () => request<ThemeConfig>('/public/theme'),
@@ -222,9 +225,9 @@ export const api = {
         request<AnnouncementView[]>(`/${ADMIN}/announcements/${id}/down`, { method: 'PATCH' }),
     },
     collections: {
-      create: (data: { labelId: number; headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; color: string }) =>
+      create: (data: { labelIds: number[]; headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; color: string }) =>
         request<CollectionView>(`/${ADMIN}/collections`, { method: 'POST', body: JSON.stringify(data) }),
-      updateText: (id: number, data: { labelId: number; headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; color: string }) =>
+      updateText: (id: number, data: { labelIds: number[]; headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; color: string }) =>
         request<CollectionView>(`/${ADMIN}/collections/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
       uploadImage: async (id: number, file: File): Promise<CollectionView> => {
         const form = new FormData();
@@ -242,6 +245,26 @@ export const api = {
         request<CollectionView>(`/${ADMIN}/collections/${id}/image`, { method: 'DELETE' }),
       delete: (id: number) =>
         request<void>(`/${ADMIN}/collections/${id}`, { method: 'DELETE' }),
+      updateAsset: (id: number, slot: string, data: { headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; color: string; ctaCategory: string | null; ctaLabelId: number | null }) =>
+        request<CollectionSiteAssetView>(`/${ADMIN}/collections/${id}/assets/${slot}`, { method: 'PATCH', body: JSON.stringify(data) }),
+      uploadAssetImage: async (id: number, slot: string, file: File): Promise<CollectionSiteAssetView> => {
+        const form = new FormData();
+        form.append('file', file);
+        const res = await fetch(`${BASE_URL}/${ADMIN}/collections/${id}/assets/${slot}/image`, {
+          method: 'PATCH',
+          credentials: 'include',
+          headers: authHeaders(),
+          body: form,
+        });
+        if (!res.ok) { const body = await res.json().catch(() => ({})); throw { status: res.status, ...body }; }
+        return res.json();
+      },
+      deleteAssetImage: (id: number, slot: string) =>
+        request<CollectionSiteAssetView>(`/${ADMIN}/collections/${id}/assets/${slot}/image`, { method: 'DELETE' }),
+      updateTheme: (id: number, data: CollectionThemeView) =>
+        request<CollectionThemeView>(`/${ADMIN}/collections/${id}/theme`, { method: 'PATCH', body: JSON.stringify(data) }),
+      resetTheme: (id: number) =>
+        request<void>(`/${ADMIN}/collections/${id}/theme`, { method: 'DELETE' }),
     },
     theme: {
       update: (data: ThemeConfig) =>

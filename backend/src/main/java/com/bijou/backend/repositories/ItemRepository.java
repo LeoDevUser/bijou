@@ -1,5 +1,6 @@
 package com.bijou.backend.repositories;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,6 +26,8 @@ public interface ItemRepository extends JpaRepository<Item, Long>{
     Optional<Item> findByIdAndActiveTrue(Long id);
     List<Item> findByLabels_IdAndActiveTrue(Long labelId);
     List<Item> findByLabels_Id(Long labelId);
+    @Query("SELECT DISTINCT i FROM Item i JOIN i.labels l WHERE l.id IN :labelIds AND i.active = true")
+    List<Item> findByAnyLabelIdInAndActiveTrue(@Param("labelIds") Collection<Long> labelIds);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT i FROM Item i WHERE i.id = :id")
     Optional<Item> findByIdWithLock(Long id);

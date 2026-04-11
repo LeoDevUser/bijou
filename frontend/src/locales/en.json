@@ -322,7 +322,16 @@
       "labelRequired": "Please select a label.",
       "deleteConfirm": "Delete this collection? This cannot be undone.",
       "saveError": "Failed to save. Please try again.",
-      "empty": "No collections yet."
+      "empty": "No collections yet.",
+      "assets": "Page Assets",
+      "theme": {
+        "button": "Theme",
+        "title": "Collection Theme",
+        "copyGlobal": "Copy from global",
+        "active": "Custom theme",
+        "reset": "Remove custom theme",
+        "resetConfirm": "Remove the custom theme for this collection and revert to the global theme?"
+      }
     },
     "labels": {
       "title": "Labels",

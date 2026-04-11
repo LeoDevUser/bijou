@@ -44,11 +44,12 @@ export default function Collections() {
           {collections.map(c => {
             const header = pickLocale(c.headerEn, c.headerFr, c.headerEs, i18n.language);
             const subheader = pickLocale(c.subheaderEn, c.subheaderFr, c.subheaderEs, i18n.language);
-            const labelName = pickLocale(c.labelNameEn, c.labelNameFr, c.labelNameEs, i18n.language);
+            const firstLabel = c.labels[0];
+            const labelName = firstLabel ? pickLocale(firstLabel.nameEn, firstLabel.nameFr, firstLabel.nameEs, i18n.language) : '';
             return (
               <Link
                 key={c.id}
-                to={c.labelId ? `/shop?label=${c.labelId}` : '/shop'}
+                to={`/collections/${c.id}`}
                 className="group block relative overflow-hidden aspect-[4/3] bg-[#E8E4DC]"
               >
                 <CollectionMedia c={c} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />

@@ -322,7 +322,16 @@
       "labelRequired": "Por favor selecciona una etiqueta.",
       "deleteConfirm": "¿Eliminar esta colección? Esta acción no se puede deshacer.",
       "saveError": "Error al guardar. Por favor, intenta de nuevo.",
-      "empty": "Aún no hay colecciones."
+      "empty": "Aún no hay colecciones.",
+      "assets": "Assets de Página",
+      "theme": {
+        "button": "Tema",
+        "title": "Tema de la Colección",
+        "copyGlobal": "Copiar tema global",
+        "active": "Tema personalizado",
+        "reset": "Eliminar tema personalizado",
+        "resetConfirm": "¿Eliminar el tema personalizado de esta colección y volver al tema global?"
+      }
     },
     "labels": {
       "title": "Etiquetas",

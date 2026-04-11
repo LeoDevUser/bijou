@@ -322,7 +322,16 @@
       "labelRequired": "Veuillez sélectionner une étiquette.",
       "deleteConfirm": "Supprimer cette collection ? Cette action est irréversible.",
       "saveError": "Échec de l'enregistrement. Veuillez réessayer.",
-      "empty": "Aucune collection pour l'instant."
+      "empty": "Aucune collection pour l'instant.",
+      "assets": "Assets de la Page",
+      "theme": {
+        "button": "Thème",
+        "title": "Thème de la Collection",
+        "copyGlobal": "Copier le thème global",
+        "active": "Thème personnalisé",
+        "reset": "Supprimer le thème personnalisé",
+        "resetConfirm": "Supprimer le thème personnalisé de cette collection et revenir au thème global ?"
+      }
     },
     "labels": {
       "title": "Étiquettes",

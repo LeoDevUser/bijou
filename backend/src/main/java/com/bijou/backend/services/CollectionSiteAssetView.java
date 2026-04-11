@@ -1,10 +1,8 @@
 package com.bijou.backend.services;
 
-import java.util.List;
-
-public record CollectionView(
+public record CollectionSiteAssetView(
         Long id,
-        List<LabelView> labels,
+        String slot,
         String imageUrl,
         String imageId,
         String resourceType,
@@ -15,6 +13,6 @@ public record CollectionView(
         String subheaderFr,
         String subheaderEs,
         String color,
-        List<CollectionSiteAssetView> siteAssets,
-        CollectionThemeView theme) {
+        String ctaCategory,
+        Long ctaLabelId) {
 }

@@ -25,6 +25,7 @@ import Payment from './pages/Payment'
 import Admin from './pages/Admin'
 import Account from './pages/Account'
 import Collections from './pages/Collections'
+import CollectionPage from './pages/CollectionPage'
 import About from './pages/About'
 import Privacy from './pages/Privacy'
 import Terms from './pages/Terms'
@@ -61,6 +62,7 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/shop" element={<Shop />} />
                 <Route path="/collections" element={<Collections />} />
+                <Route path="/collections/:id" element={<CollectionPage />} />
                 <Route path="/shop/:id" element={<ProductDetail />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/checkout" element={<Checkout />} />

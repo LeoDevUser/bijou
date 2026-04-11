@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.bijou.backend.entities.Label;
 import com.bijou.backend.exception.AppException;
+import com.bijou.backend.repositories.CollectionRepository;
 import com.bijou.backend.repositories.ItemRepository;
 import com.bijou.backend.repositories.LabelRepository;
 
@@ -21,6 +22,7 @@ public class LabelService {
 
     private final LabelRepository labelRepository;
     private final ItemRepository itemRepository;
+    private final CollectionRepository collectionRepository;
 
     public static LabelView toView(Label l) {
         return new LabelView(l.getId(), l.getNameEn(), l.getNameFr(), l.getNameEs());
@@ -46,8 +48,9 @@ public class LabelService {
     public void delete(Long id) {
         Label label = labelRepository.findById(id)
             .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "LABEL_NOT_FOUND"));
-        // detach from all items before deleting to avoid FK violation
+        // detach from all items and collections before deleting to avoid FK violation
         itemRepository.findByLabels_Id(id).forEach(item -> item.getLabels().remove(label));
+        collectionRepository.findByLabels_Id(id).forEach(c -> c.getLabels().remove(label));
         labelRepository.deleteById(id);
         log.info("deleted label #{} ({})", id, label.getNameEn());
     }

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, SiteAssetView, CollectionView, SalesStats, ThemeConfig, AppSettings, BrevoQuota } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, SiteAssetView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ThemeConfig, AppSettings, BrevoQuota } from '../types';
 import { pickLocale, isItemIncomplete, isLabelIncomplete } from '../types';
 import { useTheme, THEME_DEFAULTS } from '../context/ThemeContext';
 
@@ -1016,6 +1016,13 @@ function AdminProducts() {
 
 type CollectionModal = 'new' | CollectionView;
 
+const COLLECTION_ASSET_SLOTS = ['hero', 'editorial1', 'editorial2'] as const;
+const COLLECTION_SLOT_LABELS: Record<string, string> = {
+  hero: 'admin.site.slots.hero',
+  editorial1: 'admin.site.slots.editorial1',
+  editorial2: 'admin.site.slots.editorial2',
+};
+
 function CollectionFormModal({
   initial,
   labels,
@@ -1027,13 +1034,13 @@ function CollectionFormModal({
   onClose: () => void;
   onSaved: (c: CollectionView) => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const fileRef = useRef<HTMLInputElement>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [form, setForm] = useState({
-    labelId: initial?.labelId ?? (labels[0]?.id ?? 0),
+    labelIds: initial?.labels.map(l => l.id) ?? [],
     headerEn: initial?.headerEn ?? '',
     headerFr: initial?.headerFr ?? '',
     headerEs: initial?.headerEs ?? '',
@@ -1043,16 +1050,15 @@ function CollectionFormModal({
     color: initial?.color ?? '',
   });
 
-  const set = (k: keyof typeof form, v: string | number) =>
+  const set = (k: string, v: string) =>
     setForm(f => ({ ...f, [k]: v }));
 
   async function handleSave() {
-    if (!form.labelId) { setError(t('admin.collections.labelRequired')); return; }
     setSaving(true);
     setError('');
     try {
       const payload = {
-        labelId: Number(form.labelId),
+        labelIds: form.labelIds,
         headerEn: form.headerEn,
         headerFr: form.headerFr,
         headerEs: form.headerEs,
@@ -1088,12 +1094,28 @@ function CollectionFormModal({
         </h2>
 
         <div>
-          <label className="text-xs uppercase tracking-widest text-muted block mb-1">{t('admin.collections.label')}</label>
-          <select value={form.labelId} onChange={e => set('labelId', Number(e.target.value))} className={inputClass}>
-            {labels.map(l => (
-              <option key={l.id} value={l.id}>{l.nameEn || l.nameFr || l.nameEs}</option>
-            ))}
-          </select>
+          <label className="text-xs uppercase tracking-widest text-muted block mb-2">{t('admin.modal.labels')}</label>
+          {labels.length === 0 ? (
+            <p className="text-xs text-muted">{t('admin.labels.empty')}</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {labels.map(label => (
+                <label key={label.id} className="flex items-center gap-1.5 text-sm cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={form.labelIds.includes(label.id)}
+                    onChange={e => setForm(f => ({
+                      ...f,
+                      labelIds: e.target.checked
+                        ? [...f.labelIds, label.id]
+                        : f.labelIds.filter(id => id !== label.id),
+                    }))}
+                  />
+                  {pickLocale(label.nameEn, label.nameFr, label.nameEs, i18n.language)}
+                </label>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-3 gap-2">
@@ -1175,10 +1197,298 @@ function CollectionFormModal({
   );
 }
 
+function CollectionAssetsPanel({ collectionId, siteAssets, labels, onUpdate }: {
+  collectionId: number;
+  siteAssets: CollectionSiteAssetView[];
+  labels: LabelView[];
+  onUpdate: (updated: CollectionSiteAssetView) => void;
+}) {
+  const { t } = useTranslation();
+  const [editing, setEditing] = useState<string | null>(null);
+  const [uploading, setUploading] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [textForm, setTextForm] = useState({ headerEn: '', headerFr: '', headerEs: '', subheaderEn: '', subheaderFr: '', subheaderEs: '', color: '', ctaCategory: '', ctaLabelId: '' });
+
+  function openEdit(asset: CollectionSiteAssetView) {
+    setEditing(asset.slot);
+    setTextForm({
+      headerEn: asset.headerEn ?? '',
+      headerFr: asset.headerFr ?? '',
+      headerEs: asset.headerEs ?? '',
+      subheaderEn: asset.subheaderEn ?? '',
+      subheaderFr: asset.subheaderFr ?? '',
+      subheaderEs: asset.subheaderEs ?? '',
+      color: asset.color ?? '',
+      ctaCategory: asset.ctaCategory ?? '',
+      ctaLabelId: asset.ctaLabelId != null ? String(asset.ctaLabelId) : '',
+    });
+  }
+
+  async function saveText(slot: string) {
+    setSaving(true);
+    try {
+      const updated = await api.admin.collections.updateAsset(collectionId, slot, {
+        headerEn: textForm.headerEn,
+        headerFr: textForm.headerFr,
+        headerEs: textForm.headerEs,
+        subheaderEn: textForm.subheaderEn,
+        subheaderFr: textForm.subheaderFr,
+        subheaderEs: textForm.subheaderEs,
+        color: textForm.color,
+        ctaCategory: textForm.ctaCategory || null,
+        ctaLabelId: textForm.ctaLabelId ? Number(textForm.ctaLabelId) : null,
+      });
+      onUpdate(updated);
+      setEditing(null);
+    } finally { setSaving(false); }
+  }
+
+  async function handleUpload(slot: string, file: File) {
+    setUploading(slot);
+    try {
+      const updated = await api.admin.collections.uploadAssetImage(collectionId, slot, file);
+      onUpdate(updated);
+    } finally { setUploading(null); }
+  }
+
+  async function handleDeleteMedia(slot: string) {
+    setUploading(slot);
+    try {
+      const updated = await api.admin.collections.deleteAssetImage(collectionId, slot);
+      onUpdate(updated);
+    } finally { setUploading(null); }
+  }
+
+  const slotMap = Object.fromEntries(siteAssets.map(a => [a.slot, a]));
+
+  return (
+    <div className="border-t border-border bg-[#FAF9F7] space-y-2 p-4">
+      <p className="text-xs uppercase tracking-widest text-muted mb-2">{t('admin.collections.assets')}</p>
+      {COLLECTION_ASSET_SLOTS.map(slot => {
+        const asset = slotMap[slot];
+        if (!asset) return null;
+        return (
+          <div key={slot} className="border border-border">
+            <div className="p-3">
+              <div className="flex items-center gap-3">
+                <div className="w-16 h-11 bg-[#F0EDE8] shrink-0 overflow-hidden flex items-center justify-center">
+                  {asset.imageUrl
+                    ? asset.resourceType === 'video'
+                      ? <video src={asset.imageUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
+                      : <img src={asset.imageUrl} alt={slot} className="w-full h-full object-cover" />
+                    : <span className="text-muted text-xs">—</span>
+                  }
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium uppercase tracking-widest">{t(COLLECTION_SLOT_LABELS[slot] ?? slot)}</p>
+                  {(asset.headerEn || asset.subheaderEn) && (
+                    <p className="text-xs text-muted truncate mt-0.5">
+                      {[asset.headerEn, asset.subheaderEn].filter(Boolean).join(' · ')}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-2">
+                <button
+                  onClick={() => editing === slot ? setEditing(null) : openEdit(asset)}
+                  className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${editing === slot ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
+                >
+                  {t('admin.site.edit')}
+                </button>
+                <label className={`text-xs uppercase tracking-widest border border-dark bg-dark text-white px-3 py-1 cursor-pointer hover:bg-gold transition-colors ${uploading === slot ? 'opacity-50 pointer-events-none' : ''}`}>
+                  {uploading === slot ? '...' : t('admin.site.upload')}
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,video/mp4,video/webm,video/quicktime"
+                    className="hidden"
+                    onChange={e => { const f = e.target.files?.[0]; if (f) handleUpload(slot, f); e.target.value = ''; }}
+                  />
+                </label>
+                {asset.imageId && (
+                  <button
+                    onClick={() => handleDeleteMedia(slot)}
+                    disabled={uploading === slot}
+                    className="text-xs uppercase tracking-widest border border-red-300 text-red-500 px-3 py-1 hover:border-red-500 transition-colors disabled:opacity-50"
+                  >
+                    {t('admin.site.remove')}
+                  </button>
+                )}
+              </div>
+            </div>
+            {editing === slot && (
+              <div className="border-t border-border p-3 space-y-2">
+                <div className="space-y-1">
+                  <p className="text-xs text-muted uppercase tracking-widest">{t('admin.site.headerPlaceholder')}</p>
+                  <input value={textForm.headerEn} onChange={e => setTextForm(f => ({ ...f, headerEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={textForm.headerFr} onChange={e => setTextForm(f => ({ ...f, headerFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={textForm.headerEs} onChange={e => setTextForm(f => ({ ...f, headerEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted uppercase tracking-widest">{t('admin.site.subheaderPlaceholder')}</p>
+                  <input value={textForm.subheaderEn} onChange={e => setTextForm(f => ({ ...f, subheaderEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={textForm.subheaderFr} onChange={e => setTextForm(f => ({ ...f, subheaderFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={textForm.subheaderEs} onChange={e => setTextForm(f => ({ ...f, subheaderEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                </div>
+                <ColorInput
+                  value={textForm.color}
+                  onChange={v => setTextForm(f => ({ ...f, color: v }))}
+                  placeholder={t('admin.site.colorPlaceholder')}
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.ctaCategory')}</p>
+                    <select
+                      value={textForm.ctaCategory}
+                      onChange={e => setTextForm(f => ({ ...f, ctaCategory: e.target.value }))}
+                      className={`${selectClass} w-full`}
+                    >
+                      <option value="">{t('admin.site.noneOption')}</option>
+                      {ASSET_CATEGORIES.map(c => (
+                        <option key={c.value} value={c.value}>{t(c.labelKey)}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.ctaLabel')}</p>
+                    <select
+                      value={textForm.ctaLabelId}
+                      onChange={e => setTextForm(f => ({ ...f, ctaLabelId: e.target.value }))}
+                      className={`${selectClass} w-full`}
+                    >
+                      <option value="">{t('admin.site.noneOption')}</option>
+                      {labels.map(l => (
+                        <option key={l.id} value={l.id}>{l.nameEn || l.nameFr || l.nameEs}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <button onClick={() => saveText(slot)} disabled={saving} className="text-xs uppercase tracking-widest border border-dark bg-dark text-white px-4 py-1.5 hover:bg-gold transition-colors disabled:opacity-50">
+                    {saving ? '...' : t('admin.site.save')}
+                  </button>
+                  <button onClick={() => setEditing(null)} className="text-xs uppercase tracking-widest border border-border px-4 py-1.5 hover:border-dark transition-colors">
+                    {t('admin.site.cancel')}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function CollectionThemePanel({ collectionId, currentTheme, onUpdate }: {
+  collectionId: number;
+  currentTheme: CollectionThemeView | null;
+  onUpdate: (theme: CollectionThemeView | null) => void;
+}) {
+  const { t } = useTranslation();
+  const { theme: globalTheme } = useTheme();
+  const [saving, setSaving] = useState(false);
+
+  const EMPTY_THEME: CollectionThemeView = {
+    navbarBg: null, navbarText: null, navbarTextSelected: null, navbarTextInactive: null,
+    announcementBg: null, announcementText: null,
+    siteBg: null, siteText: null,
+    cardText: null, cardButtonBg: null, cardButtonText: null,
+    navbarSeparator: null, siteTextMuted: null, siteTextAccent: null, siteSeparator: null,
+  };
+
+  const [form, setForm] = useState<CollectionThemeView>(() =>
+    currentTheme ?? { ...EMPTY_THEME }
+  );
+
+  function setColor(key: keyof CollectionThemeView, value: string) {
+    setForm(f => ({ ...f, [key]: value }));
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      const updated = await api.admin.collections.updateTheme(collectionId, form);
+      onUpdate(updated);
+    } finally { setSaving(false); }
+  }
+
+  async function handleReset() {
+    if (!confirm(t('admin.collections.theme.resetConfirm'))) return;
+    await api.admin.collections.resetTheme(collectionId);
+    setForm({ ...EMPTY_THEME });
+    onUpdate(null);
+  }
+
+  function handleCopyGlobal() {
+    setForm({
+      navbarBg: globalTheme.navbarBg,
+      navbarText: globalTheme.navbarText,
+      navbarTextSelected: globalTheme.navbarTextSelected,
+      navbarTextInactive: globalTheme.navbarTextInactive,
+      announcementBg: globalTheme.announcementBg,
+      announcementText: globalTheme.announcementText,
+      siteBg: globalTheme.siteBg,
+      siteText: globalTheme.siteText,
+      cardText: globalTheme.cardText,
+      cardButtonBg: globalTheme.cardButtonBg,
+      cardButtonText: globalTheme.cardButtonText,
+      navbarSeparator: globalTheme.navbarSeparator,
+      siteTextMuted: globalTheme.siteTextMuted,
+      siteTextAccent: globalTheme.siteTextAccent,
+      siteSeparator: globalTheme.siteSeparator,
+    });
+  }
+
+  return (
+    <div className="border-t border-border bg-[#FAF9F7] p-4 space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs uppercase tracking-widest text-muted">{t('admin.collections.theme.title')}</p>
+        <button
+          onClick={handleCopyGlobal}
+          className="text-xs uppercase tracking-widest border border-border px-3 py-1 hover:border-dark transition-colors"
+        >
+          {t('admin.collections.theme.copyGlobal')}
+        </button>
+      </div>
+
+      {THEME_SECTIONS.map(section => (
+        <div key={section.titleKey}>
+          <p className="text-xs uppercase tracking-widest text-muted mb-2">{t(section.titleKey)}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {section.fields.map(field => (
+              <div key={field.key}>
+                <p className="text-xs text-muted mb-1">{t(field.labelKey)}</p>
+                <ColorInput
+                  value={form[field.key]}
+                  onChange={v => setColor(field.key, v)}
+                  placeholder={globalTheme[field.key] ?? '#000000'}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <div className="flex gap-2 pt-1">
+        <button onClick={handleSave} disabled={saving} className="text-xs uppercase tracking-widest border border-dark bg-dark text-white px-4 py-1.5 hover:bg-gold transition-colors disabled:opacity-50">
+          {saving ? '...' : t('admin.theme.save')}
+        </button>
+        {currentTheme && (
+          <button onClick={handleReset} className="text-xs uppercase tracking-widest border border-red-300 text-red-500 px-4 py-1.5 hover:border-red-500 transition-colors">
+            {t('admin.collections.theme.reset')}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function AdminCollections({ labels }: { labels: LabelView[] }) {
   const { t, i18n } = useTranslation();
   const [collections, setCollections] = useState<CollectionView[]>([]);
   const [modal, setModal] = useState<CollectionModal | null>(null);
+  const [expandedAssets, setExpandedAssets] = useState<number | null>(null);
+  const [expandedTheme, setExpandedTheme] = useState<number | null>(null);
 
   useEffect(() => { loadCollections(); }, []);
 
@@ -1190,12 +1500,26 @@ function AdminCollections({ labels }: { labels: LabelView[] }) {
   async function handleDelete(id: number) {
     if (!confirm(t('admin.collections.deleteConfirm'))) return;
     await api.admin.collections.delete(id);
+    setExpandedAssets(prev => prev === id ? null : prev);
+    setExpandedTheme(prev => prev === id ? null : prev);
     loadCollections();
   }
 
   async function handleDeleteImage(id: number) {
     await api.admin.collections.deleteImage(id);
     loadCollections();
+  }
+
+  function handleAssetUpdate(collectionId: number, updated: CollectionSiteAssetView) {
+    setCollections(prev => prev.map(c =>
+      c.id === collectionId
+        ? { ...c, siteAssets: c.siteAssets.map(a => a.slot === updated.slot ? updated : a) }
+        : c
+    ));
+  }
+
+  function handleThemeUpdate(collectionId: number, theme: CollectionThemeView | null) {
+    setCollections(prev => prev.map(c => c.id === collectionId ? { ...c, theme } : c));
   }
 
   return (
@@ -1215,42 +1539,73 @@ function AdminCollections({ labels }: { labels: LabelView[] }) {
       ) : (
         <div className="space-y-2">
           {collections.map(c => {
-            const labelName = pickLocale(c.labelNameEn, c.labelNameFr, c.labelNameEs, i18n.language) || `#${c.labelId}`;
+            const labelNames = c.labels.map(l => pickLocale(l.nameEn, l.nameFr, l.nameEs, i18n.language)).filter(Boolean).join(', ') || '—';
             const header = pickLocale(c.headerEn, c.headerFr, c.headerEs, i18n.language);
+            const assetsOpen = expandedAssets === c.id;
+            const themeOpen = expandedTheme === c.id;
             return (
-              <div key={c.id} className="border border-border px-5 py-4">
-                <div className="flex items-center gap-4">
-                  {c.imageUrl
-                    ? <img src={c.imageUrl} alt={header || labelName} className="w-16 h-12 object-cover flex-shrink-0" />
-                    : <div className="w-16 h-12 bg-[#F0EDE8] flex-shrink-0" />
-                  }
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{header || labelName}</p>
-                    <p className="text-xs text-muted">{labelName}</p>
+              <div key={c.id} className="border border-border">
+                <div className="px-5 py-4">
+                  <div className="flex items-center gap-4">
+                    {c.imageUrl
+                      ? <img src={c.imageUrl} alt={header || labelNames} className="w-16 h-12 object-cover flex-shrink-0" />
+                      : <div className="w-16 h-12 bg-[#F0EDE8] flex-shrink-0" />
+                    }
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{header || labelNames}</p>
+                      <p className="text-xs text-muted">{labelNames}{c.theme && <span className="ml-2 text-gold">● {t('admin.collections.theme.active')}</span>}</p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex flex-wrap gap-2 mt-3">
-                  <button
-                    onClick={() => setModal(c)}
-                    className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors"
-                  >
-                    {t('admin.products.edit')}
-                  </button>
-                  {c.imageUrl && (
+                  <div className="flex flex-wrap gap-2 mt-3">
                     <button
-                      onClick={() => handleDeleteImage(c.id)}
+                      onClick={() => setModal(c)}
                       className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors"
                     >
-                      {t('admin.products.delImage')}
+                      {t('admin.products.edit')}
                     </button>
-                  )}
-                  <button
-                    onClick={() => handleDelete(c.id)}
-                    className="text-xs uppercase tracking-widest border border-red-300 text-red-500 px-3 py-1.5 hover:border-red-500 transition-colors"
-                  >
-                    {t('admin.products.delete')}
-                  </button>
+                    <button
+                      onClick={() => { setExpandedAssets(assetsOpen ? null : c.id); setExpandedTheme(null); }}
+                      className={`text-xs uppercase tracking-widest border px-3 py-1.5 transition-colors ${assetsOpen ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
+                    >
+                      {t('admin.collections.assets')}
+                    </button>
+                    <button
+                      onClick={() => { setExpandedTheme(themeOpen ? null : c.id); setExpandedAssets(null); }}
+                      className={`text-xs uppercase tracking-widest border px-3 py-1.5 transition-colors ${themeOpen ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
+                    >
+                      {t('admin.collections.theme.button')}
+                    </button>
+                    {c.imageUrl && (
+                      <button
+                        onClick={() => handleDeleteImage(c.id)}
+                        className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors"
+                      >
+                        {t('admin.products.delImage')}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleDelete(c.id)}
+                      className="text-xs uppercase tracking-widest border border-red-300 text-red-500 px-3 py-1.5 hover:border-red-500 transition-colors"
+                    >
+                      {t('admin.products.delete')}
+                    </button>
+                  </div>
                 </div>
+                {assetsOpen && (
+                  <CollectionAssetsPanel
+                    collectionId={c.id}
+                    siteAssets={c.siteAssets}
+                    labels={labels}
+                    onUpdate={updated => handleAssetUpdate(c.id, updated)}
+                  />
+                )}
+                {themeOpen && (
+                  <CollectionThemePanel
+                    collectionId={c.id}
+                    currentTheme={c.theme}
+                    onUpdate={theme => handleThemeUpdate(c.id, theme)}
+                  />
+                )}
               </div>
             );
           })}
