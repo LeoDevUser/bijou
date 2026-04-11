@@ -2,6 +2,8 @@ package com.bijou.backend.controllers;
 
 import java.util.List;
 
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -39,6 +41,13 @@ public class CollectionController {
         return ResponseEntity.ok(collectionService.getAll());
     }
 
+    @GetMapping("/public/collections/main")
+    public ResponseEntity<CollectionView> getMain() {
+        return collectionService.getMain()
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @GetMapping("/public/collections/{id}")
     public ResponseEntity<CollectionView> getById(@PathVariable Long id) {
         return ResponseEntity.ok(collectionService.getById(id));
@@ -55,6 +64,11 @@ public class CollectionController {
     }
 
     // ── Admin ────────────────────────────────────────────────────────────────────
+
+    @GetMapping("/${ADMIN_PAGE}/collections")
+    public ResponseEntity<List<CollectionView>> getAllAdmin() {
+        return ResponseEntity.ok(collectionService.getAllForAdmin());
+    }
 
     @PostMapping("/${ADMIN_PAGE}/collections")
     public ResponseEntity<CollectionView> create(@RequestBody CollectionRequest req) {
@@ -78,6 +92,16 @@ public class CollectionController {
     @DeleteMapping("/${ADMIN_PAGE}/collections/{id}/image")
     public ResponseEntity<CollectionView> deleteImage(@PathVariable Long id) {
         return ResponseEntity.ok(collectionService.deleteMedia(id));
+    }
+
+    @PatchMapping("/${ADMIN_PAGE}/collections/{id}/main")
+    public ResponseEntity<CollectionView> setMain(@PathVariable Long id) {
+        return ResponseEntity.ok(collectionService.setMain(id));
+    }
+
+    @PatchMapping("/${ADMIN_PAGE}/collections/{id}/active")
+    public ResponseEntity<CollectionView> setActive(@PathVariable Long id, @RequestBody Map<String, Boolean> body) {
+        return ResponseEntity.ok(collectionService.setActive(id, Boolean.TRUE.equals(body.get("active"))));
     }
 
     @DeleteMapping("/${ADMIN_PAGE}/collections/{id}")

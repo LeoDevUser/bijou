@@ -16,5 +16,7 @@ public record CollectionView(
         String subheaderEs,
         String color,
         List<CollectionSiteAssetView> siteAssets,
-        CollectionThemeView theme) {
+        CollectionThemeView theme,
+        boolean active,
+        boolean isMain) {
 }

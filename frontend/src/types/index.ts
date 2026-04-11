@@ -227,6 +227,8 @@ export interface CollectionView {
   color: string | null;
   siteAssets: CollectionSiteAssetView[];
   theme: CollectionThemeView | null;
+  active: boolean;
+  isMain: boolean;
 }
 
 export interface ThemeConfig {

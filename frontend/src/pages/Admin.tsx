@@ -1007,7 +1007,6 @@ function AdminProducts() {
         />
       )}
 
-      <AdminCollections labels={labels} />
     </div>
   );
 }
@@ -1483,17 +1482,23 @@ function CollectionThemePanel({ collectionId, currentTheme, onUpdate }: {
   );
 }
 
-function AdminCollections({ labels }: { labels: LabelView[] }) {
+function AdminCollections() {
   const { t, i18n } = useTranslation();
   const [collections, setCollections] = useState<CollectionView[]>([]);
+  const [labels, setLabels] = useState<LabelView[]>([]);
   const [modal, setModal] = useState<CollectionModal | null>(null);
   const [expandedAssets, setExpandedAssets] = useState<number | null>(null);
   const [expandedTheme, setExpandedTheme] = useState<number | null>(null);
+  const [togglingActive, setTogglingActive] = useState<number | null>(null);
+  const [settingMain, setSettingMain] = useState<number | null>(null);
 
-  useEffect(() => { loadCollections(); }, []);
+  useEffect(() => {
+    loadCollections();
+    api.labels.list().then(setLabels).catch(() => []);
+  }, []);
 
   async function loadCollections() {
-    const data = await api.collections.list().catch(() => []);
+    const data = await api.admin.collections.list().catch(() => []);
     setCollections(data);
   }
 
@@ -1510,6 +1515,23 @@ function AdminCollections({ labels }: { labels: LabelView[] }) {
     loadCollections();
   }
 
+  async function handleToggleActive(c: CollectionView) {
+    setTogglingActive(c.id);
+    try {
+      const updated = await api.admin.collections.setActive(c.id, !c.active);
+      setCollections(prev => prev.map(x => x.id === c.id ? updated : x));
+    } finally { setTogglingActive(null); }
+  }
+
+  async function handleSetMain(id: number) {
+    setSettingMain(id);
+    try {
+      const updated = await api.admin.collections.setMain(id);
+      // Refresh all since setMain clears isMain from others
+      setCollections(prev => prev.map(c => c.id === id ? updated : { ...c, isMain: false }));
+    } finally { setSettingMain(null); }
+  }
+
   function handleAssetUpdate(collectionId: number, updated: CollectionSiteAssetView) {
     setCollections(prev => prev.map(c =>
       c.id === collectionId
@@ -1523,9 +1545,12 @@ function AdminCollections({ labels }: { labels: LabelView[] }) {
   }
 
   return (
-    <div className="mt-10 pt-6 border-t border-border">
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <p className="text-xs uppercase tracking-widest">{t('admin.collections.title')}</p>
+    <div className="mt-10 pt-8 border-t border-border">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div>
+          <p className="text-xs uppercase tracking-widest">{t('admin.collections.title')}</p>
+          <p className="text-xs text-muted mt-1">{t('admin.collections.subtitle')}</p>
+        </div>
         <button
           onClick={() => setModal('new')}
           className="bg-dark text-white text-xs uppercase tracking-widest px-4 py-2 hover:bg-gold transition-colors"
@@ -1544,18 +1569,38 @@ function AdminCollections({ labels }: { labels: LabelView[] }) {
             const assetsOpen = expandedAssets === c.id;
             const themeOpen = expandedTheme === c.id;
             return (
-              <div key={c.id} className="border border-border">
+              <div key={c.id} className={`border transition-opacity ${c.active || c.isMain ? 'border-border' : 'border-border opacity-60'}`}>
                 <div className="px-5 py-4">
+                  {/* Header row */}
                   <div className="flex items-center gap-4">
-                    {c.imageUrl
-                      ? <img src={c.imageUrl} alt={header || labelNames} className="w-16 h-12 object-cover flex-shrink-0" />
-                      : <div className="w-16 h-12 bg-[#F0EDE8] flex-shrink-0" />
-                    }
+                    <div className="relative flex-shrink-0">
+                      {c.imageUrl
+                        ? <img src={c.imageUrl} alt={header || labelNames} className="w-16 h-12 object-cover" />
+                        : <div className="w-16 h-12 bg-[#F0EDE8]" />
+                      }
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{header || labelNames}</p>
-                      <p className="text-xs text-muted">{labelNames}{c.theme && <span className="ml-2 text-gold">● {t('admin.collections.theme.active')}</span>}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-sm font-medium truncate">{header || labelNames}</p>
+                        {c.isMain && (
+                          <span className="text-[10px] uppercase tracking-widest bg-dark text-white px-1.5 py-0.5 flex-shrink-0">
+                            {t('admin.collections.isMain')}
+                          </span>
+                        )}
+                        {!c.active && !c.isMain && (
+                          <span className="text-[10px] uppercase tracking-widest border border-current text-muted px-1.5 py-0.5 flex-shrink-0">
+                            {t('admin.collections.inactive')}
+                          </span>
+                        )}
+                        {c.theme && (
+                          <span className="text-[10px] text-gold flex-shrink-0">● {t('admin.collections.theme.active')}</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted mt-0.5 truncate">{labelNames}</p>
                     </div>
                   </div>
+
+                  {/* Action buttons */}
                   <div className="flex flex-wrap gap-2 mt-3">
                     <button
                       onClick={() => setModal(c)}
@@ -1575,6 +1620,37 @@ function AdminCollections({ labels }: { labels: LabelView[] }) {
                     >
                       {t('admin.collections.theme.button')}
                     </button>
+
+                    {/* Set as main / main indicator */}
+                    {c.isMain ? (
+                      <span className="text-xs uppercase tracking-widest border border-dark px-3 py-1.5 text-dark select-none">
+                        ★ {t('admin.collections.isMain')}
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => handleSetMain(c.id)}
+                        disabled={settingMain === c.id}
+                        className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors disabled:opacity-50"
+                      >
+                        {settingMain === c.id ? '...' : t('admin.collections.setAsMain')}
+                      </button>
+                    )}
+
+                    {/* Active toggle — not shown for main collection */}
+                    {!c.isMain && (
+                      <button
+                        onClick={() => handleToggleActive(c)}
+                        disabled={togglingActive === c.id}
+                        className={`text-xs uppercase tracking-widest border px-3 py-1.5 transition-colors disabled:opacity-50 ${
+                          c.active
+                            ? 'border-border text-muted hover:border-dark'
+                            : 'border-dark text-dark hover:bg-dark hover:text-white'
+                        }`}
+                      >
+                        {togglingActive === c.id ? '...' : c.active ? t('admin.collections.deactivate') : t('admin.collections.activate')}
+                      </button>
+                    )}
+
                     {c.imageUrl && (
                       <button
                         onClick={() => handleDeleteImage(c.id)}
@@ -1583,12 +1659,14 @@ function AdminCollections({ labels }: { labels: LabelView[] }) {
                         {t('admin.products.delImage')}
                       </button>
                     )}
-                    <button
-                      onClick={() => handleDelete(c.id)}
-                      className="text-xs uppercase tracking-widest border border-red-300 text-red-500 px-3 py-1.5 hover:border-red-500 transition-colors"
-                    >
-                      {t('admin.products.delete')}
-                    </button>
+                    {!c.isMain && (
+                      <button
+                        onClick={() => handleDelete(c.id)}
+                        className="text-xs uppercase tracking-widest border border-red-300 text-red-500 px-3 py-1.5 hover:border-red-500 transition-colors"
+                      >
+                        {t('admin.products.delete')}
+                      </button>
+                    )}
                   </div>
                 </div>
                 {assetsOpen && (
@@ -2678,7 +2756,12 @@ export default function Admin() {
       {tab === 'users' && <AdminUsers />}
       {tab === 'admins' && <AdminAdmins />}
       {tab === 'site' && <AdminSite />}
-      {tab === 'theme' && <AdminTheme />}
+      {tab === 'theme' && (
+        <>
+          <AdminTheme />
+          <AdminCollections />
+        </>
+      )}
       {tab === 'settings' && <AdminSettings />}
     </div>
   );

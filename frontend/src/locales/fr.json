@@ -315,6 +315,7 @@
     },
     "collections": {
       "title": "Collections",
+      "subtitle": "Gérez les collections — chacune peut servir de page autonome ou de page d'accueil principale.",
       "addCollection": "+ Ajouter une Collection",
       "newTitle": "Nouvelle Collection",
       "editTitle": "Modifier la Collection",
@@ -324,6 +325,12 @@
       "saveError": "Échec de l'enregistrement. Veuillez réessayer.",
       "empty": "Aucune collection pour l'instant.",
       "assets": "Assets de la Page",
+      "isMain": "Page d'Accueil",
+      "setAsMain": "Définir comme Accueil",
+      "active": "Visible",
+      "inactive": "Masquée",
+      "activate": "Afficher",
+      "deactivate": "Masquer",
       "theme": {
         "button": "Thème",
         "title": "Thème de la Collection",

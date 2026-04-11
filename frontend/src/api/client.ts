@@ -99,6 +99,7 @@ export const api = {
   },
   collections: {
     list: () => request<CollectionView[]>('/public/collections'),
+    getMain: () => request<CollectionView>('/public/collections/main'),
     getById: (id: number) => request<CollectionView>(`/public/collections/${id}`),
     items: (id: number) => request<ItemView[]>(`/public/collections/${id}/items`),
     trending: (id: number) => request<ItemView[]>(`/public/collections/${id}/items/trending`),
@@ -225,6 +226,10 @@ export const api = {
         request<AnnouncementView[]>(`/${ADMIN}/announcements/${id}/down`, { method: 'PATCH' }),
     },
     collections: {
+      list: () => request<CollectionView[]>(`/${ADMIN}/collections`),
+      setMain: (id: number) => request<CollectionView>(`/${ADMIN}/collections/${id}/main`, { method: 'PATCH' }),
+      setActive: (id: number, active: boolean) =>
+        request<CollectionView>(`/${ADMIN}/collections/${id}/active`, { method: 'PATCH', body: JSON.stringify({ active }) }),
       create: (data: { labelIds: number[]; headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; color: string }) =>
         request<CollectionView>(`/${ADMIN}/collections`, { method: 'POST', body: JSON.stringify(data) }),
       updateText: (id: number, data: { labelIds: number[]; headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; color: string }) =>

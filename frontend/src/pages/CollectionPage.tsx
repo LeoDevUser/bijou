@@ -47,11 +47,12 @@ function SlotMedia({ entry, alt, className }: { entry: AssetEntry; alt: string; 
   return <img src={entry.url} alt={alt} className={className} />;
 }
 
-export default function CollectionPage() {
-  const { id } = useParams<{ id: string }>();
+export default function CollectionPage({ id: propId, onError }: { id?: number; onError?: () => void } = {}) {
+  const { id: paramId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
-  const collectionId = Number(id);
+  const collectionId = propId ?? Number(paramId);
+  const isEmbedded = propId !== undefined;
   const { theme: globalTheme, setTheme } = useTheme();
   const savedTheme = useRef(globalTheme);
 
@@ -63,7 +64,10 @@ export default function CollectionPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (isNaN(collectionId)) { navigate('/collections', { replace: true }); return; }
+    if (isNaN(collectionId)) {
+      if (isEmbedded) { onError?.(); } else { navigate('/collections', { replace: true }); }
+      return;
+    }
 
     setLoading(true);
     Promise.all([
@@ -76,7 +80,7 @@ export default function CollectionPage() {
         setTrending(tr);
         setAllItems(items);
       })
-      .catch(() => navigate('/collections', { replace: true }))
+      .catch(() => { if (isEmbedded) { onError?.(); } else { navigate('/collections', { replace: true }); } })
       .finally(() => setLoading(false));
   }, [collectionId]); // eslint-disable-line react-hooks/exhaustive-deps
 

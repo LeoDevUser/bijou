@@ -59,4 +59,10 @@ public class Collection {
     private String subheaderEs;
 
     private String color;
+
+    @Builder.Default
+    private boolean active = true;
+
+    @Builder.Default
+    private boolean isMain = false;
 }

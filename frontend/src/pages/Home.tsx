@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import ProductCard from '../components/ui/ProductCard';
+import CollectionPage from './CollectionPage';
 import type { ItemView, SiteAssetView } from '../types';
 import { pickLocale } from '../types';
 
@@ -40,10 +41,19 @@ function SlotMedia({ entry, alt, className }: { entry: AssetEntry; alt: string; 
 
 export default function Home() {
   const { t, i18n } = useTranslation();
+  // undefined = still checking, null = no main collection, number = main collection id
+  const [mainId, setMainId] = useState<number | null | undefined>(undefined);
   const [trending, setTrending] = useState<ItemView[]>([]);
   const [assetMap, setAssetMap] = useState<Record<string, AssetEntry>>({});
 
   useEffect(() => {
+    api.collections.getMain()
+      .then(c => setMainId(c.id))
+      .catch(() => setMainId(null));
+  }, []);
+
+  useEffect(() => {
+    if (mainId !== null) return; // don't load global assets if main collection is active
     api.items.trending().then(setTrending).catch(console.error);
     api.siteAssets.list()
       .then((list: SiteAssetView[]) => {
@@ -54,8 +64,19 @@ export default function Home() {
         setAssetMap(map);
       })
       .catch(console.error);
-  }, []);
+  }, [mainId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // While checking for main collection — show nothing (quick check)
+  if (mainId === undefined) {
+    return <div className="min-h-screen" />;
+  }
+
+  // If a main collection is set, render it as the home page
+  if (mainId !== null) {
+    return <CollectionPage id={mainId} onError={() => setMainId(null)} />;
+  }
+
+  // Standard landing page
   const hero = assetMap.hero;
   const ed1 = assetMap.editorial1;
   const ed2 = assetMap.editorial2;

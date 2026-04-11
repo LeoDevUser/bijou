@@ -69,13 +69,24 @@ public class CollectionService {
                 c.getImageUrl(), c.getImageId(), c.getResourceType(),
                 c.getHeaderEn(), c.getHeaderFr(), c.getHeaderEs(),
                 c.getSubheaderEn(), c.getSubheaderFr(), c.getSubheaderEs(),
-                c.getColor(), assets, theme);
+                c.getColor(), assets, theme,
+                c.isActive(), c.isMain());
     }
 
     // ── Public queries ───────────────────────────────────────────────────────────
 
+    /** Returns only active, non-main collections (for the public /collections page). */
     public List<CollectionView> getAll() {
+        return collectionRepository.findByActiveTrueAndIsMainFalseOrderByIdAsc().stream().map(this::toView).toList();
+    }
+
+    /** Returns all collections including inactive and the main one (for the admin panel). */
+    public List<CollectionView> getAllForAdmin() {
         return collectionRepository.findAllByOrderByIdAsc().stream().map(this::toView).toList();
+    }
+
+    public java.util.Optional<CollectionView> getMain() {
+        return collectionRepository.findByIsMainTrue().map(this::toView);
     }
 
     public CollectionView getById(Long id) {
@@ -278,6 +289,27 @@ public class CollectionService {
         findOrThrow(collectionId); // validate collection exists
         collectionThemeRepository.deleteByCollection_Id(collectionId);
         log.info("removed custom theme for collection #{}", collectionId);
+    }
+
+    // ── Active / Main management ─────────────────────────────────────────────────
+
+    @Transactional
+    public CollectionView setMain(Long id) {
+        // Clear the current main flag on all collections
+        collectionRepository.findByIsMainTrue().ifPresent(current -> {
+            current.setMain(false);
+            collectionRepository.save(current);
+        });
+        Collection collection = findOrThrow(id);
+        collection.setMain(true);
+        // A collection set as main is implicitly visible; keep active unchanged
+        return toView(collectionRepository.save(collection));
+    }
+
+    public CollectionView setActive(Long id, boolean active) {
+        Collection collection = findOrThrow(id);
+        collection.setActive(active);
+        return toView(collectionRepository.save(collection));
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────────
