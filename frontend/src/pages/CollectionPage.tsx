@@ -112,6 +112,8 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
   const hero = fromSiteAsset(assetMap.hero);
   const ed1 = fromSiteAsset(assetMap.editorial1);
   const ed2 = fromSiteAsset(assetMap.editorial2);
+  const ed3 = fromSiteAsset(assetMap.editorial3);
+  const ed4 = fromSiteAsset(assetMap.editorial4);
 
   // Unique categories present in collection items
   const categories = useMemo<CategoryView[]>(() => {
@@ -256,62 +258,42 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
         )}
       </section>
 
-      {/* Editorial 1 */}
+      {/* Editorials — 2×2 grid */}
       <section className="grid md:grid-cols-2">
-        <div className="bg-[#E0DDD8] min-h-[440px] overflow-hidden">
-          {ed1?.url
-            ? <SlotMedia entry={ed1} alt="Editorial 1" className="w-full h-full object-cover" />
-            : <div className="w-full h-full min-h-[440px] flex items-center justify-center">
-                <p className="text-muted text-xs uppercase tracking-widest">{t('home.editorial1.imagePlaceholder')}</p>
-              </div>
-          }
-        </div>
-        <div className="bg-[#F5F0EA] flex items-center justify-center p-12 md:p-20 min-h-[440px]">
-          <div className="text-center max-w-xs" style={ed1?.color ? { color: ed1.color } : undefined}>
-            <p className="text-xs uppercase tracking-widest mb-4">
-              {pickLocale(ed1?.subheaderEn, ed1?.subheaderFr, ed1?.subheaderEs, i18n.language) || t('home.editorial1.label')}
-            </p>
-            <h2 className="font-serif text-4xl md:text-5xl italic font-light mb-6 leading-tight">
-              {pickLocale(ed1?.headerEn, ed1?.headerFr, ed1?.headerEs, i18n.language) || t('home.editorial1.tagline')}
-            </h2>
-            <Link
-              to={ctaHref(ed1)}
-              className="text-xs uppercase tracking-widest border-b pb-0.5 hover:opacity-75 transition-opacity"
-              style={ed1?.color ? { borderColor: ed1.color } : { borderColor: '#1C1C1C' }}
+        {([ed1, ed2, ed3, ed4] as const).map((ed, i) => {
+          const placeholderBg = ['#E0DDD8', '#F5F0EA', '#EAE8E4', '#D0CCC8'][i];
+          const header   = pickLocale(ed?.headerEn,    ed?.headerFr,    ed?.headerEs,    i18n.language);
+          const subheader = pickLocale(ed?.subheaderEn, ed?.subheaderFr, ed?.subheaderEs, i18n.language);
+          const hasText = header || subheader;
+          return (
+            <div
+              key={i}
+              className="relative min-h-[440px] overflow-hidden flex items-center justify-center"
+              style={{ background: ed?.url ? undefined : placeholderBg }}
             >
-              {t('home.editorial1.cta')}
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Editorial 2 */}
-      <section className="grid md:grid-cols-2">
-        <div className="bg-[#EAE8E4] flex items-center justify-center p-12 md:p-20 min-h-[440px] order-2 md:order-1">
-          <div className="text-center max-w-xs" style={ed2?.color ? { color: ed2.color } : undefined}>
-            <p className="text-xs uppercase tracking-widest mb-4">
-              {pickLocale(ed2?.subheaderEn, ed2?.subheaderFr, ed2?.subheaderEs, i18n.language) || t('home.editorial2.label')}
-            </p>
-            <h2 className="font-serif text-4xl md:text-5xl italic font-light mb-6 leading-tight">
-              {pickLocale(ed2?.headerEn, ed2?.headerFr, ed2?.headerEs, i18n.language) || t('home.editorial2.tagline')}
-            </h2>
-            <Link
-              to={ctaHref(ed2)}
-              className="text-xs uppercase tracking-widest border-b pb-0.5 hover:opacity-75 transition-opacity"
-              style={ed2?.color ? { borderColor: ed2.color } : { borderColor: '#1C1C1C' }}
-            >
-              {t('home.editorial2.cta')}
-            </Link>
-          </div>
-        </div>
-        <div className="bg-[#D0CCC8] min-h-[440px] overflow-hidden order-1 md:order-2">
-          {ed2?.url
-            ? <SlotMedia entry={ed2} alt="Editorial 2" className="w-full h-full object-cover" />
-            : <div className="w-full h-full min-h-[440px] flex items-center justify-center">
-                <p className="text-muted text-xs uppercase tracking-widest">{t('home.editorial2.imagePlaceholder')}</p>
-              </div>
-          }
-        </div>
+              {ed?.url && (
+                <SlotMedia entry={ed} alt={`Editorial ${i + 1}`} className="absolute inset-0 w-full h-full object-cover" />
+              )}
+              {hasText && (
+                <div className="relative z-10 text-center max-w-xs p-8 md:p-12" style={{ color: ed?.color ?? (ed?.url ? '#FFFFFF' : '#1C1C1C') }}>
+                  {subheader && (
+                    <p className="text-xs uppercase tracking-widest mb-4">{subheader}</p>
+                  )}
+                  {header && (
+                    <h2 className="font-serif text-4xl md:text-5xl italic font-light mb-6 leading-tight">{header}</h2>
+                  )}
+                  <Link
+                    to={ctaHref(ed)}
+                    className="text-xs uppercase tracking-widest border-b pb-0.5 hover:opacity-75 transition-opacity"
+                    style={{ borderColor: ed?.color ?? (ed?.url ? '#FFFFFF' : '#1C1C1C') }}
+                  >
+                    {t('home.editorial1.cta')}
+                  </Link>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </section>
     </div>
   );

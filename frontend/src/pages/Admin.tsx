@@ -1015,11 +1015,13 @@ function AdminProducts() {
 
 type CollectionModal = 'new' | CollectionView;
 
-const COLLECTION_ASSET_SLOTS = ['hero', 'editorial1', 'editorial2'] as const;
+const COLLECTION_ASSET_SLOTS = ['hero', 'editorial1', 'editorial2', 'editorial3', 'editorial4'] as const;
 const COLLECTION_SLOT_LABELS: Record<string, string> = {
   hero: 'admin.site.slots.hero',
   editorial1: 'admin.site.slots.editorial1',
   editorial2: 'admin.site.slots.editorial2',
+  editorial3: 'admin.site.slots.editorial3',
+  editorial4: 'admin.site.slots.editorial4',
 };
 
 function CollectionFormModal({
@@ -2230,6 +2232,8 @@ const SLOT_LABEL_KEYS: Record<string, string> = {
   bracelet: 'admin.site.slots.bracelet',
   editorial1: 'admin.site.slots.editorial1',
   editorial2: 'admin.site.slots.editorial2',
+  editorial3: 'admin.site.slots.editorial3',
+  editorial4: 'admin.site.slots.editorial4',
 };
 
 const ASSET_CATEGORIES: { value: string; labelKey: string }[] = [

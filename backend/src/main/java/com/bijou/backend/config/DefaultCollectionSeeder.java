@@ -56,7 +56,9 @@ public class DefaultCollectionSeeder implements ApplicationRunner {
         assetRepository.saveAll(List.of(
             CollectionSiteAsset.builder().collection(defaultCollection).slot("hero").build(),
             CollectionSiteAsset.builder().collection(defaultCollection).slot("editorial1").build(),
-            CollectionSiteAsset.builder().collection(defaultCollection).slot("editorial2").build()
+            CollectionSiteAsset.builder().collection(defaultCollection).slot("editorial2").build(),
+            CollectionSiteAsset.builder().collection(defaultCollection).slot("editorial3").build(),
+            CollectionSiteAsset.builder().collection(defaultCollection).slot("editorial4").build()
         ));
 
         // Seed theme with the site default color values

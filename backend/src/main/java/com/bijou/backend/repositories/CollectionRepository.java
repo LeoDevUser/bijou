@@ -11,4 +11,6 @@ public interface CollectionRepository extends JpaRepository<Collection, Long> {
     List<Collection> findByActiveTrueOrderByIdAsc();
     java.util.Optional<Collection> findByIsMainTrue();
     List<Collection> findByLabels_Id(Long labelId);
+    boolean existsByImageIdAndIdNot(String imageId, Long excludeId);
+    boolean existsByImageId(String imageId);
 }

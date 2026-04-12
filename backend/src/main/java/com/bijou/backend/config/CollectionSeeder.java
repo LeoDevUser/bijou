@@ -215,8 +215,8 @@ public class CollectionSeeder implements ApplicationRunner {
                 .headerColor(CHAMP)
                 .subheaderColor(BLANCO)
                 .taglineColor(BLANCO)
-                .imageId("iss56tzixnjubknei4lm")
-                .imageUrl("https://res.cloudinary.com/ds3htctzs/image/upload/v1775942611/iss56tzixnjubknei4lm.png")
+                .imageId("knabtiyilotckv9ffdpn")
+                .imageUrl("https://res.cloudinary.com/ds3htctzs/image/upload/v1776032370/knabtiyilotckv9ffdpn.png")
                 .build(),
 
             CollectionSiteAsset.builder()
@@ -231,7 +231,10 @@ public class CollectionSeeder implements ApplicationRunner {
                 .headerEn(ed2HeadEn).headerFr(ed2HeadFr).headerEs(ed2HeadEs)
                 .subheaderEn(ed2SubEn).subheaderFr(ed2SubFr).subheaderEs(ed2SubEs)
                 .color(NEGRO)
-                .build()
+                .build(),
+
+            CollectionSiteAsset.builder().collection(c).slot("editorial3").color(NEGRO).build(),
+            CollectionSiteAsset.builder().collection(c).slot("editorial4").color(NEGRO).build()
         ));
     }
 }

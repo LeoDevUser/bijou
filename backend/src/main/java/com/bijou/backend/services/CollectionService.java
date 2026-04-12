@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CollectionService {
 
-    private static final List<String> ASSET_SLOTS = List.of("hero", "editorial1", "editorial2");
+    private static final List<String> ASSET_SLOTS = List.of("hero", "editorial1", "editorial2", "editorial3", "editorial4");
     private static final Set<String> VIDEO_TYPES = Set.of("video/mp4", "video/webm", "video/quicktime");
 
     private final CollectionRepository collectionRepository;
@@ -186,9 +186,7 @@ public class CollectionService {
         collection.setImageId(res.imageId());
         collection.setResourceType(isVideo ? "video" : "image");
         CollectionView view = toView(collectionRepository.saveAndFlush(collection));
-        if (oldImageId != null && !oldImageId.isEmpty()) {
-            cloudinaryService.delete(oldImageId, oldResourceType);
-        }
+        safeDelete(oldImageId, oldResourceType, null, id);
         log.info("uploaded {} for collection #{}", collection.getResourceType(), id);
         return view;
     }
@@ -202,9 +200,7 @@ public class CollectionService {
         collection.setImageId(null);
         collection.setResourceType("image");
         CollectionView view = toView(collectionRepository.saveAndFlush(collection));
-        if (oldImageId != null && !oldImageId.isEmpty()) {
-            cloudinaryService.delete(oldImageId, oldResourceType);
-        }
+        safeDelete(oldImageId, oldResourceType, null, id);
         log.info("deleted media for collection #{}", id);
         return view;
     }
@@ -214,17 +210,13 @@ public class CollectionService {
         Collection collection = findOrThrow(id);
         String oldImageId = collection.getImageId();
         String oldResourceType = collection.getResourceType();
-        // delete cloudinary media for all site-asset slots
+        // delete cloudinary media for all site-asset slots (only if not referenced elsewhere)
         for (CollectionSiteAsset asset : collection.getSiteAssets()) {
-            if (asset.getImageId() != null && !asset.getImageId().isEmpty()) {
-                cloudinaryService.delete(asset.getImageId(), asset.getResourceType());
-            }
+            safeDelete(asset.getImageId(), asset.getResourceType(), asset.getId(), null);
         }
         collectionRepository.delete(collection);
         collectionRepository.flush();
-        if (oldImageId != null && !oldImageId.isEmpty()) {
-            cloudinaryService.delete(oldImageId, oldResourceType);
-        }
+        safeDelete(oldImageId, oldResourceType, null, id);
         log.info("deleted collection #{}", id);
     }
 
@@ -262,9 +254,7 @@ public class CollectionService {
         asset.setImageId(res.imageId());
         asset.setResourceType(isVideo ? "video" : "image");
         CollectionSiteAssetView view = toAssetView(collectionSiteAssetRepository.saveAndFlush(asset));
-        if (oldImageId != null && !oldImageId.isEmpty()) {
-            cloudinaryService.delete(oldImageId, oldResourceType);
-        }
+        safeDelete(oldImageId, oldResourceType, asset.getId(), null);
         log.info("uploaded {} for collection #{} slot {}", asset.getResourceType(), collectionId, slot);
         return view;
     }
@@ -279,7 +269,7 @@ public class CollectionService {
         collection.setResourceType(req.resourceType());
         CollectionView view = toView(collectionRepository.saveAndFlush(collection));
         if (oldImageId != null && !oldImageId.isEmpty() && !oldImageId.equals(req.publicId())) {
-            cloudinaryService.delete(oldImageId, oldResourceType);
+            safeDelete(oldImageId, oldResourceType, null, id);
         }
         log.info("picked {} '{}' for collection #{} card", req.resourceType(), req.publicId(), id);
         return view;
@@ -294,9 +284,8 @@ public class CollectionService {
         asset.setImageId(req.publicId());
         asset.setResourceType(req.resourceType());
         CollectionSiteAssetView view = toAssetView(collectionSiteAssetRepository.saveAndFlush(asset));
-        // Delete the previous asset only if it was a different one (avoid deleting a shared asset)
         if (oldImageId != null && !oldImageId.isEmpty() && !oldImageId.equals(req.publicId())) {
-            cloudinaryService.delete(oldImageId, oldResourceType);
+            safeDelete(oldImageId, oldResourceType, asset.getId(), null);
         }
         log.info("picked {} '{}' for collection #{} slot {}", req.resourceType(), req.publicId(), collectionId, slot);
         return view;
@@ -311,9 +300,7 @@ public class CollectionService {
         asset.setImageId(null);
         asset.setResourceType("image");
         CollectionSiteAssetView view = toAssetView(collectionSiteAssetRepository.saveAndFlush(asset));
-        if (oldImageId != null && !oldImageId.isEmpty()) {
-            cloudinaryService.delete(oldImageId, oldResourceType);
-        }
+        safeDelete(oldImageId, oldResourceType, asset.getId(), null);
         log.info("deleted media for collection #{} slot {}", collectionId, slot);
         return view;
     }
@@ -391,6 +378,34 @@ public class CollectionService {
                 item.getPrice(), labelViews, CategoryService.toView(item.getCategory()),
                 item.getDescriptionEn(), item.getDescriptionFr(), item.getDescriptionEs(),
                 assetViews, item.getDiscountPercent(), item.getMaterial(), item.isUsmcaQualified());
+    }
+
+    /**
+     * Returns true if the given Cloudinary imageId is still referenced by any
+     * slot or collection card other than the one being replaced.
+     * When true, we must NOT delete from Cloudinary.
+     *
+     * @param excludeAssetId      the slot asset being replaced (null if replacing a collection card)
+     * @param excludeCollectionId the collection card being replaced (null if replacing a slot)
+     */
+    private boolean isImageInUseElsewhere(String imageId, Long excludeAssetId, Long excludeCollectionId) {
+        if (imageId == null || imageId.isEmpty()) return false;
+        boolean usedBySlot = excludeAssetId != null
+                ? collectionSiteAssetRepository.existsByImageIdAndIdNot(imageId, excludeAssetId)
+                : collectionSiteAssetRepository.existsByImageId(imageId);
+        boolean usedByCard = excludeCollectionId != null
+                ? collectionRepository.existsByImageIdAndIdNot(imageId, excludeCollectionId)
+                : collectionRepository.existsByImageId(imageId);
+        return usedBySlot || usedByCard;
+    }
+
+    private void safeDelete(String imageId, String resourceType, Long excludeAssetId, Long excludeCollectionId) {
+        if (imageId == null || imageId.isEmpty()) return;
+        if (isImageInUseElsewhere(imageId, excludeAssetId, excludeCollectionId)) {
+            log.info("skipping cloudinary delete of '{}' — still referenced elsewhere", imageId);
+            return;
+        }
+        cloudinaryService.delete(imageId, resourceType);
     }
 
     private Collection findOrThrow(Long id) {
