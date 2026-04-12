@@ -137,6 +137,13 @@ public class CollectionController {
         return ResponseEntity.ok(collectionService.deleteAssetMedia(id, slot));
     }
 
+    @PatchMapping("/${ADMIN_PAGE}/collections/{id}/pick")
+    public ResponseEntity<CollectionView> pickMedia(
+            @PathVariable Long id,
+            @RequestBody PickMediaRequest req) {
+        return ResponseEntity.ok(collectionService.pickMedia(id, req));
+    }
+
     @PatchMapping("/${ADMIN_PAGE}/collections/{id}/assets/{slot}/pick")
     public ResponseEntity<CollectionSiteAssetView> pickAssetMedia(
             @PathVariable Long id,

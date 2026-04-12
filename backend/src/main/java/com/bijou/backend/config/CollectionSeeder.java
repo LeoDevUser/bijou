@@ -215,6 +215,8 @@ public class CollectionSeeder implements ApplicationRunner {
                 .headerColor(CHAMP)
                 .subheaderColor(BLANCO)
                 .taglineColor(BLANCO)
+                .imageId("iss56tzixnjubknei4lm")
+                .imageUrl("https://res.cloudinary.com/ds3htctzs/image/upload/v1775942611/iss56tzixnjubknei4lm.png")
                 .build(),
 
             CollectionSiteAsset.builder()

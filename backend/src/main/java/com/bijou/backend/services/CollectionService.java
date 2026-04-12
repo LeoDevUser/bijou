@@ -270,6 +270,22 @@ public class CollectionService {
     }
 
     @Transactional
+    public CollectionView pickMedia(Long id, PickMediaRequest req) {
+        Collection collection = findOrThrow(id);
+        String oldImageId = collection.getImageId();
+        String oldResourceType = collection.getResourceType();
+        collection.setImageUrl(req.secureUrl());
+        collection.setImageId(req.publicId());
+        collection.setResourceType(req.resourceType());
+        CollectionView view = toView(collectionRepository.saveAndFlush(collection));
+        if (oldImageId != null && !oldImageId.isEmpty() && !oldImageId.equals(req.publicId())) {
+            cloudinaryService.delete(oldImageId, oldResourceType);
+        }
+        log.info("picked {} '{}' for collection #{} card", req.resourceType(), req.publicId(), id);
+        return view;
+    }
+
+    @Transactional
     public CollectionSiteAssetView pickAssetMedia(Long collectionId, String slot, PickMediaRequest req) {
         CollectionSiteAsset asset = findAssetOrThrow(collectionId, slot);
         String oldImageId = asset.getImageId();

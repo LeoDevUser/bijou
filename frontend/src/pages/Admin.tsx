@@ -1040,6 +1040,8 @@ function CollectionFormModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [browsingCard, setBrowsingCard] = useState(false);
+  const [pickedMedia, setPickedMedia] = useState<{ publicId: string; resourceType: string; secureUrl: string } | null>(null);
   const [form, setForm] = useState({
     labelIds: initial?.labels.map(l => l.id) ?? [],
     categoryIds: initial?.categories.map(c => c.id) ?? [],
@@ -1078,6 +1080,8 @@ function CollectionFormModal({
       }
       if (file) {
         saved = await api.admin.collections.uploadImage(saved.id, file);
+      } else if (pickedMedia) {
+        saved = await api.admin.collections.pickMedia(saved.id, pickedMedia);
       }
       onSaved(saved);
     } catch {
@@ -1184,24 +1188,42 @@ function CollectionFormModal({
 
         <div>
           <label className="text-xs uppercase tracking-widest text-muted block mb-1">{t('admin.modal.image')}</label>
-          {initial?.imageUrl && (
-            <img src={initial.imageUrl} alt="" className="w-24 h-16 object-cover mb-2" />
+          {(pickedMedia?.secureUrl ?? initial?.imageUrl) && (
+            <img src={pickedMedia?.secureUrl ?? initial!.imageUrl!} alt="" className="w-24 h-16 object-cover mb-2" />
           )}
           <input
             ref={fileRef}
             type="file"
             accept="image/png,image/jpeg,image/webp,video/mp4,video/webm,video/quicktime"
             className="hidden"
-            onChange={e => setFile(e.target.files?.[0] ?? null)}
+            onChange={e => { setPickedMedia(null); setFile(e.target.files?.[0] ?? null); }}
           />
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            className="border border-border text-xs uppercase tracking-widest px-4 py-2 hover:border-dark transition-colors"
-          >
-            {file ? file.name : t('admin.site.upload')}
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              className="border border-dark bg-dark text-white text-xs uppercase tracking-widest px-4 py-2 hover:bg-gold transition-colors"
+            >
+              {file ? file.name : t('admin.site.upload')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setBrowsingCard(true)}
+              className="border border-border text-xs uppercase tracking-widest px-4 py-2 hover:border-dark transition-colors"
+            >
+              {t('admin.site.browse')}
+            </button>
+          </div>
+          {pickedMedia && (
+            <p className="text-xs text-muted mt-1 font-mono truncate">{pickedMedia.publicId}</p>
+          )}
         </div>
+        {browsingCard && (
+          <CloudinaryBrowserModal
+            onSelect={r => { setPickedMedia({ publicId: r.publicId, resourceType: r.resourceType, secureUrl: r.secureUrl }); setFile(null); setBrowsingCard(false); }}
+            onClose={() => setBrowsingCard(false)}
+          />
+        )}
 
         {error && <p className="text-red-500 text-xs">{error}</p>}
 

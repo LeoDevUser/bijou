@@ -263,6 +263,8 @@ export const api = {
       },
       deleteAssetImage: (id: number, slot: string) =>
         request<CollectionSiteAssetView>(`/${ADMIN}/collections/${id}/assets/${slot}/image`, { method: 'DELETE' }),
+      pickMedia: (id: number, data: { publicId: string; resourceType: string; secureUrl: string }) =>
+        request<CollectionView>(`/${ADMIN}/collections/${id}/pick`, { method: 'PATCH', body: JSON.stringify(data) }),
       pickAsset: (id: number, slot: string, data: { publicId: string; resourceType: string; secureUrl: string }) =>
         request<CollectionSiteAssetView>(`/${ADMIN}/collections/${id}/assets/${slot}/pick`, { method: 'PATCH', body: JSON.stringify(data) }),
       updateTheme: (id: number, data: CollectionThemeView) =>
