@@ -25,6 +25,7 @@ import com.bijou.backend.services.CollectionThemeRequest;
 import com.bijou.backend.services.CollectionThemeView;
 import com.bijou.backend.services.CollectionView;
 import com.bijou.backend.services.ItemView;
+import com.bijou.backend.services.PickMediaRequest;
 
 import lombok.RequiredArgsConstructor;
 
@@ -134,6 +135,14 @@ public class CollectionController {
             @PathVariable Long id,
             @PathVariable String slot) {
         return ResponseEntity.ok(collectionService.deleteAssetMedia(id, slot));
+    }
+
+    @PatchMapping("/${ADMIN_PAGE}/collections/{id}/assets/{slot}/pick")
+    public ResponseEntity<CollectionSiteAssetView> pickAssetMedia(
+            @PathVariable Long id,
+            @PathVariable String slot,
+            @RequestBody PickMediaRequest req) {
+        return ResponseEntity.ok(collectionService.pickAssetMedia(id, slot, req));
     }
 
     // ── Admin: per-collection theme ───────────────────────────────────────────────

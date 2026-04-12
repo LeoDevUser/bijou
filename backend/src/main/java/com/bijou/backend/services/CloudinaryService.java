@@ -1,6 +1,7 @@
 package com.bijou.backend.services;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -121,6 +122,38 @@ public class CloudinaryService {
 
     public void delete(String imageId) {
         delete(imageId, "image");
+    }
+
+    @SuppressWarnings("unchecked")
+    public CloudinaryResourcesPage listResources(String resourceType, String nextCursor) {
+        try {
+            Map<String, Object> params = new java.util.LinkedHashMap<>();
+            params.put("resource_type", resourceType);
+            params.put("max_results", 30);
+            if (nextCursor != null && !nextCursor.isBlank()) {
+                params.put("next_cursor", nextCursor);
+            }
+            Map<?, ?> result = cloudinary.api().resources(params);
+            Object rawList = result.get("resources");
+            List<?> rawResources = rawList instanceof List<?> l ? l : List.of();
+            List<CloudinaryResourceView> resources = new ArrayList<>();
+            for (Object raw : rawResources) {
+                Map<?, ?> r = (Map<?, ?>) raw;
+                resources.add(new CloudinaryResourceView(
+                        (String) r.get("public_id"),
+                        (String) r.get("resource_type"),
+                        (String) r.get("format"),
+                        r.get("bytes") instanceof Number n ? n.longValue() : 0L,
+                        (String) r.get("created_at"),
+                        (String) r.get("secure_url")));
+            }
+            String cursor = (String) result.get("next_cursor");
+            log.info("listed {} {} resources", resources.size(), resourceType);
+            return new CloudinaryResourcesPage(resources, cursor);
+        } catch (Exception e) {
+            log.error("error listing cloudinary resources: {}", e.getMessage());
+            throw new AppException(org.springframework.http.HttpStatus.UNPROCESSABLE_CONTENT, "CLOUDINARY_LIST_FAILED");
+        }
     }
 
     public void delete(String imageId, String resourceType) {

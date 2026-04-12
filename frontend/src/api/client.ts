@@ -1,4 +1,4 @@
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ItemAssetView, ThemeConfig, TaxPreview, AppSettings, BrevoQuota } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ItemAssetView, ThemeConfig, TaxPreview, AppSettings, BrevoQuota, CloudinaryResourcesPage } from '../types';
 import { getToken, setToken } from './tokenStore';
 
 interface LabelRequest { nameEn: string; nameFr: string; nameEs: string; }
@@ -263,10 +263,23 @@ export const api = {
       },
       deleteAssetImage: (id: number, slot: string) =>
         request<CollectionSiteAssetView>(`/${ADMIN}/collections/${id}/assets/${slot}/image`, { method: 'DELETE' }),
+      pickAsset: (id: number, slot: string, data: { publicId: string; resourceType: string; secureUrl: string }) =>
+        request<CollectionSiteAssetView>(`/${ADMIN}/collections/${id}/assets/${slot}/pick`, { method: 'PATCH', body: JSON.stringify(data) }),
       updateTheme: (id: number, data: CollectionThemeView) =>
         request<CollectionThemeView>(`/${ADMIN}/collections/${id}/theme`, { method: 'PATCH', body: JSON.stringify(data) }),
       resetTheme: (id: number) =>
         request<void>(`/${ADMIN}/collections/${id}/theme`, { method: 'DELETE' }),
+    },
+    cloudinary: {
+      list: (type: string, nextCursor?: string) => {
+        const params = new URLSearchParams({ type });
+        if (nextCursor) params.set('nextCursor', nextCursor);
+        return request<CloudinaryResourcesPage>(`/${ADMIN}/cloudinary/resources?${params}`);
+      },
+      delete: (publicId: string, type: string) => {
+        const params = new URLSearchParams({ publicId, type });
+        return request<void>(`/${ADMIN}/cloudinary/resources?${params}`, { method: 'DELETE' });
+      },
     },
     theme: {
       update: (data: ThemeConfig) =>

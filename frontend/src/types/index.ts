@@ -238,6 +238,20 @@ export interface CollectionView {
   isMain: boolean;
 }
 
+export interface CloudinaryResource {
+  publicId: string;
+  resourceType: string;
+  format: string;
+  bytes: number;
+  createdAt: string;
+  secureUrl: string;
+}
+
+export interface CloudinaryResourcesPage {
+  resources: CloudinaryResource[];
+  nextCursor: string | null;
+}
+
 export interface ThemeConfig {
   navbarBg: string;
   navbarText: string;

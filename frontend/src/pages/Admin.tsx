@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ThemeConfig, AppSettings, BrevoQuota } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ThemeConfig, AppSettings, BrevoQuota, CloudinaryResource, CloudinaryResourcesPage } from '../types';
 import { pickLocale, isItemIncomplete, isLabelIncomplete } from '../types';
 import { useTheme, THEME_DEFAULTS, mergeCollectionTheme } from '../context/ThemeContext';
 
@@ -1225,6 +1225,131 @@ function CollectionFormModal({
   );
 }
 
+// ── Cloudinary Browser Modal ──────────────────────────────────────────────────
+
+function CloudinaryBrowserModal({ onSelect, onClose }: {
+  onSelect: (resource: CloudinaryResource) => void;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  const [tab, setTab] = useState<'image' | 'video'>('image');
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState<CloudinaryResourcesPage | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  async function load(type: 'image' | 'video', nextCursor?: string) {
+    setLoading(true);
+    try {
+      const result = await api.admin.cloudinary.list(type, nextCursor);
+      setPage(prev => nextCursor && prev
+        ? { resources: [...prev.resources, ...result.resources], nextCursor: result.nextCursor }
+        : result);
+    } finally { setLoading(false); }
+  }
+
+  useEffect(() => { setPage(null); load(tab); }, [tab]);
+
+  async function handleDelete(resource: CloudinaryResource) {
+    if (!confirm(t('admin.site.browseDeleteConfirm'))) return;
+    setDeleting(resource.publicId);
+    try {
+      await api.admin.cloudinary.delete(resource.publicId, resource.resourceType);
+      setPage(prev => prev
+        ? { ...prev, resources: prev.resources.filter(r => r.publicId !== resource.publicId) }
+        : prev);
+    } finally { setDeleting(null); }
+  }
+
+  const filtered = (page?.resources ?? []).filter(r =>
+    !search || r.publicId.toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <div className="fixed inset-0 z-[999] flex items-center justify-center" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/50" />
+      <div
+        className="relative bg-[#FAFAF8] border border-[#E8E4DC] w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-3 border-b border-[#E8E4DC]">
+          <p className="text-xs uppercase tracking-widest font-medium">{t('admin.site.browseTitle')}</p>
+          <button onClick={onClose} className="text-muted hover:text-dark text-lg leading-none">✕</button>
+        </div>
+
+        {/* Tabs + Search */}
+        <div className="flex items-center gap-3 px-5 py-3 border-b border-[#E8E4DC]">
+          <div className="flex gap-1">
+            {(['image', 'video'] as const).map(type => (
+              <button
+                key={type}
+                onClick={() => setTab(type)}
+                className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${tab === type ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
+              >
+                {t(type === 'image' ? 'admin.site.browseImages' : 'admin.site.browseVideos')}
+              </button>
+            ))}
+          </div>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder={t('admin.site.browseSearch')}
+            className="flex-1 border border-border bg-cream px-3 py-1.5 text-sm outline-none focus:border-dark transition-colors"
+          />
+        </div>
+
+        {/* Resource list */}
+        <div className="flex-1 overflow-y-auto px-5 py-3 space-y-1">
+          {loading && !page && (
+            <p className="text-xs text-muted text-center py-6">...</p>
+          )}
+          {!loading && filtered.length === 0 && (
+            <p className="text-xs text-muted text-center py-6">{t('admin.site.browseEmpty')}</p>
+          )}
+          {filtered.map(resource => (
+            <div key={resource.publicId} className="flex items-center gap-3 border border-border px-3 py-2 hover:border-dark transition-colors">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-mono truncate">{resource.publicId}</p>
+                <p className="text-xs text-muted mt-0.5">
+                  {resource.format.toUpperCase()} · {(resource.bytes / 1024).toFixed(0)} KB · {resource.createdAt?.slice(0, 10)}
+                </p>
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <button
+                  onClick={() => onSelect(resource)}
+                  className="text-xs uppercase tracking-widest border border-dark bg-dark text-white px-3 py-1 hover:bg-gold transition-colors"
+                >
+                  {t('admin.site.browseSelect')}
+                </button>
+                <button
+                  onClick={() => handleDelete(resource)}
+                  disabled={deleting === resource.publicId}
+                  className="text-xs uppercase tracking-widest border border-red-300 text-red-500 px-3 py-1 hover:border-red-500 transition-colors disabled:opacity-50"
+                >
+                  {deleting === resource.publicId ? '...' : t('admin.site.browseDelete')}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Load more */}
+        {page?.nextCursor && (
+          <div className="px-5 py-3 border-t border-[#E8E4DC]">
+            <button
+              onClick={() => load(tab, page.nextCursor!)}
+              disabled={loading}
+              className="text-xs uppercase tracking-widest border border-border px-4 py-1.5 w-full hover:border-dark transition-colors disabled:opacity-50"
+            >
+              {loading ? '...' : t('admin.site.browseLoadMore')}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function CollectionAssetsPanel({ collectionId, siteAssets, labels, onUpdate }: {
   collectionId: number;
   siteAssets: CollectionSiteAssetView[];
@@ -1235,6 +1360,7 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, onUpdate }: {
   const [editing, setEditing] = useState<string | null>(null);
   const [uploading, setUploading] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [browsingSlot, setBrowsingSlot] = useState<string | null>(null);
   const [textForm, setTextForm] = useState({ headerEn: '', headerFr: '', headerEs: '', subheaderEn: '', subheaderFr: '', subheaderEs: '', taglineEn: '', taglineFr: '', taglineEs: '', color: '', headerColor: '', subheaderColor: '', taglineColor: '', ctaCategory: '', ctaLabelId: '' });
 
   function openEdit(asset: CollectionSiteAssetView) {
@@ -1299,6 +1425,19 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, onUpdate }: {
     } finally { setUploading(null); }
   }
 
+  async function handlePickResource(slot: string, resource: CloudinaryResource) {
+    setBrowsingSlot(null);
+    setUploading(slot);
+    try {
+      const updated = await api.admin.collections.pickAsset(collectionId, slot, {
+        publicId: resource.publicId,
+        resourceType: resource.resourceType,
+        secureUrl: resource.secureUrl,
+      });
+      onUpdate(updated);
+    } finally { setUploading(null); }
+  }
+
   const slotMap = Object.fromEntries(siteAssets.map(a => [a.slot, a]));
 
   return (
@@ -1344,6 +1483,13 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, onUpdate }: {
                     onChange={e => { const f = e.target.files?.[0]; if (f) handleUpload(slot, f); e.target.value = ''; }}
                   />
                 </label>
+                <button
+                  onClick={() => setBrowsingSlot(slot)}
+                  disabled={uploading === slot}
+                  className="text-xs uppercase tracking-widest border border-border px-3 py-1 hover:border-dark transition-colors disabled:opacity-50"
+                >
+                  {t('admin.site.browse')}
+                </button>
                 {asset.imageId && (
                   <button
                     onClick={() => handleDeleteMedia(slot)}
@@ -1434,6 +1580,12 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, onUpdate }: {
           </div>
         );
       })}
+      {browsingSlot && (
+        <CloudinaryBrowserModal
+          onSelect={resource => handlePickResource(browsingSlot, resource)}
+          onClose={() => setBrowsingSlot(null)}
+        />
+      )}
     </div>
   );
 }

@@ -270,6 +270,23 @@ public class CollectionService {
     }
 
     @Transactional
+    public CollectionSiteAssetView pickAssetMedia(Long collectionId, String slot, PickMediaRequest req) {
+        CollectionSiteAsset asset = findAssetOrThrow(collectionId, slot);
+        String oldImageId = asset.getImageId();
+        String oldResourceType = asset.getResourceType();
+        asset.setImageUrl(req.secureUrl());
+        asset.setImageId(req.publicId());
+        asset.setResourceType(req.resourceType());
+        CollectionSiteAssetView view = toAssetView(collectionSiteAssetRepository.saveAndFlush(asset));
+        // Delete the previous asset only if it was a different one (avoid deleting a shared asset)
+        if (oldImageId != null && !oldImageId.isEmpty() && !oldImageId.equals(req.publicId())) {
+            cloudinaryService.delete(oldImageId, oldResourceType);
+        }
+        log.info("picked {} '{}' for collection #{} slot {}", req.resourceType(), req.publicId(), collectionId, slot);
+        return view;
+    }
+
+    @Transactional
     public CollectionSiteAssetView deleteAssetMedia(Long collectionId, String slot) {
         CollectionSiteAsset asset = findAssetOrThrow(collectionId, slot);
         String oldImageId = asset.getImageId();
