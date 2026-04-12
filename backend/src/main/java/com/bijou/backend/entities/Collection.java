@@ -41,6 +41,13 @@ public class Collection {
     private List<Label> labels = new ArrayList<>();
 
     @Builder.Default
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "collection_categories",
+            joinColumns = @JoinColumn(name = "collection_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id"))
+    private List<Category> categories = new ArrayList<>();
+
+    @Builder.Default
     @OneToMany(mappedBy = "collection", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<CollectionSiteAsset> siteAssets = new ArrayList<>();
 

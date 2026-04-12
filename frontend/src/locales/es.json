@@ -282,6 +282,7 @@
       "stock": "Stock",
       "category": "Categoría",
       "labels": "Etiquetas",
+      "categories": "Categorías",
       "labelsHint": "(separadas por comas)",
       "labelsPlaceholder": "oro, plata esterlina",
       "discount": "Descuento %",
@@ -412,7 +413,9 @@
       "cardButtonBg": "Fondo del Botón",
       "cardButtonText": "Texto del Botón",
       "save": "Guardar Tema",
-      "reset": "Restaurar Predeterminados"
+      "reset": "Restaurar Predeterminados",
+      "editTitle": "Editar tema de color de {{name}}",
+      "noHome": "No hay colección principal definida"
     },
     "settings": {
       "title": "Email / Retransmisión SMTP",

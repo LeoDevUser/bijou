@@ -5,6 +5,7 @@ import java.util.List;
 public record CollectionView(
         Long id,
         List<LabelView> labels,
+        List<CategoryView> categories,
         String imageUrl,
         String imageId,
         String resourceType,

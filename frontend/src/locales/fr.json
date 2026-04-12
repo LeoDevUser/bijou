@@ -282,6 +282,7 @@
       "stock": "Stock",
       "category": "Catégorie",
       "labels": "Étiquettes",
+      "categories": "Catégories",
       "labelsHint": "(séparées par des virgules)",
       "labelsPlaceholder": "or, argent sterling",
       "discount": "Remise %",
@@ -412,7 +413,9 @@
       "cardButtonBg": "Fond du Bouton",
       "cardButtonText": "Texte du Bouton",
       "save": "Enregistrer le Thème",
-      "reset": "Réinitialiser"
+      "reset": "Réinitialiser",
+      "editTitle": "Modifier le thème de {{name}}",
+      "noHome": "Aucune collection principale définie"
     },
     "settings": {
       "title": "Email / Relais SMTP",

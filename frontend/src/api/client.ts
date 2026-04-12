@@ -1,4 +1,4 @@
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, SiteAssetView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ItemAssetView, ThemeConfig, TaxPreview, AppSettings, BrevoQuota } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ItemAssetView, ThemeConfig, TaxPreview, AppSettings, BrevoQuota } from '../types';
 import { getToken, setToken } from './tokenStore';
 
 interface LabelRequest { nameEn: string; nameFr: string; nameEs: string; }
@@ -93,9 +93,6 @@ export const api = {
   },
   announcements: {
     list: () => request<AnnouncementView[]>('/public/announcements'),
-  },
-  siteAssets: {
-    list: () => request<SiteAssetView[]>('/public/site-assets'),
   },
   collections: {
     list: () => request<CollectionView[]>('/public/collections'),
@@ -230,9 +227,9 @@ export const api = {
       setMain: (id: number) => request<CollectionView>(`/${ADMIN}/collections/${id}/main`, { method: 'PATCH' }),
       setActive: (id: number, active: boolean) =>
         request<CollectionView>(`/${ADMIN}/collections/${id}/active`, { method: 'PATCH', body: JSON.stringify({ active }) }),
-      create: (data: { labelIds: number[]; headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; color: string }) =>
+      create: (data: { labelIds: number[]; categoryIds: number[]; headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; color: string }) =>
         request<CollectionView>(`/${ADMIN}/collections`, { method: 'POST', body: JSON.stringify(data) }),
-      updateText: (id: number, data: { labelIds: number[]; headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; color: string }) =>
+      updateText: (id: number, data: { labelIds: number[]; categoryIds: number[]; headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; color: string }) =>
         request<CollectionView>(`/${ADMIN}/collections/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
       uploadImage: async (id: number, file: File): Promise<CollectionView> => {
         const form = new FormData();
@@ -274,24 +271,6 @@ export const api = {
     theme: {
       update: (data: ThemeConfig) =>
         request<ThemeConfig>(`/${ADMIN}/theme`, { method: 'PATCH', body: JSON.stringify(data) }),
-    },
-    siteAssets: {
-      updateText: (slot: string, data: { headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; color: string; ctaCategory: string | null; ctaLabelId: number | null }) =>
-        request<SiteAssetView>(`/${ADMIN}/site-assets/${slot}`, { method: 'PATCH', body: JSON.stringify(data) }),
-      uploadImage: async (slot: string, file: File): Promise<SiteAssetView> => {
-        const form = new FormData();
-        form.append('file', file);
-        const res = await fetch(`${BASE_URL}/${ADMIN}/site-assets/${slot}/image`, {
-          method: 'PATCH',
-          credentials: 'include',
-          headers: authHeaders(),
-          body: form,
-        });
-        if (!res.ok) { const body = await res.json().catch(() => ({})); throw { status: res.status, ...body }; }
-        return res.json();
-      },
-      deleteImage: (slot: string) =>
-        request<SiteAssetView>(`/${ADMIN}/site-assets/${slot}/image`, { method: 'DELETE' }),
     },
     orders: {
       list: () => request<OrderView[]>(`/${ADMIN}/orders`),

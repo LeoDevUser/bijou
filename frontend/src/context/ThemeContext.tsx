@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { api } from '../api/client';
-import type { ThemeConfig } from '../types';
+import type { ThemeConfig, CollectionThemeView } from '../types';
 
 const DEFAULTS: ThemeConfig = {
   navbarBg: '#FAFAF8',
@@ -39,6 +39,27 @@ function applyTheme(theme: ThemeConfig) {
   root.style.setProperty('--bijou-site-separator', theme.siteSeparator);
 }
 
+/** Merge a collection's custom theme over a base ThemeConfig. Only non-null fields override. */
+export function mergeCollectionTheme(base: ThemeConfig, ct: CollectionThemeView): ThemeConfig {
+  return {
+    navbarBg:            ct.navbarBg            ?? base.navbarBg,
+    navbarText:          ct.navbarText          ?? base.navbarText,
+    navbarTextSelected:  ct.navbarTextSelected  ?? base.navbarTextSelected,
+    navbarTextInactive:  ct.navbarTextInactive  ?? base.navbarTextInactive,
+    announcementBg:      ct.announcementBg      ?? base.announcementBg,
+    announcementText:    ct.announcementText    ?? base.announcementText,
+    siteBg:              ct.siteBg              ?? base.siteBg,
+    siteText:            ct.siteText            ?? base.siteText,
+    cardText:            ct.cardText            ?? base.cardText,
+    cardButtonBg:        ct.cardButtonBg        ?? base.cardButtonBg,
+    cardButtonText:      ct.cardButtonText      ?? base.cardButtonText,
+    navbarSeparator:     ct.navbarSeparator     ?? base.navbarSeparator,
+    siteTextMuted:       ct.siteTextMuted       ?? base.siteTextMuted,
+    siteTextAccent:      ct.siteTextAccent      ?? base.siteTextAccent,
+    siteSeparator:       ct.siteSeparator       ?? base.siteSeparator,
+  };
+}
+
 interface ThemeContextValue {
   theme: ThemeConfig;
   setTheme: (t: ThemeConfig) => void;
@@ -51,17 +72,37 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     applyTheme(DEFAULTS);
+
+    // 1. Load global ThemeConfig from DB
     api.theme.get()
       .then(raw => {
-        const t: ThemeConfig = { ...DEFAULTS, ...Object.fromEntries(Object.entries(raw).filter(([, v]) => v != null)) };
-        setThemeState(t);
-        applyTheme(t);
+        const globalTheme: ThemeConfig = {
+          ...DEFAULTS,
+          ...Object.fromEntries(Object.entries(raw).filter(([, v]) => v != null)),
+        };
+        setThemeState(globalTheme);
+        applyTheme(globalTheme);
+
+        // 2. If a main collection has a custom theme, apply it over the global theme.
+        //    This makes the main collection's theme the effective site-wide theme from app start.
+        api.collections.getMain()
+          .then(main => {
+            if (main.theme) {
+              const merged = mergeCollectionTheme(globalTheme, main.theme);
+              setThemeState(merged);
+              applyTheme(merged);
+            }
+          })
+          .catch(() => {});
       })
       .catch(() => {});
   }, []);
 
   function setTheme(raw: ThemeConfig) {
-    const t: ThemeConfig = { ...DEFAULTS, ...Object.fromEntries(Object.entries(raw as Record<string, unknown>).filter(([, v]) => v != null)) };
+    const t: ThemeConfig = {
+      ...DEFAULTS,
+      ...Object.fromEntries(Object.entries(raw as Record<string, unknown>).filter(([, v]) => v != null)),
+    };
     setThemeState(t);
     applyTheme(t);
   }

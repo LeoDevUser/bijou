@@ -4,6 +4,7 @@ import java.util.List;
 
 public record CollectionRequest(
         List<Long> labelIds,
+        List<Long> categoryIds,
         String headerEn,
         String headerFr,
         String headerEs,

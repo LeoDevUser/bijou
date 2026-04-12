@@ -49,7 +49,8 @@ public class CollectionSeeder implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
-        if (collectionRepository.count() > 0) return;
+        // Skip if any non-main collection already exists (default home collection seeded by DefaultCollectionSeeder doesn't count)
+        if (collectionRepository.findAllByOrderByIdAsc().stream().anyMatch(c -> !c.isMain())) return;
 
         // ── Labels ────────────────────────────────────────────────────────────
         Label esencial  = label("Esencial",  "Essentiel",     "Esencial");

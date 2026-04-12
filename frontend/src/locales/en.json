@@ -282,6 +282,7 @@
       "stock": "Stock",
       "category": "Category",
       "labels": "Labels",
+      "categories": "Categories",
       "labelsHint": "(comma separated)",
       "labelsPlaceholder": "gold, sterling silver",
       "discount": "Discount %",
@@ -412,7 +413,9 @@
       "cardButtonBg": "Button Background",
       "cardButtonText": "Button Text",
       "save": "Save Theme",
-      "reset": "Reset to Defaults"
+      "reset": "Reset to Defaults",
+      "editTitle": "Edit Color Theme of {{name}}",
+      "noHome": "No home collection set"
     },
     "settings": {
       "title": "Email / SMTP Relay",

@@ -28,6 +28,7 @@ public interface ItemRepository extends JpaRepository<Item, Long>{
     List<Item> findByLabels_Id(Long labelId);
     @Query("SELECT DISTINCT i FROM Item i JOIN i.labels l WHERE l.id IN :labelIds AND i.active = true")
     List<Item> findByAnyLabelIdInAndActiveTrue(@Param("labelIds") Collection<Long> labelIds);
+    List<Item> findByCategory_IdInAndActiveTrue(Collection<Long> categoryIds);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT i FROM Item i WHERE i.id = :id")
     Optional<Item> findByIdWithLock(Long id);

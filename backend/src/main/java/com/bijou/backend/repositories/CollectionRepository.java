@@ -8,7 +8,7 @@ import com.bijou.backend.entities.Collection;
 
 public interface CollectionRepository extends JpaRepository<Collection, Long> {
     List<Collection> findAllByOrderByIdAsc();
-    List<Collection> findByActiveTrueAndIsMainFalseOrderByIdAsc();
+    List<Collection> findByActiveTrueOrderByIdAsc();
     java.util.Optional<Collection> findByIsMainTrue();
     List<Collection> findByLabels_Id(Long labelId);
 }

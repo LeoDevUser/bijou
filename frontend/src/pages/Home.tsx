@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import ProductCard from '../components/ui/ProductCard';
 import CollectionPage from './CollectionPage';
-import type { ItemView, SiteAssetView } from '../types';
+import type { ItemView } from '../types';
 import { pickLocale } from '../types';
 
 const CATEGORIES = [
@@ -53,17 +53,8 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (mainId !== null) return; // don't load global assets if main collection is active
+    if (mainId !== null) return;
     api.items.trending().then(setTrending).catch(console.error);
-    api.siteAssets.list()
-      .then((list: SiteAssetView[]) => {
-        const map: Record<string, AssetEntry> = {};
-        list.forEach(a => {
-          map[a.slot] = { url: a.imageUrl, resourceType: a.resourceType, headerEn: a.headerEn, headerFr: a.headerFr, headerEs: a.headerEs, subheaderEn: a.subheaderEn, subheaderFr: a.subheaderFr, subheaderEs: a.subheaderEs, color: a.color, ctaCategory: a.ctaCategory, ctaLabelId: a.ctaLabelId };
-        });
-        setAssetMap(map);
-      })
-      .catch(console.error);
   }, [mainId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // While checking for main collection — show nothing (quick check)

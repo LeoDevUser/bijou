@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, SiteAssetView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ThemeConfig, AppSettings, BrevoQuota } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ThemeConfig, AppSettings, BrevoQuota } from '../types';
 import { pickLocale, isItemIncomplete, isLabelIncomplete } from '../types';
-import { useTheme, THEME_DEFAULTS } from '../context/ThemeContext';
+import { useTheme, THEME_DEFAULTS, mergeCollectionTheme } from '../context/ThemeContext';
 
 // ── Color utilities ───────────────────────────────────────────────────────────
 
@@ -1025,11 +1025,13 @@ const COLLECTION_SLOT_LABELS: Record<string, string> = {
 function CollectionFormModal({
   initial,
   labels,
+  categories,
   onClose,
   onSaved,
 }: {
   initial?: CollectionView;
   labels: LabelView[];
+  categories: CategoryView[];
   onClose: () => void;
   onSaved: (c: CollectionView) => void;
 }) {
@@ -1040,6 +1042,7 @@ function CollectionFormModal({
   const [file, setFile] = useState<File | null>(null);
   const [form, setForm] = useState({
     labelIds: initial?.labels.map(l => l.id) ?? [],
+    categoryIds: initial?.categories.map(c => c.id) ?? [],
     headerEn: initial?.headerEn ?? '',
     headerFr: initial?.headerFr ?? '',
     headerEs: initial?.headerEs ?? '',
@@ -1058,6 +1061,7 @@ function CollectionFormModal({
     try {
       const payload = {
         labelIds: form.labelIds,
+        categoryIds: form.categoryIds,
         headerEn: form.headerEn,
         headerFr: form.headerFr,
         headerEs: form.headerEs,
@@ -1111,6 +1115,31 @@ function CollectionFormModal({
                     }))}
                   />
                   {pickLocale(label.nameEn, label.nameFr, label.nameEs, i18n.language)}
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <label className="text-xs uppercase tracking-widest text-muted block mb-2">{t('admin.modal.categories')}</label>
+          {categories.length === 0 ? (
+            <p className="text-xs text-muted">{t('admin.categories.empty')}</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {categories.map(cat => (
+                <label key={cat.id} className="flex items-center gap-1.5 text-sm cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={form.categoryIds.includes(cat.id)}
+                    onChange={e => setForm(f => ({
+                      ...f,
+                      categoryIds: e.target.checked
+                        ? [...f.categoryIds, cat.id]
+                        : f.categoryIds.filter(id => id !== cat.id),
+                    }))}
+                  />
+                  {pickLocale(cat.nameEn, cat.nameFr, cat.nameEs, i18n.language)}
                 </label>
               ))}
             </div>
@@ -1486,6 +1515,7 @@ function AdminCollections() {
   const { t, i18n } = useTranslation();
   const [collections, setCollections] = useState<CollectionView[]>([]);
   const [labels, setLabels] = useState<LabelView[]>([]);
+  const [categories, setCategories] = useState<CategoryView[]>([]);
   const [modal, setModal] = useState<CollectionModal | null>(null);
   const [expandedAssets, setExpandedAssets] = useState<number | null>(null);
   const [expandedTheme, setExpandedTheme] = useState<number | null>(null);
@@ -1495,6 +1525,7 @@ function AdminCollections() {
   useEffect(() => {
     loadCollections();
     api.labels.list().then(setLabels).catch(() => []);
+    api.categories.list().then(setCategories).catch(() => []);
   }, []);
 
   async function loadCollections() {
@@ -1526,9 +1557,8 @@ function AdminCollections() {
   async function handleSetMain(id: number) {
     setSettingMain(id);
     try {
-      const updated = await api.admin.collections.setMain(id);
-      // Refresh all since setMain clears isMain from others
-      setCollections(prev => prev.map(c => c.id === id ? updated : { ...c, isMain: false }));
+      await api.admin.collections.setMain(id);
+      window.location.reload();
     } finally { setSettingMain(null); }
   }
 
@@ -1592,9 +1622,6 @@ function AdminCollections() {
                             {t('admin.collections.inactive')}
                           </span>
                         )}
-                        {c.theme && (
-                          <span className="text-[10px] text-gold flex-shrink-0">● {t('admin.collections.theme.active')}</span>
-                        )}
                       </div>
                       <p className="text-xs text-muted mt-0.5 truncate">{labelNames}</p>
                     </div>
@@ -1636,20 +1663,18 @@ function AdminCollections() {
                       </button>
                     )}
 
-                    {/* Active toggle — not shown for main collection */}
-                    {!c.isMain && (
-                      <button
-                        onClick={() => handleToggleActive(c)}
-                        disabled={togglingActive === c.id}
-                        className={`text-xs uppercase tracking-widest border px-3 py-1.5 transition-colors disabled:opacity-50 ${
-                          c.active
-                            ? 'border-border text-muted hover:border-dark'
-                            : 'border-dark text-dark hover:bg-dark hover:text-white'
-                        }`}
-                      >
-                        {togglingActive === c.id ? '...' : c.active ? t('admin.collections.deactivate') : t('admin.collections.activate')}
-                      </button>
-                    )}
+                    {/* Active toggle — controls visibility in the collections tab */}
+                    <button
+                      onClick={() => handleToggleActive(c)}
+                      disabled={togglingActive === c.id}
+                      className={`text-xs uppercase tracking-widest border px-3 py-1.5 transition-colors disabled:opacity-50 ${
+                        c.active
+                          ? 'border-border text-muted hover:border-dark'
+                          : 'border-dark text-dark hover:bg-dark hover:text-white'
+                      }`}
+                    >
+                      {togglingActive === c.id ? '...' : c.active ? t('admin.collections.deactivate') : t('admin.collections.activate')}
+                    </button>
 
                     {c.imageUrl && (
                       <button
@@ -1694,6 +1719,7 @@ function AdminCollections() {
         <CollectionFormModal
           initial={modal === 'new' ? undefined : modal}
           labels={labels}
+          categories={categories}
           onClose={() => setModal(null)}
           onSaved={() => { setModal(null); loadCollections(); }}
         />
@@ -2008,194 +2034,6 @@ const ASSET_CATEGORIES: { value: string; labelKey: string }[] = [
   { value: 'MISC', labelKey: 'shop.misc' },
 ];
 
-function AdminSiteAssets() {
-  const { t } = useTranslation();
-  const [assets, setAssets] = useState<SiteAssetView[]>([]);
-  const [labels, setLabels] = useState<LabelView[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState<string | null>(null);
-  const [editing, setEditing] = useState<string | null>(null);
-  const [textForm, setTextForm] = useState({ headerEn: '', headerFr: '', headerEs: '', subheaderEn: '', subheaderFr: '', subheaderEs: '', color: '', ctaCategory: '', ctaLabelId: '' });
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    setLoading(true);
-    Promise.all([api.siteAssets.list(), api.labels.list()])
-      .then(([a, l]) => { setAssets(a); setLabels(l); })
-      .finally(() => setLoading(false));
-  }, []);
-
-  function openEdit(asset: SiteAssetView) {
-    setEditing(asset.slot);
-    setTextForm({
-      headerEn: asset.headerEn ?? '',
-      headerFr: asset.headerFr ?? '',
-      headerEs: asset.headerEs ?? '',
-      subheaderEn: asset.subheaderEn ?? '',
-      subheaderFr: asset.subheaderFr ?? '',
-      subheaderEs: asset.subheaderEs ?? '',
-      color: asset.color ?? '',
-      ctaCategory: asset.ctaCategory ?? '',
-      ctaLabelId: asset.ctaLabelId != null ? String(asset.ctaLabelId) : '',
-    });
-  }
-
-  async function saveText(slot: string) {
-    setSaving(true);
-    try {
-      const updated = await api.admin.siteAssets.updateText(slot, {
-        headerEn: textForm.headerEn,
-        headerFr: textForm.headerFr,
-        headerEs: textForm.headerEs,
-        subheaderEn: textForm.subheaderEn,
-        subheaderFr: textForm.subheaderFr,
-        subheaderEs: textForm.subheaderEs,
-        color: textForm.color,
-        ctaCategory: textForm.ctaCategory || null,
-        ctaLabelId: textForm.ctaLabelId ? Number(textForm.ctaLabelId) : null,
-      });
-      setAssets(prev => prev.map(a => a.slot === slot ? updated : a));
-      setEditing(null);
-    } finally { setSaving(false); }
-  }
-
-  async function handleUpload(slot: string, file: File) {
-    setUploading(slot);
-    try {
-      const updated = await api.admin.siteAssets.uploadImage(slot, file);
-      setAssets(prev => prev.map(a => a.slot === slot ? updated : a));
-    } finally { setUploading(null); }
-  }
-
-  async function handleDelete(slot: string) {
-    setUploading(slot);
-    try {
-      const updated = await api.admin.siteAssets.deleteImage(slot);
-      setAssets(prev => prev.map(a => a.slot === slot ? updated : a));
-    } finally { setUploading(null); }
-  }
-
-  if (loading) {
-    return <div className="space-y-2">{[...Array(5)].map((_, i) => <div key={i} className="h-16 bg-[#F0EDE8] animate-pulse" />)}</div>;
-  }
-
-  return (
-    <div className="space-y-3 mb-10">
-      {assets.map(asset => (
-        <div key={asset.slot} className="border border-border">
-          {/* Main row */}
-          <div className="p-4">
-            <div className="flex items-center gap-4">
-              <div className="w-20 h-14 bg-[#F0EDE8] shrink-0 overflow-hidden flex items-center justify-center">
-                {asset.imageUrl
-                  ? asset.resourceType === 'video'
-                    ? <video src={asset.imageUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
-                    : <img src={asset.imageUrl} alt={asset.slot} className="w-full h-full object-cover" />
-                  : <span className="text-muted text-xs">—</span>
-                }
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">{t(SLOT_LABEL_KEYS[asset.slot] ?? asset.slot)}</p>
-                {(asset.headerEn || asset.subheaderEn) && (
-                  <p className="text-xs text-muted truncate mt-0.5">
-                    {[asset.headerEn, asset.subheaderEn].filter(Boolean).join(' · ')}
-                    {asset.color && <span className="ml-2" style={{ color: asset.color }}>■</span>}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 mt-3">
-              <button
-                onClick={() => editing === asset.slot ? setEditing(null) : openEdit(asset)}
-                className={`text-xs uppercase tracking-widest border px-3 py-1.5 transition-colors ${editing === asset.slot ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
-              >
-                {t('admin.site.edit')}
-              </button>
-              <label className={`text-xs uppercase tracking-widest border border-dark bg-dark text-white px-3 py-1.5 cursor-pointer hover:bg-gold transition-colors ${uploading === asset.slot ? 'opacity-50 pointer-events-none' : ''}`}>
-                {uploading === asset.slot ? '...' : t('admin.site.upload')}
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp,video/mp4,video/webm,video/quicktime"
-                  className="hidden"
-                  onChange={e => { const f = e.target.files?.[0]; if (f) handleUpload(asset.slot, f); e.target.value = ''; }}
-                />
-              </label>
-              {asset.imageId && (
-                <button
-                  onClick={() => handleDelete(asset.slot)}
-                  disabled={uploading === asset.slot}
-                  className="text-xs uppercase tracking-widest border border-red-300 text-red-500 px-3 py-1.5 hover:border-red-500 transition-colors disabled:opacity-50"
-                >
-                  {t('admin.site.remove')}
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Text edit panel */}
-          {editing === asset.slot && (
-            <div className="border-t border-border p-4 bg-[#FAF9F7] space-y-2">
-              <div className="space-y-1">
-                <p className="text-xs text-muted uppercase tracking-widest">{t('admin.site.headerPlaceholder')}</p>
-                <input value={textForm.headerEn} onChange={e => setTextForm(f => ({ ...f, headerEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
-                <input value={textForm.headerFr} onChange={e => setTextForm(f => ({ ...f, headerFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
-                <input value={textForm.headerEs} onChange={e => setTextForm(f => ({ ...f, headerEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted uppercase tracking-widest">{t('admin.site.subheaderPlaceholder')}</p>
-                <input value={textForm.subheaderEn} onChange={e => setTextForm(f => ({ ...f, subheaderEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
-                <input value={textForm.subheaderFr} onChange={e => setTextForm(f => ({ ...f, subheaderFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
-                <input value={textForm.subheaderEs} onChange={e => setTextForm(f => ({ ...f, subheaderEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
-              </div>
-              <ColorInput
-                value={textForm.color}
-                onChange={v => setTextForm(f => ({ ...f, color: v }))}
-                placeholder={t('admin.site.colorPlaceholder')}
-              />
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.ctaCategory')}</p>
-                  <select
-                    value={textForm.ctaCategory}
-                    onChange={e => setTextForm(f => ({ ...f, ctaCategory: e.target.value }))}
-                    className={`${selectClass} w-full`}
-                  >
-                    <option value="">{t('admin.site.noneOption')}</option>
-                    {ASSET_CATEGORIES.map(c => (
-                      <option key={c.value} value={c.value}>{t(c.labelKey)}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.ctaLabel')}</p>
-                  <select
-                    value={textForm.ctaLabelId}
-                    onChange={e => setTextForm(f => ({ ...f, ctaLabelId: e.target.value }))}
-                    className={`${selectClass} w-full`}
-                  >
-                    <option value="">{t('admin.site.noneOption')}</option>
-                    {labels.map(l => (
-                      <option key={l.id} value={l.id}>{l.nameEn || l.nameFr || l.nameEs}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div className="flex gap-2 pt-1">
-                <button onClick={() => saveText(asset.slot)} disabled={saving} className="text-xs uppercase tracking-widest border border-dark bg-dark text-white px-4 py-2 hover:bg-gold transition-colors disabled:opacity-50">
-                  {saving ? '...' : t('admin.site.save')}
-                </button>
-                <button onClick={() => setEditing(null)} className="text-xs uppercase tracking-widest border border-border px-4 py-2 hover:border-dark transition-colors">
-                  {t('admin.site.cancel')}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 // ── Site ──────────────────────────────────────────────────────────────────────
 
 const ANNOUNCEMENT_CATEGORIES = ['NECKLACE', 'RING', 'EARRING', 'MISC'] as const;
@@ -2331,9 +2169,6 @@ function AdminSite() {
 
   return (
     <div>
-      <h2 className="text-xs uppercase tracking-widest text-muted mb-6">{t('admin.site.assetsTitle')}</h2>
-      <AdminSiteAssets />
-
       <h2 className="text-xs uppercase tracking-widest text-muted mb-6">{t('admin.site.announcementsTitle')}</h2>
 
       {loading ? (
@@ -2561,35 +2396,74 @@ const THEME_SECTIONS: { titleKey: string; fields: ColorField[] }[] = [
 ];
 
 function AdminTheme() {
-  const { t } = useTranslation();
-  const { theme, setTheme } = useTheme();
-  const [form, setForm] = useState<ThemeConfig>({ ...theme });
+  const { t, i18n } = useTranslation();
+  const { setTheme } = useTheme();
+  const [homeCollection, setHomeCollection] = useState<CollectionView | null | undefined>(undefined);
+  const [form, setForm] = useState<CollectionThemeView>({
+    navbarBg: THEME_DEFAULTS.navbarBg, navbarText: THEME_DEFAULTS.navbarText,
+    navbarTextSelected: THEME_DEFAULTS.navbarTextSelected, navbarTextInactive: THEME_DEFAULTS.navbarTextInactive,
+    announcementBg: THEME_DEFAULTS.announcementBg, announcementText: THEME_DEFAULTS.announcementText,
+    siteBg: THEME_DEFAULTS.siteBg, siteText: THEME_DEFAULTS.siteText,
+    cardText: THEME_DEFAULTS.cardText, cardButtonBg: THEME_DEFAULTS.cardButtonBg, cardButtonText: THEME_DEFAULTS.cardButtonText,
+    navbarSeparator: THEME_DEFAULTS.navbarSeparator, siteTextMuted: THEME_DEFAULTS.siteTextMuted,
+    siteTextAccent: THEME_DEFAULTS.siteTextAccent, siteSeparator: THEME_DEFAULTS.siteSeparator,
+  });
   const [saving, setSaving] = useState(false);
 
-  function setColor(key: keyof ThemeConfig, value: string) {
+  useEffect(() => {
+    api.admin.collections.list().then(list => {
+      const home = list.find(c => c.isMain) ?? null;
+      setHomeCollection(home);
+      if (home?.theme) {
+        setForm(f => ({ ...f, ...Object.fromEntries(Object.entries(home.theme!).filter(([, v]) => v != null)) }));
+      }
+    }).catch(() => setHomeCollection(null));
+  }, []);
+
+  function setColor(key: keyof CollectionThemeView, value: string) {
     setForm(f => ({ ...f, [key]: value }));
   }
 
   async function handleSave() {
+    if (!homeCollection) return;
     setSaving(true);
     try {
-      const raw = await api.admin.theme.update(form);
-      const updated = { ...THEME_DEFAULTS, ...Object.fromEntries(Object.entries(raw as Record<string, unknown>).filter(([, v]) => v != null)) } as typeof THEME_DEFAULTS;
-      setTheme(updated);
-      setForm({ ...updated });
+      const updated = await api.admin.collections.updateTheme(homeCollection.id, form);
+      setForm({ ...form, ...Object.fromEntries(Object.entries(updated).filter(([, v]) => v != null)) });
+      setTheme(mergeCollectionTheme(THEME_DEFAULTS, updated));
     } finally {
       setSaving(false);
     }
   }
 
   function handleReset() {
-    setForm({ ...THEME_DEFAULTS });
+    setForm({
+      navbarBg: THEME_DEFAULTS.navbarBg, navbarText: THEME_DEFAULTS.navbarText,
+      navbarTextSelected: THEME_DEFAULTS.navbarTextSelected, navbarTextInactive: THEME_DEFAULTS.navbarTextInactive,
+      announcementBg: THEME_DEFAULTS.announcementBg, announcementText: THEME_DEFAULTS.announcementText,
+      siteBg: THEME_DEFAULTS.siteBg, siteText: THEME_DEFAULTS.siteText,
+      cardText: THEME_DEFAULTS.cardText, cardButtonBg: THEME_DEFAULTS.cardButtonBg, cardButtonText: THEME_DEFAULTS.cardButtonText,
+      navbarSeparator: THEME_DEFAULTS.navbarSeparator, siteTextMuted: THEME_DEFAULTS.siteTextMuted,
+      siteTextAccent: THEME_DEFAULTS.siteTextAccent, siteSeparator: THEME_DEFAULTS.siteSeparator,
+    });
   }
+
+  const collectionName = homeCollection
+    ? (pickLocale(homeCollection.headerEn, homeCollection.headerFr, homeCollection.headerEs, i18n.language) ?? `#${homeCollection.id}`)
+    : null;
 
   return (
     <div className="space-y-8">
-      <p className="text-xs uppercase tracking-widest text-muted">{t('admin.theme.title')}</p>
-      {THEME_SECTIONS.map(section => (
+      {homeCollection === undefined ? (
+        <div className="h-4 w-48 bg-[#F0EDE8] animate-pulse" />
+      ) : homeCollection === null ? (
+        <p className="text-xs uppercase tracking-widest text-muted">{t('admin.theme.noHome')}</p>
+      ) : (
+        <p className="text-xs uppercase tracking-widest text-muted">
+          {t('admin.theme.editTitle', { name: collectionName })}
+        </p>
+      )}
+      {homeCollection && THEME_SECTIONS.map(section => (
         <div key={section.titleKey}>
           <p className="text-xs uppercase tracking-widest text-muted mb-3">{t(section.titleKey)}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -2597,8 +2471,8 @@ function AdminTheme() {
               <div key={field.key}>
                 <p className="text-xs text-muted mb-1">{t(field.labelKey)}</p>
                 <ColorInput
-                  value={form[field.key]}
-                  onChange={v => setColor(field.key, v)}
+                  value={form[field.key as keyof CollectionThemeView] ?? ''}
+                  onChange={v => setColor(field.key as keyof CollectionThemeView, v)}
                   placeholder="#000000"
                 />
               </div>
@@ -2606,14 +2480,16 @@ function AdminTheme() {
           </div>
         </div>
       ))}
-      <div className="flex gap-2 pt-2">
-        <button onClick={handleSave} disabled={saving} className="text-xs uppercase tracking-widest border border-dark bg-dark text-white px-4 py-2 hover:bg-gold transition-colors disabled:opacity-50">
-          {saving ? '...' : t('admin.theme.save')}
-        </button>
-        <button onClick={handleReset} className="text-xs uppercase tracking-widest border border-border px-4 py-2 hover:border-dark transition-colors">
-          {t('admin.theme.reset')}
-        </button>
-      </div>
+      {homeCollection && (
+        <div className="flex gap-2 pt-2">
+          <button onClick={handleSave} disabled={saving} className="text-xs uppercase tracking-widest border border-dark bg-dark text-white px-4 py-2 hover:bg-gold transition-colors disabled:opacity-50">
+            {saving ? '...' : t('admin.theme.save')}
+          </button>
+          <button onClick={handleReset} className="text-xs uppercase tracking-widest border border-border px-4 py-2 hover:border-dark transition-colors">
+            {t('admin.theme.reset')}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

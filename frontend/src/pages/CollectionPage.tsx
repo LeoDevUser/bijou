@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import ProductCard from '../components/ui/ProductCard';
 import type { CollectionView, CollectionSiteAssetView, ItemView, CategoryView } from '../types';
 import { pickLocale } from '../types';
-import { useTheme, THEME_DEFAULTS } from '../context/ThemeContext';
+import { useTheme, mergeCollectionTheme } from '../context/ThemeContext';
 
 type SortOption = 'default' | 'bestselling' | 'price_asc' | 'price_desc';
 
@@ -54,7 +54,6 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
   const collectionId = propId ?? Number(paramId);
   const isEmbedded = propId !== undefined;
   const { theme: globalTheme, setTheme } = useTheme();
-  const savedTheme = useRef(globalTheme);
 
   const [collection, setCollection] = useState<CollectionView | null>(null);
   const [trending, setTrending] = useState<ItemView[]>([]);
@@ -84,30 +83,19 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
       .finally(() => setLoading(false));
   }, [collectionId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Apply collection theme on mount, restore global on unmount
+  // Apply collection theme globally when the collection loads.
+  // Reload once per collection navigation so CSS vars re-initialize cleanly.
+  // sessionStorage tracks which collection was last reloaded to prevent infinite loops.
   useEffect(() => {
-    savedTheme.current = globalTheme;
-    if (collection?.theme) {
-      const merged = { ...THEME_DEFAULTS, ...globalTheme };
-      const t = collection.theme;
-      if (t.navbarBg) merged.navbarBg = t.navbarBg;
-      if (t.navbarText) merged.navbarText = t.navbarText;
-      if (t.navbarTextSelected) merged.navbarTextSelected = t.navbarTextSelected;
-      if (t.navbarTextInactive) merged.navbarTextInactive = t.navbarTextInactive;
-      if (t.announcementBg) merged.announcementBg = t.announcementBg;
-      if (t.announcementText) merged.announcementText = t.announcementText;
-      if (t.siteBg) merged.siteBg = t.siteBg;
-      if (t.siteText) merged.siteText = t.siteText;
-      if (t.cardText) merged.cardText = t.cardText;
-      if (t.cardButtonBg) merged.cardButtonBg = t.cardButtonBg;
-      if (t.cardButtonText) merged.cardButtonText = t.cardButtonText;
-      if (t.navbarSeparator) merged.navbarSeparator = t.navbarSeparator;
-      if (t.siteTextMuted) merged.siteTextMuted = t.siteTextMuted;
-      if (t.siteTextAccent) merged.siteTextAccent = t.siteTextAccent;
-      if (t.siteSeparator) merged.siteSeparator = t.siteSeparator;
-      setTheme(merged);
+    if (!collection?.theme) return;
+    setTheme(mergeCollectionTheme(globalTheme, collection.theme));
+    const key = 'bm_last_reloaded_collection';
+    const lastReloaded = sessionStorage.getItem(key);
+    if (lastReloaded !== String(collection.id)) {
+      sessionStorage.setItem(key, String(collection.id));
+      const timer = setTimeout(() => window.location.reload(), 200);
+      return () => clearTimeout(timer);
     }
-    return () => { setTheme(savedTheme.current); };
   }, [collection?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const assetMap = useMemo(() => {
@@ -206,12 +194,14 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
         {/* Category filters + sort */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
           <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setActiveCategory(null)}
-              className={`px-4 py-1.5 text-xs uppercase tracking-widest border transition-colors ${activeCategory === null ? 'bg-dark text-light border-dark' : 'border-current hover:opacity-70'}`}
-            >
-              {t('shop.all')}
-            </button>
+            {categories.length > 0 && (
+              <button
+                onClick={() => setActiveCategory(null)}
+                className={`px-4 py-1.5 text-xs uppercase tracking-widest border transition-colors ${activeCategory === null ? 'bg-dark text-light border-dark' : 'border-current hover:opacity-70'}`}
+              >
+                {t('shop.all')}
+              </button>
+            )}
             {categories.map(cat => (
               <button
                 key={cat.id}
@@ -222,16 +212,18 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
               </button>
             ))}
           </div>
-          <select
-            value={sort}
-            onChange={e => setSort(e.target.value as SortOption)}
-            className="text-xs uppercase tracking-widest border border-current bg-transparent px-3 py-1.5 cursor-pointer"
-          >
-            <option value="default">{t('shop.sortDefault')}</option>
-            <option value="bestselling">{t('shop.sortBestselling')}</option>
-            <option value="price_asc">{t('shop.sortPriceAsc')}</option>
-            <option value="price_desc">{t('shop.sortPriceDesc')}</option>
-          </select>
+          {allItems.length > 0 && (
+            <select
+              value={sort}
+              onChange={e => setSort(e.target.value as SortOption)}
+              className="text-xs uppercase tracking-widest border border-current bg-transparent px-3 py-1.5 cursor-pointer"
+            >
+              <option value="default">{t('shop.sortDefault')}</option>
+              <option value="bestselling">{t('shop.sortBestselling')}</option>
+              <option value="price_asc">{t('shop.sortPriceAsc')}</option>
+              <option value="price_desc">{t('shop.sortPriceDesc')}</option>
+            </select>
+          )}
         </div>
 
         {filteredItems.length === 0 ? (

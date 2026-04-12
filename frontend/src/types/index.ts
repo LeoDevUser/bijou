@@ -215,6 +215,7 @@ export interface CollectionThemeView {
 export interface CollectionView {
   id: number;
   labels: LabelView[];
+  categories: CategoryView[];
   imageUrl: string | null;
   imageId: string | null;
   resourceType: string;
@@ -260,22 +261,6 @@ export interface BrevoQuota {
   dailyLimit: number;
 }
 
-export interface SiteAssetView {
-  id: number;
-  slot: string;
-  imageUrl: string | null;
-  imageId: string | null;
-  resourceType: string;
-  headerEn: string | null;
-  headerFr: string | null;
-  headerEs: string | null;
-  subheaderEn: string | null;
-  subheaderFr: string | null;
-  subheaderEs: string | null;
-  color: string | null;
-  ctaCategory: string | null;
-  ctaLabelId: number | null;
-}
 
 /** Pick the best available translation for the current locale, falling back to any non-null value. */
 export function pickLocale(

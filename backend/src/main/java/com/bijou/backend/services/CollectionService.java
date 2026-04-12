@@ -10,10 +10,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.transaction.Transactional;
 
+import com.bijou.backend.entities.Category;
 import com.bijou.backend.entities.Collection;
 import com.bijou.backend.entities.CollectionSiteAsset;
 import com.bijou.backend.entities.Label;
 import com.bijou.backend.exception.AppException;
+import com.bijou.backend.repositories.CategoryRepository;
 import com.bijou.backend.repositories.CollectionRepository;
 import com.bijou.backend.repositories.CollectionSiteAssetRepository;
 import com.bijou.backend.repositories.CollectionThemeRepository;
@@ -35,6 +37,7 @@ public class CollectionService {
     private final CollectionSiteAssetRepository collectionSiteAssetRepository;
     private final CollectionThemeRepository collectionThemeRepository;
     private final LabelRepository labelRepository;
+    private final CategoryRepository categoryRepository;
     private final ItemRepository itemRepository;
     private final CloudinaryService cloudinaryService;
 
@@ -60,12 +63,13 @@ public class CollectionService {
 
     private CollectionView toView(Collection c) {
         List<LabelView> labels = c.getLabels().stream().map(LabelService::toView).toList();
+        List<CategoryView> categories = c.getCategories().stream().map(CategoryService::toView).toList();
         List<CollectionSiteAssetView> assets = c.getSiteAssets().stream()
                 .map(this::toAssetView).toList();
         CollectionThemeView theme = collectionThemeRepository.findByCollection_Id(c.getId())
                 .map(this::toThemeView).orElse(null);
         return new CollectionView(
-                c.getId(), labels,
+                c.getId(), labels, categories,
                 c.getImageUrl(), c.getImageId(), c.getResourceType(),
                 c.getHeaderEn(), c.getHeaderFr(), c.getHeaderEs(),
                 c.getSubheaderEn(), c.getSubheaderFr(), c.getSubheaderEs(),
@@ -75,9 +79,9 @@ public class CollectionService {
 
     // ── Public queries ───────────────────────────────────────────────────────────
 
-    /** Returns only active, non-main collections (for the public /collections page). */
+    /** Returns all active collections (for the public /collections page). isMain does not affect visibility. */
     public List<CollectionView> getAll() {
-        return collectionRepository.findByActiveTrueAndIsMainFalseOrderByIdAsc().stream().map(this::toView).toList();
+        return collectionRepository.findByActiveTrueOrderByIdAsc().stream().map(this::toView).toList();
     }
 
     /** Returns all collections including inactive and the main one (for the admin panel). */
@@ -94,18 +98,11 @@ public class CollectionService {
     }
 
     public List<ItemView> getItemsByCollection(Long id) {
-        Collection c = findOrThrow(id);
-        List<Long> labelIds = c.getLabels().stream().map(Label::getId).toList();
-        if (labelIds.isEmpty()) return List.of();
-        return itemRepository.findByAnyLabelIdInAndActiveTrue(labelIds).stream()
-                .map(this::toItemView).toList();
+        return collectItems(findOrThrow(id)).stream().map(this::toItemView).toList();
     }
 
     public List<ItemView> getTrendingByCollection(Long id) {
-        Collection c = findOrThrow(id);
-        List<Long> labelIds = c.getLabels().stream().map(Label::getId).toList();
-        if (labelIds.isEmpty()) return List.of();
-        return itemRepository.findByAnyLabelIdInAndActiveTrue(labelIds).stream()
+        return collectItems(findOrThrow(id)).stream()
                 .sorted(Comparator.comparingInt(
                         com.bijou.backend.entities.Item::getNbSoldMonth).reversed())
                 .limit(8)
@@ -113,11 +110,27 @@ public class CollectionService {
                 .toList();
     }
 
+    /** Fetches all active items matching the collection's labels or categories (deduped). */
+    private List<com.bijou.backend.entities.Item> collectItems(Collection c) {
+        List<Long> labelIds = c.getLabels().stream().map(Label::getId).toList();
+        List<Long> categoryIds = c.getCategories().stream().map(Category::getId).toList();
+        if (labelIds.isEmpty() && categoryIds.isEmpty()) return List.of();
+        java.util.LinkedHashMap<Long, com.bijou.backend.entities.Item> seen = new java.util.LinkedHashMap<>();
+        if (!labelIds.isEmpty()) {
+            itemRepository.findByAnyLabelIdInAndActiveTrue(labelIds).forEach(i -> seen.put(i.getId(), i));
+        }
+        if (!categoryIds.isEmpty()) {
+            itemRepository.findByCategory_IdInAndActiveTrue(categoryIds).forEach(i -> seen.putIfAbsent(i.getId(), i));
+        }
+        return new java.util.ArrayList<>(seen.values());
+    }
+
     // ── Admin CRUD ───────────────────────────────────────────────────────────────
 
     @Transactional
     public CollectionView create(CollectionRequest req) {
         List<Label> labels = resolveLabels(req.labelIds());
+        List<Category> categories = resolveCategories(req.categoryIds());
         Collection collection = Collection.builder()
                 .headerEn(req.headerEn())
                 .headerFr(req.headerFr())
@@ -128,6 +141,7 @@ public class CollectionService {
                 .color(req.color())
                 .build();
         collection.setLabels(labels);
+        collection.setCategories(categories);
         Collection saved = collectionRepository.save(collection);
 
         // initialise the three site-asset slots
@@ -144,6 +158,7 @@ public class CollectionService {
     public CollectionView updateText(Long id, CollectionRequest req) {
         Collection collection = findOrThrow(id);
         collection.setLabels(resolveLabels(req.labelIds()));
+        collection.setCategories(resolveCategories(req.categoryIds()));
         collection.setHeaderEn(req.headerEn());
         collection.setHeaderFr(req.headerFr());
         collection.setHeaderEs(req.headerEs());
@@ -341,5 +356,10 @@ public class CollectionService {
     private List<Label> resolveLabels(List<Long> labelIds) {
         if (labelIds == null || labelIds.isEmpty()) return new java.util.ArrayList<>();
         return labelRepository.findAllById(labelIds);
+    }
+
+    private List<Category> resolveCategories(List<Long> categoryIds) {
+        if (categoryIds == null || categoryIds.isEmpty()) return new java.util.ArrayList<>();
+        return categoryRepository.findAllById(categoryIds);
     }
 }
