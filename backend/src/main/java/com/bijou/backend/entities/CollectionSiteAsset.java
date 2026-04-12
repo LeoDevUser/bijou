@@ -51,7 +51,14 @@ public class CollectionSiteAsset {
     private String subheaderFr;
     private String subheaderEs;
 
+    private String taglineEn;
+    private String taglineFr;
+    private String taglineEs;
+
     private String color;
+    private String headerColor;
+    private String subheaderColor;
+    private String taglineColor;
     private String ctaCategory;
     private Long ctaLabelId;
 }

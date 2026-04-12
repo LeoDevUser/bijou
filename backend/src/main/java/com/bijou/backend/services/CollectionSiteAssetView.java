@@ -12,7 +12,13 @@ public record CollectionSiteAssetView(
         String subheaderEn,
         String subheaderFr,
         String subheaderEs,
+        String taglineEn,
+        String taglineFr,
+        String taglineEs,
         String color,
+        String headerColor,
+        String subheaderColor,
+        String taglineColor,
         String ctaCategory,
         Long ctaLabelId) {
 }

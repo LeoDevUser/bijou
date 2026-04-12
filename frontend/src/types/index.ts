@@ -189,7 +189,13 @@ export interface CollectionSiteAssetView {
   subheaderEn: string | null;
   subheaderFr: string | null;
   subheaderEs: string | null;
+  taglineEn: string | null;
+  taglineFr: string | null;
+  taglineEs: string | null;
   color: string | null;
+  headerColor: string | null;
+  subheaderColor: string | null;
+  taglineColor: string | null;
   ctaCategory: string | null;
   ctaLabelId: number | null;
 }

@@ -1235,7 +1235,7 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, onUpdate }: {
   const [editing, setEditing] = useState<string | null>(null);
   const [uploading, setUploading] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [textForm, setTextForm] = useState({ headerEn: '', headerFr: '', headerEs: '', subheaderEn: '', subheaderFr: '', subheaderEs: '', color: '', ctaCategory: '', ctaLabelId: '' });
+  const [textForm, setTextForm] = useState({ headerEn: '', headerFr: '', headerEs: '', subheaderEn: '', subheaderFr: '', subheaderEs: '', taglineEn: '', taglineFr: '', taglineEs: '', color: '', headerColor: '', subheaderColor: '', taglineColor: '', ctaCategory: '', ctaLabelId: '' });
 
   function openEdit(asset: CollectionSiteAssetView) {
     setEditing(asset.slot);
@@ -1246,7 +1246,13 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, onUpdate }: {
       subheaderEn: asset.subheaderEn ?? '',
       subheaderFr: asset.subheaderFr ?? '',
       subheaderEs: asset.subheaderEs ?? '',
+      taglineEn: asset.taglineEn ?? '',
+      taglineFr: asset.taglineFr ?? '',
+      taglineEs: asset.taglineEs ?? '',
       color: asset.color ?? '',
+      headerColor: asset.headerColor ?? '',
+      subheaderColor: asset.subheaderColor ?? '',
+      taglineColor: asset.taglineColor ?? '',
       ctaCategory: asset.ctaCategory ?? '',
       ctaLabelId: asset.ctaLabelId != null ? String(asset.ctaLabelId) : '',
     });
@@ -1262,7 +1268,13 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, onUpdate }: {
         subheaderEn: textForm.subheaderEn,
         subheaderFr: textForm.subheaderFr,
         subheaderEs: textForm.subheaderEs,
+        taglineEn: textForm.taglineEn || null,
+        taglineFr: textForm.taglineFr || null,
+        taglineEs: textForm.taglineEs || null,
         color: textForm.color,
+        headerColor: textForm.headerColor || null,
+        subheaderColor: textForm.subheaderColor || null,
+        taglineColor: textForm.taglineColor || null,
         ctaCategory: textForm.ctaCategory || null,
         ctaLabelId: textForm.ctaLabelId ? Number(textForm.ctaLabelId) : null,
       });
@@ -1357,11 +1369,30 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, onUpdate }: {
                   <input value={textForm.subheaderFr} onChange={e => setTextForm(f => ({ ...f, subheaderFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                   <input value={textForm.subheaderEs} onChange={e => setTextForm(f => ({ ...f, subheaderEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                 </div>
-                <ColorInput
-                  value={textForm.color}
-                  onChange={v => setTextForm(f => ({ ...f, color: v }))}
-                  placeholder={t('admin.site.colorPlaceholder')}
-                />
+                <div className="space-y-1">
+                  <p className="text-xs text-muted uppercase tracking-widest">{t('admin.site.taglinePlaceholder')}</p>
+                  <input value={textForm.taglineEn} onChange={e => setTextForm(f => ({ ...f, taglineEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={textForm.taglineFr} onChange={e => setTextForm(f => ({ ...f, taglineFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={textForm.taglineEs} onChange={e => setTextForm(f => ({ ...f, taglineEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.headerColor')}</p>
+                    <ColorInput value={textForm.headerColor} onChange={v => setTextForm(f => ({ ...f, headerColor: v }))} placeholder="#FFFFFF" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.subheaderColor')}</p>
+                    <ColorInput value={textForm.subheaderColor} onChange={v => setTextForm(f => ({ ...f, subheaderColor: v }))} placeholder="#FFFFFF" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.taglineColor')}</p>
+                    <ColorInput value={textForm.taglineColor} onChange={v => setTextForm(f => ({ ...f, taglineColor: v }))} placeholder="#FFFFFF" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.ctaBorderColor')}</p>
+                    <ColorInput value={textForm.color} onChange={v => setTextForm(f => ({ ...f, color: v }))} placeholder="#FFFFFF" />
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.ctaCategory')}</p>
@@ -1633,7 +1664,7 @@ function AdminCollections() {
                       onClick={() => setModal(c)}
                       className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors"
                     >
-                      {t('admin.products.edit')}
+                      {t('admin.collections.editCard')}
                     </button>
                     <button
                       onClick={() => { setExpandedAssets(assetsOpen ? null : c.id); setExpandedTheme(null); }}

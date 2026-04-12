@@ -16,7 +16,9 @@ type AssetEntry = {
   url: string | null; resourceType: string;
   headerEn: string | null; headerFr: string | null; headerEs: string | null;
   subheaderEn: string | null; subheaderFr: string | null; subheaderEs: string | null;
+  taglineEn: string | null; taglineFr: string | null; taglineEs: string | null;
   color: string | null;
+  headerColor: string | null; subheaderColor: string | null; taglineColor: string | null;
   ctaCategory: string | null; ctaLabelId: number | null;
 };
 
@@ -26,7 +28,10 @@ function fromSiteAsset(a: CollectionSiteAssetView | undefined): AssetEntry | und
     url: a.imageUrl, resourceType: a.resourceType,
     headerEn: a.headerEn, headerFr: a.headerFr, headerEs: a.headerEs,
     subheaderEn: a.subheaderEn, subheaderFr: a.subheaderFr, subheaderEs: a.subheaderEs,
-    color: a.color, ctaCategory: a.ctaCategory, ctaLabelId: a.ctaLabelId,
+    taglineEn: a.taglineEn, taglineFr: a.taglineFr, taglineEs: a.taglineEs,
+    color: a.color,
+    headerColor: a.headerColor, subheaderColor: a.subheaderColor, taglineColor: a.taglineColor,
+    ctaCategory: a.ctaCategory, ctaLabelId: a.ctaLabelId,
   };
 }
 
@@ -154,13 +159,27 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
               </div>
           }
         </div>
-        <div className="relative z-10 p-10 md:p-16 max-w-lg" style={hero?.color ? { color: hero.color } : undefined}>
-          <h1 className="font-serif text-5xl md:text-6xl italic font-light leading-tight mb-6">
+        <div className="relative z-10 p-10 md:p-16 max-w-lg">
+          <h1
+            className="font-serif text-5xl md:text-6xl italic font-light leading-tight mb-6"
+            style={{ color: hero?.headerColor ?? hero?.color ?? undefined }}
+          >
             {pickLocale(hero?.headerEn, hero?.headerFr, hero?.headerEs, i18n.language) || collectionName}
           </h1>
           {(hero?.subheaderEn || hero?.subheaderFr || hero?.subheaderEs) && (
-            <p className="text-sm uppercase tracking-widest mb-4">
+            <p
+              className="text-xl uppercase tracking-widest mb-3"
+              style={{ color: hero?.subheaderColor ?? hero?.color ?? undefined }}
+            >
               {pickLocale(hero?.subheaderEn, hero?.subheaderFr, hero?.subheaderEs, i18n.language)}
+            </p>
+          )}
+          {(hero?.taglineEn || hero?.taglineFr || hero?.taglineEs) && (
+            <p
+              className="text-base tracking-wide opacity-80 mb-4"
+              style={{ color: hero?.taglineColor ?? hero?.color ?? undefined }}
+            >
+              {pickLocale(hero?.taglineEn, hero?.taglineFr, hero?.taglineEs, i18n.language)}
             </p>
           )}
           {(hero?.ctaCategory || hero?.ctaLabelId != null) && (

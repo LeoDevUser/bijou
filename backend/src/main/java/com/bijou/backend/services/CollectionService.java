@@ -49,7 +49,9 @@ public class CollectionService {
                 a.getImageUrl(), a.getImageId(), a.getResourceType(),
                 a.getHeaderEn(), a.getHeaderFr(), a.getHeaderEs(),
                 a.getSubheaderEn(), a.getSubheaderFr(), a.getSubheaderEs(),
-                a.getColor(), a.getCtaCategory(), a.getCtaLabelId());
+                a.getTaglineEn(), a.getTaglineFr(), a.getTaglineEs(),
+                a.getColor(), a.getHeaderColor(), a.getSubheaderColor(), a.getTaglineColor(),
+                a.getCtaCategory(), a.getCtaLabelId());
     }
 
     private CollectionThemeView toThemeView(com.bijou.backend.entities.CollectionTheme t) {
@@ -152,7 +154,10 @@ public class CollectionService {
                     .build();
             saved.getSiteAssets().add(collectionSiteAssetRepository.save(asset));
         }
-        return toView(collectionRepository.save(saved));
+        CollectionView view = toView(collectionRepository.save(saved));
+        log.info("created collection #{} '{}' with {} label(s) and {} category(ies)",
+                view.id(), req.headerEn(), labels.size(), categories.size());
+        return view;
     }
 
     public CollectionView updateText(Long id, CollectionRequest req) {
@@ -166,6 +171,7 @@ public class CollectionService {
         collection.setSubheaderFr(req.subheaderFr());
         collection.setSubheaderEs(req.subheaderEs());
         collection.setColor(req.color());
+        log.info("updated text/labels for collection #{}", id);
         return toView(collectionRepository.save(collection));
     }
 
@@ -232,9 +238,16 @@ public class CollectionService {
         asset.setSubheaderEn(req.subheaderEn());
         asset.setSubheaderFr(req.subheaderFr());
         asset.setSubheaderEs(req.subheaderEs());
+        asset.setTaglineEn(req.taglineEn());
+        asset.setTaglineFr(req.taglineFr());
+        asset.setTaglineEs(req.taglineEs());
         asset.setColor(req.color());
+        asset.setHeaderColor(req.headerColor());
+        asset.setSubheaderColor(req.subheaderColor());
+        asset.setTaglineColor(req.taglineColor());
         asset.setCtaCategory(req.ctaCategory());
         asset.setCtaLabelId(req.ctaLabelId());
+        log.info("updated text for collection #{} slot {}", collectionId, slot);
         return toAssetView(collectionSiteAssetRepository.save(asset));
     }
 
@@ -276,6 +289,7 @@ public class CollectionService {
 
     public CollectionThemeView updateTheme(Long collectionId, CollectionThemeRequest req) {
         Collection collection = findOrThrow(collectionId);
+        boolean isNew = collectionThemeRepository.findByCollection_Id(collectionId).isEmpty();
         com.bijou.backend.entities.CollectionTheme theme = collectionThemeRepository
                 .findByCollection_Id(collectionId)
                 .orElseGet(() -> com.bijou.backend.entities.CollectionTheme.builder()
@@ -296,7 +310,9 @@ public class CollectionService {
         theme.setSiteTextMuted(req.siteTextMuted());
         theme.setSiteTextAccent(req.siteTextAccent());
         theme.setSiteSeparator(req.siteSeparator());
-        return toThemeView(collectionThemeRepository.save(theme));
+        CollectionThemeView view = toThemeView(collectionThemeRepository.save(theme));
+        log.info("{} theme for collection #{}", isNew ? "created" : "updated", collectionId);
+        return view;
     }
 
     @Transactional
@@ -310,20 +326,21 @@ public class CollectionService {
 
     @Transactional
     public CollectionView setMain(Long id) {
-        // Clear the current main flag on all collections
         collectionRepository.findByIsMainTrue().ifPresent(current -> {
+            log.info("clearing isMain from collection #{}", current.getId());
             current.setMain(false);
             collectionRepository.save(current);
         });
         Collection collection = findOrThrow(id);
         collection.setMain(true);
-        // A collection set as main is implicitly visible; keep active unchanged
+        log.info("set collection #{} '{}' as main", id, collection.getHeaderEn());
         return toView(collectionRepository.save(collection));
     }
 
     public CollectionView setActive(Long id, boolean active) {
         Collection collection = findOrThrow(id);
         collection.setActive(active);
+        log.info("collection #{} marked {}", id, active ? "active" : "inactive");
         return toView(collectionRepository.save(collection));
     }
 

@@ -90,10 +90,13 @@ public class CollectionSeeder implements ApplicationRunner {
         // ── Site assets ───────────────────────────────────────────────────────
         seedAssets(colEsencial,
             // hero
-            "Essential Collection", "Collection Essentielle", "Colección Esencial",
+            "Essential Collection:", "Collection Essentielle:", "Colección Esencial:",
             "The first step to accessible luxury",
             "Le premier pas vers le luxe accessible",
             "El primer paso al lujo accesible",
+            "Your everyday essential pieces. Minimalist design and superior durability in .925 Silver and high-quality Stainless Steel.",
+            "Vos pièces essentielles du quotidien. Design minimaliste et durabilité supérieure en Argent .925 et Acier Inoxydable de haute qualité.",
+            "Tus piezas fundamentales para el día a día. Diseño minimalista y durabilidad superior en Plata .925 y Acero Inoxidable de alta calidad.",
             // editorial 1
             ".925 Silver & Stainless Steel", "Argent .925 & Acier Inoxydable", "Plata .925 y Acero Inoxidable",
             "Minimalist design and superior durability for everyday wear",
@@ -108,10 +111,13 @@ public class CollectionSeeder implements ApplicationRunner {
 
         seedAssets(colPremium,
             // hero
-            "Premium Collection", "Collection Premium", "Colección Premium",
+            "Premium Collection:", "Collection Premium:", "Colección Premium:",
             "The splendor of artisanal design",
             "La splendeur du design artisanal",
             "El esplendor del diseño artesanal",
+            "Your iconic pieces for unforgettable moments. Artisanal design and unmatched quality in 10k and 14k Gold.",
+            "Vos pièces emblématiques pour des moments inoubliables. Design artisanal et qualité inégalée en Or 10k et 14k.",
+            "Tus piezas emblemáticas para momentos inolvidables. Diseño artesanal y calidad inigualable en Oro de 10k y 14k.",
             // editorial 1
             "10k & 14k Gold Craftsmanship", "Or 10k & 14k Artisanal", "Artesanía en Oro 10k y 14k",
             "Iconic pieces for unforgettable moments, crafted in pure gold",
@@ -126,10 +132,13 @@ public class CollectionSeeder implements ApplicationRunner {
 
         seedAssets(colInversion,
             // hero
-            "Investment Collection", "Collection Investissement", "Colección de Inversión",
+            "Investment Collection:", "Collection Investissement:", "Colección de Inversión:",
             "Heritage in solid metal",
             "Patrimoine en métal solide",
             "Patrimonio en metal sólido",
+            "Your pieces of eternal value. Pure 18k and 24k Gold of high weight and certified purity. Capital preservation and family legacy.",
+            "Vos pièces de valeur éternelle. Or pur 18k et 24k de haut gramme et pureté certifiée. Protection du capital et héritage familial.",
+            "Tus piezas de valor eterno. Oro puro de 18k y 24k de alto gramaje y pureza certificada. Resguardo de capital y legado familiar.",
             // editorial 1
             "18k & 24k Solid Gold", "Or Massif 18k & 24k", "Oro Sólido 18k y 24k",
             "Certified purity, high karat weight — a tangible store of value",
@@ -188,19 +197,24 @@ public class CollectionSeeder implements ApplicationRunner {
 
     private void seedAssets(
             Collection c,
-            String heroHeadEn, String heroHeadFr, String heroHeadEs,
-            String heroSubEn,  String heroSubFr,  String heroSubEs,
-            String ed1HeadEn,  String ed1HeadFr,  String ed1HeadEs,
-            String ed1SubEn,   String ed1SubFr,   String ed1SubEs,
-            String ed2HeadEn,  String ed2HeadFr,  String ed2HeadEs,
-            String ed2SubEn,   String ed2SubFr,   String ed2SubEs) {
+            String heroHeadEn,    String heroHeadFr,    String heroHeadEs,
+            String heroSubEn,     String heroSubFr,     String heroSubEs,
+            String heroTaglineEn, String heroTaglineFr, String heroTaglineEs,
+            String ed1HeadEn,     String ed1HeadFr,     String ed1HeadEs,
+            String ed1SubEn,      String ed1SubFr,      String ed1SubEs,
+            String ed2HeadEn,     String ed2HeadFr,     String ed2HeadEs,
+            String ed2SubEn,      String ed2SubFr,      String ed2SubEs) {
 
         assetRepository.saveAll(List.of(
             CollectionSiteAsset.builder()
                 .collection(c).slot("hero")
                 .headerEn(heroHeadEn).headerFr(heroHeadFr).headerEs(heroHeadEs)
                 .subheaderEn(heroSubEn).subheaderFr(heroSubFr).subheaderEs(heroSubEs)
-                .color(CHAMP)
+                .taglineEn(heroTaglineEn).taglineFr(heroTaglineFr).taglineEs(heroTaglineEs)
+                .color(CHAMP)          // CTA border color
+                .headerColor(CHAMP)
+                .subheaderColor(BLANCO)
+                .taglineColor(BLANCO)
                 .build(),
 
             CollectionSiteAsset.builder()
