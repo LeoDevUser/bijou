@@ -262,9 +262,13 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
       <section className="grid md:grid-cols-2">
         {([ed1, ed2, ed3, ed4] as const).map((ed, i) => {
           const placeholderBg = ['#E0DDD8', '#F5F0EA', '#EAE8E4', '#D0CCC8'][i];
-          const header   = pickLocale(ed?.headerEn,    ed?.headerFr,    ed?.headerEs,    i18n.language);
+          const header    = pickLocale(ed?.headerEn,    ed?.headerFr,    ed?.headerEs,    i18n.language);
           const subheader = pickLocale(ed?.subheaderEn, ed?.subheaderFr, ed?.subheaderEs, i18n.language);
-          const hasText = header || subheader;
+          const tagline   = pickLocale(ed?.taglineEn,   ed?.taglineFr,   ed?.taglineEs,   i18n.language);
+          const hasCta    = !!(ed?.ctaCategory || ed?.ctaLabelId);
+          const hasText   = header || subheader || (tagline && hasCta);
+          const fallbackColor = ed?.url ? '#FFFFFF' : '#1C1C1C';
+          const ctaColor  = ed?.taglineColor ?? ed?.color ?? fallbackColor;
           return (
             <div
               key={i}
@@ -275,20 +279,22 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
                 <SlotMedia entry={ed} alt={`Editorial ${i + 1}`} className="absolute inset-0 w-full h-full object-cover" />
               )}
               {hasText && (
-                <div className="relative z-10 text-center max-w-xs p-8 md:p-12" style={{ color: ed?.color ?? (ed?.url ? '#FFFFFF' : '#1C1C1C') }}>
+                <div className="relative z-10 text-center max-w-xs p-8 md:p-12" style={{ color: ed?.color ?? fallbackColor }}>
                   {subheader && (
                     <p className="text-xs uppercase tracking-widest mb-4">{subheader}</p>
                   )}
                   {header && (
                     <h2 className="font-serif text-4xl md:text-5xl italic font-light mb-6 leading-tight">{header}</h2>
                   )}
-                  <Link
-                    to={ctaHref(ed)}
-                    className="text-xs uppercase tracking-widest border-b pb-0.5 hover:opacity-75 transition-opacity"
-                    style={{ borderColor: ed?.color ?? (ed?.url ? '#FFFFFF' : '#1C1C1C') }}
-                  >
-                    {t('home.editorial1.cta')}
-                  </Link>
+                  {hasCta && (
+                    <Link
+                      to={ctaHref(ed)}
+                      className="text-xs uppercase tracking-widest border-b pb-0.5 hover:opacity-75 transition-opacity"
+                      style={{ color: ctaColor, borderColor: ctaColor }}
+                    >
+                      {tagline || t('home.editorial1.cta')}
+                    </Link>
+                  )}
                 </div>
               )}
             </div>
