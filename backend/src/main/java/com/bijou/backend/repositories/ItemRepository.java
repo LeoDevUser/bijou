@@ -35,6 +35,24 @@ public interface ItemRepository extends JpaRepository<Item, Long>{
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT i FROM Item i WHERE i.id IN :ids")
     List<Item> findAllByIdWithLock(@Param("ids") List<Long> ids);
+    /** Atomically increments all sales counters for one item — avoids lost-update under concurrent webhooks. */
+    @Modifying
+    @Query("UPDATE Item i SET " +
+           "i.nbSold = i.nbSold + :qty, " +
+           "i.nbSoldMonth = i.nbSoldMonth + :qty, " +
+           "i.totalSalesWeek = i.totalSalesWeek + :amount, " +
+           "i.totalSalesMonth = i.totalSalesMonth + :amount, " +
+           "i.totalSalesQuarter = i.totalSalesQuarter + :amount, " +
+           "i.totalSalesYear = i.totalSalesYear + :amount, " +
+           "i.totalSales = i.totalSales + :amount " +
+           "WHERE i.id = :id")
+    void incrementSalesStats(@Param("id") Long id, @Param("qty") int qty, @Param("amount") java.math.BigDecimal amount);
+
+    /** Atomically detaches a label from all items (junction table only). */
+    @Modifying
+    @Query(value = "DELETE FROM item_labels WHERE label_id = :labelId", nativeQuery = true)
+    void detachLabel(@Param("labelId") Long labelId);
+
     @Modifying
     @Query("UPDATE Item i SET i.nbSoldMonth = 0")
     void resetNbSoldMonth();

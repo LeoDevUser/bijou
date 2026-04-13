@@ -37,7 +37,7 @@ public class AnnouncementService {
 
     @Transactional
     public AnnouncementView create(AnnouncementRequest req) {
-        int nextOrder = (int) announcementRepository.count();
+        int nextOrder = announcementRepository.maxSortOrder() + 1;
         Announcement a = announcementRepository.save(Announcement.builder()
             .textEn(req.textEn())
             .textFr(req.textFr())
@@ -77,7 +77,7 @@ public class AnnouncementService {
 
     @Transactional
     public List<AnnouncementView> moveUp(Long id) {
-        List<Announcement> all = announcementRepository.findAllByOrderBySortOrderAsc();
+        List<Announcement> all = announcementRepository.findAllOrderedWithLock();
         int idx = indexOfId(all, id);
         if (idx > 0) swap(all, idx, idx - 1);
         return announcementRepository.saveAll(all).stream().map(this::toView).toList();
@@ -85,7 +85,7 @@ public class AnnouncementService {
 
     @Transactional
     public List<AnnouncementView> moveDown(Long id) {
-        List<Announcement> all = announcementRepository.findAllByOrderBySortOrderAsc();
+        List<Announcement> all = announcementRepository.findAllOrderedWithLock();
         int idx = indexOfId(all, id);
         if (idx < all.size() - 1) swap(all, idx, idx + 1);
         return announcementRepository.saveAll(all).stream().map(this::toView).toList();

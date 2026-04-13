@@ -66,7 +66,8 @@ public class CollectionSeeder implements ApplicationRunner {
             "The first step to accessible luxury",
             "Le premier pas vers le luxe accessible",
             "El primer paso al lujo accesible",
-            CHAMP
+            CHAMP,
+            true
         );
         Collection colPremium   = buildCollection(
             List.of(premium),
@@ -74,7 +75,8 @@ public class CollectionSeeder implements ApplicationRunner {
             "The splendor of artisanal design",
             "La splendeur du design artisanal",
             "El esplendor del diseño artesanal",
-            CHAMP
+            CHAMP,
+            false
         );
         Collection colInversion = buildCollection(
             List.of(inversion),
@@ -82,8 +84,15 @@ public class CollectionSeeder implements ApplicationRunner {
             "Heritage in solid metal",
             "Patrimoine en métal solide",
             "Patrimonio en metal sólido",
-            CHAMP
+            CHAMP,
+            false
         );
+
+        // Esencial will be the new main — clear isMain from the default collection first
+        collectionRepository.findByIsMainTrue().ifPresent(current -> {
+            current.setMain(false);
+            collectionRepository.save(current);
+        });
 
         collectionRepository.saveAll(List.of(colEsencial, colPremium, colInversion));
 
@@ -185,11 +194,12 @@ public class CollectionSeeder implements ApplicationRunner {
             List<Label> labels,
             String headerEn, String headerFr, String headerEs,
             String subEn, String subFr, String subEs,
-            String color) {
+            String color, boolean main) {
         Collection c = Collection.builder()
                 .headerEn(headerEn).headerFr(headerFr).headerEs(headerEs)
                 .subheaderEn(subEn).subheaderFr(subFr).subheaderEs(subEs)
                 .color(color)
+                .isMain(main)
                 .build();
         c.setLabels(labels);
         return c;
@@ -215,8 +225,9 @@ public class CollectionSeeder implements ApplicationRunner {
                 .headerColor(CHAMP)
                 .subheaderColor(BLANCO)
                 .taglineColor(BLANCO)
-                .imageId("knabtiyilotckv9ffdpn")
-                .imageUrl("https://res.cloudinary.com/ds3htctzs/image/upload/v1776032370/knabtiyilotckv9ffdpn.png")
+                .imageId("xkpammnhpuy60pcjccbj")
+                .imageUrl("https://res.cloudinary.com/ds3htctzs/video/upload/v1776032704/xkpammnhpuy60pcjccbj.mp4")
+                .resourceType("video")
                 .build(),
 
             CollectionSiteAsset.builder()

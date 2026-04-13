@@ -39,6 +39,14 @@ public class PaymentService {
     @Value("${stripe.webhook.secret}")
     private String webSecret;
 
+    /**
+     * JVM-level lock that serialises Stripe customer creation per-process.
+     * Prevents two concurrent first-orders from the same client both reaching
+     * Customer.create() before either has saved the resulting stripeCustomerId.
+     */
+    private final java.util.concurrent.locks.ReentrantLock customerCreationLock =
+            new java.util.concurrent.locks.ReentrantLock();
+
     public String createPaymentIntent(Client client, Order order, Currency currency) {
         try {
             String customerId = resolveCustomer(client);
@@ -107,19 +115,32 @@ public class PaymentService {
     }
 
     private String resolveCustomer(Client client) throws StripeException {
+        // Fast path — already has a customer ID.
         if (client.getStripeCustomerId() != null) return client.getStripeCustomerId();
 
-        CustomerCreateParams params = CustomerCreateParams.builder()
-            .setEmail(client.getEmail())
-            .setName(client.getFirstName() + " " + client.getLastName())
-            .putMetadata("clientId", client.getId().toString())
-            .build();
+        // Slow path: acquire a JVM lock to prevent two concurrent first-orders from
+        // creating duplicate Stripe customers for the same client.
+        customerCreationLock.lock();
+        try {
+            // Re-read from DB now that we hold the lock — another thread may have
+            // just created and saved the customer while we were waiting.
+            Client fresh = clientRepository.findById(client.getId()).orElseThrow();
+            if (fresh.getStripeCustomerId() != null) return fresh.getStripeCustomerId();
 
-        Customer customer = Customer.create(params);
-        client.setStripeCustomerId(customer.getId());
-        clientRepository.save(client);
-        log.info("created stripe customer {} for client {}", customer.getId(), client.getId());
-        return customer.getId();
+            CustomerCreateParams params = CustomerCreateParams.builder()
+                .setEmail(fresh.getEmail())
+                .setName(fresh.getFirstName() + " " + fresh.getLastName())
+                .putMetadata("clientId", fresh.getId().toString())
+                .build();
+
+            Customer customer = Customer.create(params);
+            fresh.setStripeCustomerId(customer.getId());
+            clientRepository.save(fresh);
+            log.info("created stripe customer {} for client {}", customer.getId(), fresh.getId());
+            return customer.getId();
+        } finally {
+            customerCreationLock.unlock();
+        }
     }
 
     @Transactional
@@ -195,9 +216,9 @@ public class PaymentService {
         // Payment confirmed email for all payment types
         eventPublisher.publishEvent(buildConfirmationEvent(client, order, null));
 
-        client.setNbSuccessfulOrders(client.getNbSuccessfulOrders() + 1);
-        client.setMoneySpent(client.getMoneySpent().add(order.getTotalPrice()));
-        clientRepository.save(client);
+        // Atomic SQL increment — avoids lost-update if two orders for the same client
+        // succeed concurrently (e.g., simultaneous OXXO + bank-transfer webhooks).
+        clientRepository.incrementStats(client.getId(), order.getTotalPrice());
         eventPublisher.publishEvent(new PaymentSuccessEvent(client, order.getId()));
         log.info("updated stats for client {} after successful payment", client.getEmail());
     }

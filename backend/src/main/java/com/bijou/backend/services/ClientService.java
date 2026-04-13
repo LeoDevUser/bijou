@@ -2,6 +2,7 @@ package com.bijou.backend.services;
 
 import java.util.List;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,13 +30,16 @@ public class ClientService {
             log.warn("wrong password");
             throw new AppException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS");
         }
-        if (clientRepository.findByEmail(req.newEmail()).isPresent()) {
-            log.warn("email {} already registered", client.getEmail());
+        // Rely on the DB unique constraint rather than a pre-check to avoid TOCTOU.
+        // Two concurrent change-email requests for the same new address cannot both succeed.
+        client.setEmail(req.newEmail());
+        try {
+            clientRepository.save(client);
+            log.info("email change successful");
+        } catch (DataIntegrityViolationException e) {
+            log.warn("email {} already registered", req.newEmail());
             throw new AppException(HttpStatus.CONFLICT, "EMAIL_CONFLICT");
         }
-        log.info("email change successful");
-        client.setEmail(req.newEmail());
-        clientRepository.save(client);
     }
 
     public ClientProfileResponse getProfile(Client client) {

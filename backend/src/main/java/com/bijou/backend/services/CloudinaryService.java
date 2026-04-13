@@ -124,7 +124,6 @@ public class CloudinaryService {
         delete(imageId, "image");
     }
 
-    @SuppressWarnings("unchecked")
     public CloudinaryResourcesPage listResources(String resourceType, String nextCursor) {
         try {
             Map<String, Object> params = new java.util.LinkedHashMap<>();

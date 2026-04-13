@@ -194,31 +194,14 @@ public class OrderService {
             order.getStatus() == Status.DELIVERED)
             throw new AppException(HttpStatus.UNPROCESSABLE_CONTENT, "ORDER_CANCEL_NOT_ALLOWED", order.getStatus().toString());
 
-        //we can go ahead and update the items in the order
+        // Atomic SQL increments — avoids lost-update when two orders containing the
+        // same item are confirmed concurrently. No pessimistic lock needed here because
+        // each UPDATE operates atomically at the DB level.
         List<OrderItem> orderItems = order.getOrderItems();
-        List<Long> itemIds = orderItems.stream()
-            .map(orderItem -> orderItem.getItem().getId())
-            .distinct()
-            .toList();
-        Map<Long, Item> itemMap = itemRepository.findAllByIdWithLock(itemIds).stream()
-            .collect(Collectors.toMap(Item::getId, item -> item));
-
         orderItems.forEach(orderItem -> {
-            Item item = itemMap.get(orderItem.getItem().getId());
-            if (item == null) {
-                log.warn("item {} no longer exists, skipping sales update", orderItem.getItem().getId());
-                return;
-            }
-
-            //here we update all sales stats
-            item.setNbSold(orderItem.getQuantity() + item.getNbSold());
-            item.setNbSoldMonth(orderItem.getQuantity() + item.getNbSoldMonth());
             BigDecimal totalSold = orderItem.getUnitPrice().multiply(BigDecimal.valueOf(orderItem.getQuantity()));
-            item.setTotalSalesWeek(totalSold.add(item.getTotalSalesWeek()));
-            item.setTotalSalesMonth(totalSold.add(item.getTotalSalesMonth()));
-            item.setTotalSalesQuarter(totalSold.add(item.getTotalSalesQuarter()));
-            item.setTotalSalesYear(totalSold.add(item.getTotalSalesYear()));
-            item.setTotalSales(totalSold.add(item.getTotalSales()));
+            itemRepository.incrementSalesStats(
+                    orderItem.getItem().getId(), orderItem.getQuantity(), totalSold);
         });
 
         order.setStatus(Status.PROCESSING);

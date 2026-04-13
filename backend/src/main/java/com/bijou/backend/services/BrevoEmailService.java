@@ -21,6 +21,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.core.ParameterizedTypeReference;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
@@ -95,7 +96,8 @@ public class BrevoEmailService {
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
 
         try {
-            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), Map.class);
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(url, HttpMethod.GET,
+                    new HttpEntity<>(headers), new ParameterizedTypeReference<Map<String, Object>>() {});
             List<Map<String, Object>> reports = (List<Map<String, Object>>) response.getBody().get("reports");
             int sentToday = 0;
             if (reports != null && !reports.isEmpty()) {

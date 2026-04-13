@@ -346,12 +346,16 @@ public class CollectionService {
 
     @Transactional
     public CollectionView setMain(Long id) {
-        collectionRepository.findByIsMainTrue().ifPresent(current -> {
+        // Lock current main first (if any) to serialise concurrent setMain calls.
+        collectionRepository.findByIsMainTrueWithLock().ifPresent(current -> {
             log.info("clearing isMain from collection #{}", current.getId());
             current.setMain(false);
             collectionRepository.save(current);
         });
-        Collection collection = findOrThrow(id);
+        // Lock the target collection before promoting it.
+        Collection collection = collectionRepository.findByIdWithLock(id)
+                .orElseThrow(() -> new com.bijou.backend.exception.AppException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, "COLLECTION_NOT_FOUND"));
         collection.setMain(true);
         log.info("set collection #{} '{}' as main", id, collection.getHeaderEn());
         return toView(collectionRepository.save(collection));

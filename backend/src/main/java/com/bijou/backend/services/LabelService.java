@@ -48,9 +48,10 @@ public class LabelService {
     public void delete(Long id) {
         Label label = labelRepository.findById(id)
             .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "LABEL_NOT_FOUND"));
-        // detach from all items and collections before deleting to avoid FK violation
-        itemRepository.findByLabels_Id(id).forEach(item -> item.getLabels().remove(label));
-        collectionRepository.findByLabels_Id(id).forEach(c -> c.getLabels().remove(label));
+        // Atomic native DELETEs on the junction tables — avoids the in-memory
+        // collection mutation pattern which could miss items assigned concurrently.
+        itemRepository.detachLabel(id);
+        collectionRepository.detachLabel(id);
         labelRepository.deleteById(id);
         log.info("deleted label #{} ({})", id, label.getNameEn());
     }

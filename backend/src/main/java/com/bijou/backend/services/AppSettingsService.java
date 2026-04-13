@@ -50,13 +50,10 @@ public class AppSettingsService {
         return toView(repository.save(s));
     }
 
-    /** Called when Brevo returns a 429. Auto-disables the relay. */
+    /** Called when Brevo returns a 429. Auto-disables the relay via a single atomic UPDATE. */
     @Transactional
-    public synchronized void autoDisable(String reason) {
-        AppSettings s = load();
-        s.setSmtpRelayEnabled(false);
-        s.setDisabledReason(reason);
-        repository.save(s);
+    public void autoDisable(String reason) {
+        repository.autoDisable(reason);
         log.warn("SMTP relay auto-disabled: {}", reason);
     }
 }
