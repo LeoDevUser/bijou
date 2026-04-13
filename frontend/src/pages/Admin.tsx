@@ -1191,7 +1191,9 @@ function CollectionFormModal({
         <div>
           <label className="text-xs uppercase tracking-widest text-muted block mb-1">{t('admin.modal.image')}</label>
           {(pickedMedia?.secureUrl ?? initial?.imageUrl) && (
-            <img src={pickedMedia?.secureUrl ?? initial!.imageUrl!} alt="" className="w-24 h-16 object-cover mb-2" />
+            (pickedMedia?.resourceType ?? initial?.resourceType) === 'video'
+              ? <video src={pickedMedia?.secureUrl ?? initial!.imageUrl!} className="w-24 h-16 object-cover mb-2" autoPlay muted loop playsInline />
+              : <img src={pickedMedia?.secureUrl ?? initial!.imageUrl!} alt="" className="w-24 h-16 object-cover mb-2" />
           )}
           <input
             ref={fileRef}
@@ -1812,7 +1814,9 @@ function AdminCollections() {
                   <div className="flex items-center gap-4">
                     <div className="relative flex-shrink-0">
                       {c.imageUrl
-                        ? <img src={c.imageUrl} alt={header || labelNames} className="w-16 h-12 object-cover" />
+                        ? c.resourceType === 'video'
+                          ? <video src={c.imageUrl} className="w-16 h-12 object-cover" autoPlay muted loop playsInline />
+                          : <img src={c.imageUrl} alt={header || labelNames} className="w-16 h-12 object-cover" />
                         : <div className="w-16 h-12 bg-[#F0EDE8]" />
                       }
                     </div>
