@@ -40,6 +40,7 @@ public class CollectionSeeder implements ApplicationRunner {
     private static final String ORO    = "#C5A059";
     private static final String CHAMP  = "#E5D1B0";
     private static final String CARBON = "#2B2B2B";
+    private static final String MUTED  = "#6b6b70";
 
     private final CollectionRepository            collectionRepository;
     private final CollectionSiteAssetRepository   assetRepository;
@@ -168,7 +169,7 @@ public class CollectionSeeder implements ApplicationRunner {
                 .navbarBg(NEGRO)
                 .navbarText(CHAMP)
                 .navbarTextSelected(ORO)
-                .navbarTextInactive(CARBON)
+                .navbarTextInactive(MUTED)
                 .announcementBg(ORO)
                 .announcementText(NEGRO)
                 .siteBg(BLANCO)
@@ -177,7 +178,7 @@ public class CollectionSeeder implements ApplicationRunner {
                 .cardButtonBg(ORO)
                 .cardButtonText(NEGRO)
                 .navbarSeparator(CARBON)
-                .siteTextMuted(CARBON)
+                .siteTextMuted(MUTED)
                 .siteTextAccent(ORO)
                 .siteSeparator(CARBON)
                 .build());

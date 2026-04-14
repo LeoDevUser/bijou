@@ -59,6 +59,11 @@ export interface SalesStats {
   ordersMonth: number;
   ordersQuarter: number;
   ordersYear: number;
+  taxTotal: number;
+  taxWeek: number;
+  taxMonth: number;
+  taxQuarter: number;
+  taxYear: number;
 }
 
 export interface OrderItemView {

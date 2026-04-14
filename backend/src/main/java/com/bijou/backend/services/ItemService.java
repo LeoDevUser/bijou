@@ -156,6 +156,23 @@ public class ItemService {
         return toItemView(item);
     }
 
+    public ItemView pickAsset(Long itemId, PickMediaRequest req) {
+        Item item = findAnyItemOrThrow(itemId);
+        int nextOrder = item.getAssets().size();
+        ItemAsset asset = ItemAsset.builder()
+            .item(item)
+            .imageUrl(req.secureUrl())
+            .imageId(req.publicId())
+            .resourceType(req.resourceType())
+            .sortOrder(nextOrder)
+            .owned(false)
+            .build();
+        item.getAssets().add(asset);
+        Item saved = itemRepository.saveAndFlush(item);
+        log.info("picked {} asset '{}' for item #{} ({})", req.resourceType(), req.publicId(), itemId, displayName(saved));
+        return toItemView(saved);
+    }
+
     @Transactional
     public ItemView deleteAsset(Long itemId, Long assetId) {
         Item item = findAnyItemOrThrow(itemId);
@@ -168,7 +185,9 @@ public class ItemService {
             item.getAssets().get(i).setSortOrder(i);
         }
         itemRepository.saveAndFlush(item);
-        cloudinaryService.delete(asset.getImageId(), asset.getResourceType());
+        if (asset.isOwned()) {
+            cloudinaryService.delete(asset.getImageId(), asset.getResourceType());
+        }
         log.info("deleted asset #{} from item #{} ({})", assetId, itemId, displayName(item));
         return toItemView(item);
     }
@@ -255,7 +274,12 @@ public class ItemService {
             orderRepository.countSuccessfulSince(now.minusWeeks(1)),
             orderRepository.countSuccessfulSince(now.minusMonths(1)),
             orderRepository.countSuccessfulSince(now.minusMonths(3)),
-            orderRepository.countSuccessfulSince(now.minusYears(1))
+            orderRepository.countSuccessfulSince(now.minusYears(1)),
+            orderRepository.sumTaxTotal(),
+            orderRepository.sumTaxSince(now.minusWeeks(1)),
+            orderRepository.sumTaxSince(now.minusMonths(1)),
+            orderRepository.sumTaxSince(now.minusMonths(3)),
+            orderRepository.sumTaxSince(now.minusYears(1))
         );
     }
 

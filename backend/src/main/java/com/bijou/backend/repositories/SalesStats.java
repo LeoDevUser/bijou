@@ -12,5 +12,10 @@ public record SalesStats(
     long ordersWeek,
     long ordersMonth,
     long ordersQuarter,
-    long ordersYear
+    long ordersYear,
+    BigDecimal taxTotal,
+    BigDecimal taxWeek,
+    BigDecimal taxMonth,
+    BigDecimal taxQuarter,
+    BigDecimal taxYear
 ) {}

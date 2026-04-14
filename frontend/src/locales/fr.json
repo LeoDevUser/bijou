@@ -156,6 +156,7 @@
     "createAccount": "Créer un Compte",
     "language": "Langue Préférée",
     "error": "Une erreur est survenue. Veuillez réessayer.",
+    "passwordInvalid": "Mot de passe invalide. Il doit contenir entre 8 et 30 caractères, avec au moins une majuscule, une minuscule, un chiffre et un caractère spécial.",
     "agreeTerms": {
       "pre": "J'accepte les ",
       "terms": "Conditions d'Utilisation",
@@ -270,6 +271,7 @@
       "unitsSoldTotal": "vendus au total",
       "noData": "Aucune donnée de vente pour l'instant.",
       "stripeFee": "Stripe ~${{amount}}",
+      "taxes": "Taxes & frais ${{amount}}",
       "stripeNet": "Net ~${{amount}}",
       "stripeNote": "* Frais Stripe estimés à 3,6 % + $3,00 MXN/transaction."
     },

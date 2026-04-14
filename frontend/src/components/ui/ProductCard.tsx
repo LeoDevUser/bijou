@@ -127,12 +127,12 @@ export default function ProductCard({ item }: { item: ItemView }) {
       <p className="text-sm tracking-wide" style={{ color: 'var(--bijou-card-text)' }}>{name}</p>
       {hasDiscount ? (
         <p className="text-sm mt-0.5 flex items-center gap-2">
-          <span>{format(salePrice)}</span>
+          <span style={{ color: 'var(--bijou-site-text-accent)' }}>{format(salePrice)}</span>
           <span className="line-through text-muted">{format(Number(item.price))}</span>
-          <span className="text-xs text-gold">-{item.discountPercent}%</span>
+          <span className="text-xs" style={{ color: 'var(--bijou-site-text-accent)' }}>-{item.discountPercent}%</span>
         </p>
       ) : (
-        <p className="text-sm text-muted mt-0.5">{format(Number(item.price))}</p>
+        <p className="text-sm mt-0.5" style={{ color: 'var(--bijou-site-text-accent)' }}>{format(Number(item.price))}</p>
       )}
     </Link>
   );

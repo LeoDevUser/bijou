@@ -156,6 +156,7 @@
     "createAccount": "Crear Cuenta",
     "language": "Idioma Preferido",
     "error": "Algo salió mal. Por favor, intenta de nuevo.",
+    "passwordInvalid": "Contraseña inválida. Debe tener entre 8 y 30 caracteres e incluir al menos una mayúscula, una minúscula, un número y un carácter especial.",
     "agreeTerms": {
       "pre": "Acepto los ",
       "terms": "Términos de Servicio",
@@ -270,6 +271,7 @@
       "unitsSoldTotal": "vendidos en total",
       "noData": "Aún no hay datos de ventas.",
       "stripeFee": "Stripe ~${{amount}}",
+      "taxes": "Impuestos y cargos ${{amount}}",
       "stripeNet": "Neto ~${{amount}}",
       "stripeNote": "* Comisiones Stripe estimadas al 3.6% + $3.00 MXN/transacción."
     },

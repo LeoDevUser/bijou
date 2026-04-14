@@ -76,7 +76,11 @@ export default function Register() {
       navigate('/');
     } catch (err) {
       const e = err as { code?: string };
-      setError(e.code ?? t('auth.error'));
+      if (e.code === 'PASSWORD_INVALID') {
+        setError(t('auth.passwordInvalid'));
+      } else {
+        setError(e.code ?? t('auth.error'));
+      }
     } finally {
       setLoading(false);
     }

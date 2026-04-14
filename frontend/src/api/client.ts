@@ -170,6 +170,8 @@ export const api = {
       },
       deleteAsset: (itemId: number, assetId: number) =>
         request<ItemView>(`/${ADMIN}/items/${itemId}/assets/${assetId}`, { method: 'DELETE' }),
+      pickAsset: (itemId: number, data: { publicId: string; resourceType: string; secureUrl: string }) =>
+        request<ItemView>(`/${ADMIN}/items/${itemId}/assets/pick`, { method: 'PATCH', body: JSON.stringify(data) }),
       createWithImage: async (data: ItemRequest, file: File): Promise<ItemView> => {
         const form = new FormData();
         form.append('item', new Blob([JSON.stringify(data)], { type: 'application/json' }));

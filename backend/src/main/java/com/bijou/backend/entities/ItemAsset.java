@@ -37,4 +37,8 @@ public class ItemAsset {
     private String resourceType;
     @Column(nullable = false)
     private int sortOrder;
+    /** true = uploaded by us (delete from Cloudinary on removal); false = picked from existing library (do not delete). */
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean owned = true;
 }

@@ -6,7 +6,7 @@ const DEFAULTS: ThemeConfig = {
   navbarBg: '#FAFAF8',
   navbarText: '#1C1C1C',
   navbarTextSelected: '#C9A96E',
-  navbarTextInactive: '#9C9C9C',
+  navbarTextInactive: '#6b6b70',
   announcementBg: '#1C1C1C',
   announcementText: '#FFFFFF',
   siteBg: '#FAFAF8',
@@ -15,7 +15,7 @@ const DEFAULTS: ThemeConfig = {
   cardButtonBg: '#1C1C1C',
   cardButtonText: '#FFFFFF',
   navbarSeparator: '#E8E4DC',
-  siteTextMuted: '#9C9C9C',
+  siteTextMuted: '#6b6b70',
   siteTextAccent: '#C9A96E',
   siteSeparator: '#E8E4DC',
 };

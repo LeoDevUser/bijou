@@ -3,14 +3,10 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import ProductCard from '../components/ui/ProductCard';
-import type { CollectionView, CollectionSiteAssetView, ItemView, CategoryView } from '../types';
+import type { CollectionView, CollectionSiteAssetView, ItemView } from '../types';
 import { pickLocale } from '../types';
 import { useTheme, mergeCollectionTheme } from '../context/ThemeContext';
 
-type SortOption = 'default' | 'bestselling' | 'price_asc' | 'price_desc';
-
-const effectivePrice = (item: ItemView) =>
-  item.discountPercent ? item.price * (1 - item.discountPercent / 100) : item.price;
 
 type AssetEntry = {
   url: string | null; resourceType: string;
@@ -63,8 +59,6 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
   const [collection, setCollection] = useState<CollectionView | null>(null);
   const [trending, setTrending] = useState<ItemView[]>([]);
   const [allItems, setAllItems] = useState<ItemView[]>([]);
-  const [activeCategory, setActiveCategory] = useState<number | null>(null);
-  const [sort, setSort] = useState<SortOption>('default');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -76,7 +70,7 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
     setLoading(true);
     Promise.all([
       api.collections.getById(collectionId),
-      api.collections.trending(collectionId),
+      api.items.trending(),
       api.collections.items(collectionId),
     ])
       .then(([col, tr, items]) => {
@@ -115,25 +109,6 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
   const ed3 = fromSiteAsset(assetMap.editorial3);
   const ed4 = fromSiteAsset(assetMap.editorial4);
 
-  // Unique categories present in collection items
-  const categories = useMemo<CategoryView[]>(() => {
-    const seen = new Map<number, CategoryView>();
-    allItems.forEach(item => {
-      if (!seen.has(item.category.id)) seen.set(item.category.id, item.category);
-    });
-    return Array.from(seen.values());
-  }, [allItems]);
-
-  const filteredItems = useMemo(() => {
-    let result = allItems;
-    if (activeCategory !== null) {
-      result = result.filter(item => item.category.id === activeCategory);
-    }
-    if (sort === 'price_asc') return [...result].sort((a, b) => effectivePrice(a) - effectivePrice(b));
-    if (sort === 'price_desc') return [...result].sort((a, b) => effectivePrice(b) - effectivePrice(a));
-    if (sort === 'bestselling') return [...result].sort((a, b) => b.price - a.price); // server already sorted, keep order
-    return result;
-  }, [allItems, activeCategory, sort]);
 
   if (loading) {
     return (
@@ -196,62 +171,14 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
         </div>
       </section>
 
-      {/* Trending from this collection */}
-      {trending.length > 0 && (
-        <section className="max-w-7xl mx-auto px-6 py-16">
-          <div className="flex items-center justify-between mb-10">
-            <h2 className="font-serif text-3xl font-light">{t('home.trending.title')}</h2>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {trending.map(item => (
-              <ProductCard key={item.id} item={item} />
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* Products section */}
-      <section className="max-w-7xl mx-auto px-6 pb-16">
-        {/* Category filters + sort */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-          <div className="flex flex-wrap gap-2">
-            {categories.length > 0 && (
-              <button
-                onClick={() => setActiveCategory(null)}
-                className={`px-4 py-1.5 text-xs uppercase tracking-widest border transition-colors ${activeCategory === null ? 'bg-dark text-light border-dark' : 'border-current hover:opacity-70'}`}
-              >
-                {t('shop.all')}
-              </button>
-            )}
-            {categories.map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                className={`px-4 py-1.5 text-xs uppercase tracking-widest border transition-colors ${activeCategory === cat.id ? 'bg-dark text-light border-dark' : 'border-current hover:opacity-70'}`}
-              >
-                {pickLocale(cat.nameEn, cat.nameFr, cat.nameEs, i18n.language)}
-              </button>
-            ))}
-          </div>
-          {allItems.length > 0 && (
-            <select
-              value={sort}
-              onChange={e => setSort(e.target.value as SortOption)}
-              className="text-xs uppercase tracking-widest border border-current bg-transparent px-3 py-1.5 cursor-pointer"
-            >
-              <option value="default">{t('shop.sortDefault')}</option>
-              <option value="bestselling">{t('shop.sortBestselling')}</option>
-              <option value="price_asc">{t('shop.sortPriceAsc')}</option>
-              <option value="price_desc">{t('shop.sortPriceDesc')}</option>
-            </select>
-          )}
-        </div>
-
-        {filteredItems.length === 0 ? (
+      <section className="max-w-7xl mx-auto px-6 pt-16 pb-16">
+        <p className="text-xs uppercase tracking-widest text-muted mb-10">{collectionName}</p>
+        {allItems.length === 0 ? (
           <p className="text-muted text-center py-16">{t('shop.noProducts')}</p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {filteredItems.map(item => (
+            {allItems.map(item => (
               <ProductCard key={item.id} item={item} />
             ))}
           </div>
@@ -301,6 +228,20 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
           );
         })}
       </section>
+
+      {/* Trending from this collection */}
+      {trending.length > 0 && (
+        <section className="max-w-7xl mx-auto px-6 py-16">
+          <div className="flex items-center justify-between mb-10">
+            <h2 className="font-serif text-3xl font-light">{t('home.trending.title')}</h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {trending.map(item => (
+              <ProductCard key={item.id} item={item} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

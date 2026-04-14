@@ -156,6 +156,7 @@
     "createAccount": "Create Account",
     "language": "Preferred Language",
     "error": "Something went wrong. Please try again.",
+    "passwordInvalid": "Invalid password. Must be 8–30 characters and include at least one uppercase letter, one lowercase letter, one digit, and one special character.",
     "agreeTerms": {
       "pre": "I agree to the ",
       "terms": "Terms of Service",
@@ -270,6 +271,7 @@
       "unitsSoldTotal": "sold total",
       "noData": "No sales data yet.",
       "stripeFee": "Stripe ~${{amount}}",
+      "taxes": "Taxes & fees ${{amount}}",
       "stripeNet": "Net ~${{amount}}",
       "stripeNote": "* Stripe fees estimated at 3.6% + $3.00 MXN/transaction."
     },

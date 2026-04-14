@@ -527,6 +527,7 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
   const [error, setError] = useState<string | null>(null);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [currentAssets, setCurrentAssets] = useState(item?.assets ?? []);
+  const [browsingMedia, setBrowsingMedia] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const inputClass = 'w-full border border-border bg-cream px-4 py-3 text-sm outline-none focus:border-dark transition-colors';
@@ -685,14 +686,23 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
                 ))}
               </div>
             )}
-            <input
-              ref={fileRef}
-              type="file"
-              multiple
-              accept="image/*,video/mp4,video/webm,video/quicktime"
-              onChange={e => setPendingFiles(Array.from(e.target.files ?? []))}
-              className="text-sm text-muted"
-            />
+            <div className="flex items-center gap-3 flex-wrap">
+              <input
+                ref={fileRef}
+                type="file"
+                multiple
+                accept="image/*,video/mp4,video/webm,video/quicktime"
+                onChange={e => setPendingFiles(Array.from(e.target.files ?? []))}
+                className="text-sm text-muted"
+              />
+              <button
+                type="button"
+                onClick={() => setBrowsingMedia(true)}
+                className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors"
+              >
+                {t('admin.site.browse')}
+              </button>
+            </div>
             {pendingFiles.length > 0 && (
               <p className="text-xs text-muted mt-1">{pendingFiles.length} {t('admin.modal.filesSelected')}</p>
             )}
@@ -708,6 +718,30 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
           </div>
         </form>
       </div>
+      {browsingMedia && (
+        <CloudinaryBrowserModal
+          onClose={() => setBrowsingMedia(false)}
+          onSelect={async resource => {
+            setBrowsingMedia(false);
+            if (item) {
+              try {
+                const updated = await api.admin.items.pickAsset(item.id, {
+                  publicId: resource.publicId,
+                  resourceType: resource.resourceType,
+                  secureUrl: resource.secureUrl,
+                });
+                setCurrentAssets(updated.assets);
+              } catch {
+                setError(t('admin.products.saveError'));
+              }
+            } else {
+              // For new items not yet saved, queue the picked asset as a pseudo-file isn't
+              // possible — show a note that browse only works on existing items.
+              setError('Save the item first, then use Browse to pick media.');
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -2473,11 +2507,11 @@ function AdminStats() {
     amount * STRIPE_RATE + orders * STRIPE_FLAT;
 
   const statCards = stats ? [
-    { label: t('admin.stats.week'),    value: stats.week,    orders: stats.ordersWeek },
-    { label: t('admin.stats.month'),   value: stats.month,   orders: stats.ordersMonth },
-    { label: t('admin.stats.quarter'), value: stats.quarter, orders: stats.ordersQuarter },
-    { label: t('admin.stats.year'),    value: stats.year,    orders: stats.ordersYear },
-    { label: t('admin.stats.allTime'), value: stats.total,   orders: stats.ordersTotal },
+    { label: t('admin.stats.week'),    value: stats.week,    orders: stats.ordersWeek,    tax: stats.taxWeek },
+    { label: t('admin.stats.month'),   value: stats.month,   orders: stats.ordersMonth,   tax: stats.taxMonth },
+    { label: t('admin.stats.quarter'), value: stats.quarter, orders: stats.ordersQuarter, tax: stats.taxQuarter },
+    { label: t('admin.stats.year'),    value: stats.year,    orders: stats.ordersYear,    tax: stats.taxYear },
+    { label: t('admin.stats.allTime'), value: stats.total,   orders: stats.ordersTotal,   tax: stats.taxTotal },
   ] : [];
 
   const sortBtn = (label: string, value: typeof sort) => (
@@ -2504,6 +2538,9 @@ function AdminStats() {
               <p className="text-xs uppercase tracking-widest text-muted mb-1">{card.label}</p>
               <p className="font-serif text-2xl font-light">${Number(card.value).toFixed(2)}</p>
               <p className="text-xs text-muted mt-1">{t('admin.stats.stripeFee', { amount: stripeFee(Number(card.value), card.orders).toFixed(2) })}</p>
+              {Number(card.tax) > 0 && (
+                <p className="text-xs text-muted mt-0.5">{t('admin.stats.taxes', { amount: Number(card.tax).toFixed(2) })}</p>
+              )}
               <p className="text-xs font-medium mt-0.5">{t('admin.stats.stripeNet', { amount: (Number(card.value) - stripeFee(Number(card.value), card.orders)).toFixed(2) })}</p>
             </div>
           ))}

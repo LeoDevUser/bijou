@@ -21,6 +21,7 @@ import com.bijou.backend.services.CloudinaryService;
 import com.bijou.backend.services.ItemRequest;
 import com.bijou.backend.services.ItemService;
 import com.bijou.backend.services.ItemView;
+import com.bijou.backend.services.PickMediaRequest;
 import com.bijou.backend.services.ItemViewVerbose;
 
 import jakarta.validation.Valid;
@@ -109,6 +110,11 @@ public class ItemController {
             resourceType = "image";
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(itemService.addAsset(itemId, res, resourceType));
+    }
+
+    @PatchMapping("/${ADMIN_PAGE}/items/{itemId}/assets/pick")
+    public ResponseEntity<ItemView> pickAsset(@PathVariable Long itemId, @RequestBody PickMediaRequest req) {
+        return ResponseEntity.ok(itemService.pickAsset(itemId, req));
     }
 
     @DeleteMapping("/${ADMIN_PAGE}/items/{itemId}/assets/{assetId}")

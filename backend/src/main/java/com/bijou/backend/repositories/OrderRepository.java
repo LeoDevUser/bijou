@@ -33,4 +33,10 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT COUNT(o) FROM Order o WHERE o.status NOT IN (com.bijou.backend.entities.Status.AWAITING_PAYMENT, com.bijou.backend.entities.Status.CANCELLED) AND o.createdAt >= :since")
     long countSuccessfulSince(@Param("since") LocalDateTime since);
+
+    @Query("SELECT COALESCE(SUM(o.taxAmount), 0) FROM Order o WHERE o.status NOT IN (com.bijou.backend.entities.Status.AWAITING_PAYMENT, com.bijou.backend.entities.Status.CANCELLED)")
+    java.math.BigDecimal sumTaxTotal();
+
+    @Query("SELECT COALESCE(SUM(o.taxAmount), 0) FROM Order o WHERE o.status NOT IN (com.bijou.backend.entities.Status.AWAITING_PAYMENT, com.bijou.backend.entities.Status.CANCELLED) AND o.createdAt >= :since")
+    java.math.BigDecimal sumTaxSince(@Param("since") LocalDateTime since);
 }
