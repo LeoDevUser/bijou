@@ -25,4 +25,7 @@ public class AppSettings {
 
     /** Human-readable reason the relay was auto-disabled, null when enabled. */
     private String disabledReason;
+
+    /** Whether MSI (Meses Sin Intereses) installment plans are offered at checkout. */
+    private boolean msiEnabled;
 }

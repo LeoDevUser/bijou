@@ -441,6 +441,8 @@
       "title": "Email / Retransmisión SMTP",
       "relayActive": "Retransmisión activa",
       "relayDisabled": "Retransmisión desactivada",
+      "msiActive": "Meses Sin Intereses habilitados",
+      "msiDisabled": "Meses Sin Intereses deshabilitados",
       "disable": "Desactivar",
       "enable": "Activar",
       "reasons": {

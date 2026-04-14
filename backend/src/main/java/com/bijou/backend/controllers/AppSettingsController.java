@@ -35,6 +35,11 @@ public class AppSettingsController {
         return ResponseEntity.ok(appSettingsService.setRelayEnabled(req.enabled()));
     }
 
+    @PatchMapping("/${ADMIN_PAGE}/settings/msi")
+    public ResponseEntity<AppSettingsView> toggleMsi(@RequestBody AppSettingsToggleRequest req) {
+        return ResponseEntity.ok(appSettingsService.setMsiEnabled(req.enabled()));
+    }
+
     @GetMapping("/${ADMIN_PAGE}/settings/brevo-quota")
     public ResponseEntity<BrevoQuotaView> getBrevoQuota() {
         BrevoQuotaView quota = brevoEmailService.fetchDailyQuota();

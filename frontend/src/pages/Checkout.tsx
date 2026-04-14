@@ -33,6 +33,7 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [taxPreview, setTaxPreview] = useState<TaxPreview | null>(null);
+  const [msiEnabled, setMsiEnabled] = useState(false);
   const previewAbortRef = useRef<AbortController | null>(null);
 
   const MSI_PLANS = [
@@ -46,7 +47,7 @@ export default function Checkout() {
 
   // Tax-inclusive base total; falls back to cart total while preview loads
   const taxedTotal = taxPreview ? taxPreview.total : total;
-  const showMsi = currency === 'MXN' && taxedTotal >= 2000;
+  const showMsi = msiEnabled && currency === 'MXN' && taxedTotal >= 2000;
   const selectedPlan = MSI_PLANS.find(p => p.months === installments) ?? null;
   const finalTotal = selectedPlan ? taxedTotal * (1 + selectedPlan.rate) : taxedTotal;
 
@@ -55,6 +56,10 @@ export default function Checkout() {
     if (!isAuthenticated) navigate('/login');
     else if (items.length === 0) navigate('/cart');
   }, [isLoading, isAuthenticated, items.length, navigate]);
+
+  useEffect(() => {
+    api.admin.settings.get().then(s => setMsiEnabled(s.msiEnabled)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!isAuthenticated) return;

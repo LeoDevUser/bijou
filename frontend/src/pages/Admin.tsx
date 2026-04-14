@@ -2776,6 +2776,13 @@ function AdminSettings() {
     finally { setToggling(false); }
   }
 
+  async function handleMsiToggle() {
+    if (!settings) return;
+    setToggling(true);
+    try { setSettings(await api.admin.settings.setMsi(!settings.msiEnabled)); }
+    finally { setToggling(false); }
+  }
+
   const quotaPct = quota && quota !== 'error'
     ? Math.min(100, (quota.sentToday / quota.dailyLimit) * 100)
     : 0;
@@ -2831,6 +2838,25 @@ function AdminSettings() {
                 </div>
               </>
             )}
+          </div>
+
+          {/* MSI toggle */}
+          <div className="flex items-center justify-between border border-border p-4">
+            <div className="flex items-center gap-3">
+              <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${settings.msiEnabled ? 'bg-green-500' : 'bg-red-400'}`} />
+              <span className="text-sm">{settings.msiEnabled ? t('admin.settings.msiActive') : t('admin.settings.msiDisabled')}</span>
+            </div>
+            <button
+              onClick={handleMsiToggle}
+              disabled={toggling}
+              className={`text-xs uppercase tracking-widest border px-4 py-2 transition-colors disabled:opacity-50 cursor-pointer ${
+                settings.msiEnabled
+                  ? 'border-red-300 text-red-500 hover:border-red-500'
+                  : 'border-dark bg-dark text-white hover:bg-gold hover:border-gold'
+              }`}
+            >
+              {toggling ? '...' : settings.msiEnabled ? t('admin.settings.disable') : t('admin.settings.enable')}
+            </button>
           </div>
         </>
       )}

@@ -278,6 +278,7 @@ export interface ThemeConfig {
 export interface AppSettings {
   smtpRelayEnabled: boolean;
   disabledReason: string | null;
+  msiEnabled: boolean;
 }
 
 export interface BrevoQuota {

@@ -317,6 +317,8 @@ export const api = {
       get: () => request<AppSettings>(`/${ADMIN}/settings`),
       setRelay: (enabled: boolean) =>
         request<AppSettings>(`/${ADMIN}/settings/relay`, { method: 'PATCH', body: JSON.stringify({ enabled }) }),
+      setMsi: (enabled: boolean) =>
+        request<AppSettings>(`/${ADMIN}/settings/msi`, { method: 'PATCH', body: JSON.stringify({ enabled }) }),
       brevoQuota: () => request<BrevoQuota>(`/${ADMIN}/settings/brevo-quota`),
     },
     users: {

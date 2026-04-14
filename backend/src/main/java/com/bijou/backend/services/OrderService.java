@@ -45,6 +45,7 @@ public class OrderService {
     private final ApplicationEventPublisher eventPublisher;
     private final TaxService taxService;
     private final CloudinaryService cloudinaryService;
+    private final AppSettingsService appSettingsService;
 
     @Transactional
     public Order create(Client client, OrderRequest req) {
@@ -100,6 +101,9 @@ public class OrderService {
         // Apply MSI fee if applicable (MXN only, above 2000 MXN, valid plan)
         Integer installments = req.installments();
         if (installments != null) {
+            if (!appSettingsService.isMsiEnabled()) {
+                throw new AppException(HttpStatus.BAD_REQUEST, "MSI_DISABLED");
+            }
             if (req.currency() != Currency.MXN) {
                 throw new AppException(HttpStatus.BAD_REQUEST, "MSI_MXN_ONLY");
             }

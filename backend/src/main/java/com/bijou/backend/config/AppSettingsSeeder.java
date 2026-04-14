@@ -23,6 +23,7 @@ public class AppSettingsSeeder implements ApplicationRunner {
         appSettingsRepository.save(AppSettings.builder()
             .id(1L)
             .smtpRelayEnabled(true)
+            .msiEnabled(false)
             .build());
     }
 }

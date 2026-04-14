@@ -24,7 +24,7 @@ public class AppSettingsService {
     }
 
     private AppSettingsView toView(AppSettings s) {
-        return new AppSettingsView(s.isSmtpRelayEnabled(), s.getDisabledReason());
+        return new AppSettingsView(s.isSmtpRelayEnabled(), s.getDisabledReason(), s.isMsiEnabled());
     }
 
     @Transactional(readOnly = true)
@@ -48,6 +48,19 @@ public class AppSettingsService {
             log.info("SMTP relay manually disabled");
         }
         return toView(repository.save(s));
+    }
+
+    @Transactional
+    public AppSettingsView setMsiEnabled(boolean enabled) {
+        AppSettings s = load();
+        s.setMsiEnabled(enabled);
+        log.info("MSI installments {}", enabled ? "enabled" : "disabled");
+        return toView(repository.save(s));
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isMsiEnabled() {
+        return load().isMsiEnabled();
     }
 
     /** Called when Brevo returns a 429. Auto-disables the relay via a single atomic UPDATE. */

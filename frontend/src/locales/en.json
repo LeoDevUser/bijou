@@ -441,6 +441,8 @@
       "title": "Email / SMTP Relay",
       "relayActive": "Relay active",
       "relayDisabled": "Relay disabled",
+      "msiActive": "MSI installments enabled",
+      "msiDisabled": "MSI installments disabled",
       "disable": "Disable",
       "enable": "Enable",
       "reasons": {
