@@ -1,0 +1,5 @@
+target/
+*.md
+postman/
+readme.txt
+src/test/

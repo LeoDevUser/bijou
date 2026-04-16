@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-function FaqItem({ question, answer }: { question: string; answer: string }) {
+function FaqItem({ question, answer, linkHref, linkLabel }: {
+  question: string;
+  answer: string;
+  linkHref?: string;
+  linkLabel?: string;
+}) {
   const [open, setOpen] = useState(false);
   return (
     <div className="border-b border-border">
@@ -12,18 +17,35 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
         <span>{question}</span>
         <span className="text-muted ml-4 flex-shrink-0">{open ? '−' : '+'}</span>
       </button>
-      {open && <p className="pb-5 text-sm text-[#555] leading-relaxed">{answer}</p>}
+      {open && (
+        <div className="pb-5">
+          <p className="text-sm text-[#555] leading-relaxed whitespace-pre-line">{answer}</p>
+          {linkHref && linkLabel && (
+            <a
+              href={linkHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block mt-4 text-xs uppercase tracking-widest border-b border-current pb-0.5 hover:opacity-60 transition-opacity"
+            >
+              {linkLabel}
+            </a>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
 export default function Faq() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
-  const questions: { q: string; a: string }[] = [
+  const lang = i18n.language.startsWith('fr') ? 'fr' : i18n.language.startsWith('es') ? 'es' : 'en';
+  const sizingChart = `/sizing_chart_${lang}.jpg`;
+
+  const questions: { q: string; a: string; linkHref?: string; linkLabel?: string }[] = [
     { q: t('faq.q1.q'), a: t('faq.q1.a') },
     { q: t('faq.q2.q'), a: t('faq.q2.a') },
-    { q: t('faq.q3.q'), a: t('faq.q3.a') },
+    { q: t('faq.q3.q'), a: t('faq.q3.a'), linkHref: sizingChart, linkLabel: t('faq.q3.chartLink') },
     { q: t('faq.q4.q'), a: t('faq.q4.a') },
     { q: t('faq.q5.q'), a: t('faq.q5.a') },
     { q: t('faq.q6.q'), a: t('faq.q6.a') },
@@ -34,7 +56,7 @@ export default function Faq() {
       <h1 className="font-serif text-4xl font-light mb-10">{t('faq.title')}</h1>
       <div>
         {questions.map((item, i) => (
-          <FaqItem key={i} question={item.q} answer={item.a} />
+          <FaqItem key={i} question={item.q} answer={item.a} linkHref={item.linkHref} linkLabel={item.linkLabel} />
         ))}
       </div>
     </div>
