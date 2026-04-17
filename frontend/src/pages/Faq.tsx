@@ -49,6 +49,7 @@ export default function Faq() {
     { q: t('faq.q4.q'), a: t('faq.q4.a') },
     { q: t('faq.q5.q'), a: t('faq.q5.a') },
     { q: t('faq.q6.q'), a: t('faq.q6.a') },
+    { q: t('faq.q7.q'), a: t('faq.q7.a'), linkHref: `/care_${lang}.jpg`, linkLabel: t('faq.q7.careLink') },
   ];
 
   return (
