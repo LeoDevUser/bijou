@@ -1,4 +1,4 @@
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ItemAssetView, ThemeConfig, TaxPreview, AppSettings, BrevoQuota, CloudinaryResourcesPage } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ThemeConfig, TaxPreview, AppSettings, BrevoQuota, CloudinaryResourcesPage } from '../types';
 import { getToken, setToken } from './tokenStore';
 
 interface LabelRequest { nameEn: string; nameFr: string; nameEs: string; }
@@ -249,7 +249,7 @@ export const api = {
         request<CollectionView>(`/${ADMIN}/collections/${id}/image`, { method: 'DELETE' }),
       delete: (id: number) =>
         request<void>(`/${ADMIN}/collections/${id}`, { method: 'DELETE' }),
-      updateAsset: (id: number, slot: string, data: { headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; color: string; ctaCategory: string | null; ctaLabelId: number | null }) =>
+      updateAsset: (id: number, slot: string, data: { headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; taglineEn: string | null; taglineFr: string | null; taglineEs: string | null; color: string; headerColor: string | null; subheaderColor: string | null; taglineColor: string | null; ctaCategory: string | null; ctaLabelId: number | null }) =>
         request<CollectionSiteAssetView>(`/${ADMIN}/collections/${id}/assets/${slot}`, { method: 'PATCH', body: JSON.stringify(data) }),
       uploadAssetImage: async (id: number, slot: string, file: File): Promise<CollectionSiteAssetView> => {
         const form = new FormData();

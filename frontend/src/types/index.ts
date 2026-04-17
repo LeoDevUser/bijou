@@ -35,6 +35,7 @@ export interface ItemView {
   discountPercent: number | null;
   material: JewelryMaterial | null;
   usmcaQualified: boolean;
+  weightGrams: number;
 }
 
 export interface ItemViewVerbose extends ItemView {
@@ -130,6 +131,7 @@ export interface ItemRequest {
   discountPercent: number | null;
   material: JewelryMaterial;
   usmcaQualified: boolean;
+  weightGrams: number;
 }
 
 export interface VerboseClient {

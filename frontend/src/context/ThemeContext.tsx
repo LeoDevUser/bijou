@@ -101,7 +101,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   function setTheme(raw: ThemeConfig) {
     const t: ThemeConfig = {
       ...DEFAULTS,
-      ...Object.fromEntries(Object.entries(raw as Record<string, unknown>).filter(([, v]) => v != null)),
+      ...Object.fromEntries(Object.entries(raw as unknown as Record<string, unknown>).filter(([, v]) => v != null)),
     };
     setThemeState(t);
     applyTheme(t);

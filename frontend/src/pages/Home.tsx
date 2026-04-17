@@ -44,7 +44,7 @@ export default function Home() {
   // undefined = still checking, null = no main collection, number = main collection id
   const [mainId, setMainId] = useState<number | null | undefined>(undefined);
   const [trending, setTrending] = useState<ItemView[]>([]);
-  const [assetMap, setAssetMap] = useState<Record<string, AssetEntry>>({});
+  const assetMap: Record<string, AssetEntry> = {};
 
   useEffect(() => {
     api.collections.getMain()

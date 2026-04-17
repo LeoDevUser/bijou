@@ -28,5 +28,6 @@ public record ItemViewVerbose(
         boolean active,
         Integer discountPercent,
         JewelryMaterial material,
-        boolean usmcaQualified
+        boolean usmcaQualified,
+        float weightGrams
 ) {}

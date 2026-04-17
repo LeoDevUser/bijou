@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ThemeConfig, AppSettings, BrevoQuota, CloudinaryResource, CloudinaryResourcesPage } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ThemeConfig, AppSettings, BrevoQuota, CloudinaryResource, CloudinaryResourcesPage, JewelryMaterial } from '../types';
 import { pickLocale, isItemIncomplete, isLabelIncomplete } from '../types';
 import { useTheme, THEME_DEFAULTS, mergeCollectionTheme } from '../context/ThemeContext';
 
@@ -492,13 +492,14 @@ interface ItemFormData {
   labelIds: number[];
   material: string;
   usmcaQualified: boolean;
+  weightGrams: string;
 }
 
 const emptyForm: ItemFormData = {
   nameEn: '', nameFr: '', nameEs: '',
   descriptionEn: '', descriptionFr: '', descriptionEs: '',
   price: '', stock: '', discountPercent: '', categoryId: 0, labelIds: [],
-  material: 'SILVER', usmcaQualified: false,
+  material: 'SILVER', usmcaQualified: false, weightGrams: '',
 };
 
 interface ItemModalProps {
@@ -520,6 +521,7 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
           discountPercent: item.discountPercent != null ? String(item.discountPercent) : '',
           categoryId: item.category.id, labelIds: item.labels.map(l => l.id),
           material: item.material ?? '', usmcaQualified: item.usmcaQualified ?? false,
+          weightGrams: item.weightGrams ? String(item.weightGrams) : '',
         }
       : { ...emptyForm, categoryId: allCategories[0]?.id ?? 0 }
   );
@@ -528,7 +530,14 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [currentAssets, setCurrentAssets] = useState(item?.assets ?? []);
   const [browsingMedia, setBrowsingMedia] = useState(false);
+  const [weightUnit, setWeightUnit] = useState<'g' | 'oz'>('g');
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const OZ_TO_G = 28.3495;
+  const weightInGrams = (): number => {
+    const v = parseFloat(form.weightGrams) || 0;
+    return weightUnit === 'oz' ? parseFloat((v * OZ_TO_G).toFixed(3)) : v;
+  };
 
   const inputClass = 'w-full border border-border bg-cream px-4 py-3 text-sm outline-none focus:border-dark transition-colors';
 
@@ -557,6 +566,7 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
         labelIds: form.labelIds,
         material: form.material as JewelryMaterial,
         usmcaQualified: form.usmcaQualified,
+        weightGrams: weightInGrams(),
       };
       let itemId: number;
       if (item) {
@@ -620,6 +630,42 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
                 <option value="OTHER">{t('admin.modal.materialOther')}</option>
               </select>
             </div>
+          </div>
+          <div>
+            <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.weight')}</label>
+            <div className="flex gap-2">
+              <input
+                type="number" min="0" step="0.001" placeholder="0"
+                value={form.weightGrams}
+                onChange={e => setForm(f => ({ ...f, weightGrams: e.target.value }))}
+                className={`${inputClass} flex-1`}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (weightUnit === 'g') {
+                    const gVal = parseFloat(form.weightGrams) || 0;
+                    setForm(f => ({ ...f, weightGrams: gVal ? (gVal / OZ_TO_G).toFixed(3) : '' }));
+                    setWeightUnit('oz');
+                  } else {
+                    const ozVal = parseFloat(form.weightGrams) || 0;
+                    setForm(f => ({ ...f, weightGrams: ozVal ? (ozVal * OZ_TO_G).toFixed(3) : '' }));
+                    setWeightUnit('g');
+                  }
+                }}
+                className="border border-border px-4 py-2 text-xs uppercase tracking-widest hover:border-dark transition-colors min-w-[52px]"
+              >
+                {weightUnit === 'g' ? 'g' : 'oz'}
+              </button>
+            </div>
+            {form.weightGrams && (
+              <p className="text-xs text-muted mt-1">
+                {weightUnit === 'g'
+                  ? `${(parseFloat(form.weightGrams) / OZ_TO_G).toFixed(3)} oz`
+                  : `${(parseFloat(form.weightGrams) * OZ_TO_G).toFixed(3)} g`}
+              </p>
+            )}
           </div>
           <label className="flex items-center gap-3 cursor-pointer select-none">
             <input
@@ -2262,17 +2308,6 @@ function AdminAdmins() {
 
 // ── Site Assets ───────────────────────────────────────────────────────────────
 
-const SLOT_LABEL_KEYS: Record<string, string> = {
-  hero: 'admin.site.slots.hero',
-  ring: 'admin.site.slots.ring',
-  necklace: 'admin.site.slots.necklace',
-  earring: 'admin.site.slots.earring',
-  bracelet: 'admin.site.slots.bracelet',
-  editorial1: 'admin.site.slots.editorial1',
-  editorial2: 'admin.site.slots.editorial2',
-  editorial3: 'admin.site.slots.editorial3',
-  editorial4: 'admin.site.slots.editorial4',
-};
 
 const ASSET_CATEGORIES: { value: string; labelKey: string }[] = [
   { value: 'RING', labelKey: 'home.categories.rings' },
@@ -2349,7 +2384,7 @@ function AnnouncementCtaFields({ form, setForm, labels, collections }: {
         <select value={form.ctaCollectionId ?? ''} onChange={e => setForm(f => ({ ...f, ctaCollectionId: Number(e.target.value) || null }))}
           className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full">
           <option value="">— {t('admin.site.ctaCollection')} —</option>
-          {collections.map(c => <option key={c.id} value={c.id}>{pickLocale(c.headerEn, c.headerFr, c.headerEs, i18n.language) || pickLocale(c.labelNameEn, c.labelNameFr, c.labelNameEs, i18n.language) || `#${c.id}`}</option>)}
+          {collections.map(c => <option key={c.id} value={c.id}>{pickLocale(c.headerEn, c.headerFr, c.headerEs, i18n.language) || `#${c.id}`}</option>)}
         </select>
       )}
     </div>

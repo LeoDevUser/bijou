@@ -20,5 +20,6 @@ public record ItemView(
         List<ItemAssetView> assets,
         Integer discountPercent,
         JewelryMaterial material,
-        boolean usmcaQualified
+        boolean usmcaQualified,
+        float weightGrams
 ) {}

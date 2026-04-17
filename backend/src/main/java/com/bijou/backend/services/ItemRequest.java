@@ -17,5 +17,6 @@ public record ItemRequest(
     String descriptionEs,
     Integer discountPercent,
     JewelryMaterial material,
-    boolean usmcaQualified
+    boolean usmcaQualified,
+    float weightGrams
 ) {}

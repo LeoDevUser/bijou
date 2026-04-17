@@ -87,4 +87,7 @@ public class Item {
     @Builder.Default
     @Column(nullable = false)
     private boolean usmcaQualified = false;
+    /** Weight in grams. */
+    @Column(nullable = false)
+    private float weightGrams;
 }

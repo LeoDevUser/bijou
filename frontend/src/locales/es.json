@@ -293,6 +293,7 @@
       "materialGold": "Oro (HTS 7113.19)",
       "materialSteel": "Acero (HTS 7117.19)",
       "materialOther": "Otro (HTS 7119.00)",
+      "weight": "Peso",
       "usmcaQualified": "Calificado USMCA (0% arancel)",
       "image": "Imagen",
       "media": "Multimedia",

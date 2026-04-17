@@ -293,6 +293,7 @@
       "materialGold": "Or (HTS 7113.19)",
       "materialSteel": "Acier (HTS 7117.19)",
       "materialOther": "Autre (HTS 7119.00)",
+      "weight": "Poids",
       "usmcaQualified": "Qualifié USMCA (0% droits)",
       "image": "Image",
       "media": "Médias",

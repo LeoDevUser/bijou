@@ -381,7 +381,7 @@ public class CollectionService {
                 item.getNameEn(), item.getNameFr(), item.getNameEs(),
                 item.getPrice(), labelViews, CategoryService.toView(item.getCategory()),
                 item.getDescriptionEn(), item.getDescriptionFr(), item.getDescriptionEs(),
-                assetViews, item.getDiscountPercent(), item.getMaterial(), item.isUsmcaQualified());
+                assetViews, item.getDiscountPercent(), item.getMaterial(), item.isUsmcaQualified(), item.getWeightGrams());
     }
 
     /**

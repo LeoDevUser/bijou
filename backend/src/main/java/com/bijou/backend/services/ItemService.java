@@ -73,7 +73,8 @@ public class ItemService {
                 toAssetViews(item.getAssets()),
                 item.getDiscountPercent(),
                 item.getMaterial(),
-                item.isUsmcaQualified()
+                item.isUsmcaQualified(),
+                item.getWeightGrams()
             );
     }
 
@@ -89,7 +90,8 @@ public class ItemService {
                 item.getTotalSalesYear(), item.isActive(),
                 item.getDiscountPercent(),
                 item.getMaterial(),
-                item.isUsmcaQualified()
+                item.isUsmcaQualified(),
+                item.getWeightGrams()
             );
     }
 
@@ -113,6 +115,7 @@ public class ItemService {
             .discountPercent(req.discountPercent())
             .material(req.material())
             .usmcaQualified(req.usmcaQualified())
+            .weightGrams(req.weightGrams())
             .build();
         itemRepository.save(item);
         log.info("created item #{} ({})", item.getId(), displayName(item));
@@ -134,6 +137,7 @@ public class ItemService {
         item.setDiscountPercent(req.discountPercent());
         item.setMaterial(req.material());
         item.setUsmcaQualified(req.usmcaQualified());
+        item.setWeightGrams(req.weightGrams());
         itemRepository.save(item);
         log.info("updated item #{} ({})", id, displayName(item));
         return toItemView(item);
