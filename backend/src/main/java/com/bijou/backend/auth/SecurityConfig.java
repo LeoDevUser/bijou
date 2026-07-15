@@ -31,10 +31,18 @@ public class SecurityConfig {
     @Value("${ADMIN_PAGE}")
     private String ADMIN_PAGE;
 
+    /**
+     * Comma-separated list of allowed browser origins. Defaults to the local
+     * Vite dev server; in production set e.g.
+     * CORS_ORIGINS=https://bijoumonde.site,https://www.bijoumonde.site
+     */
+    @Value("${CORS_ORIGINS:http://localhost:5173}")
+    private List<String> corsOrigins;
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173", "https://nonschematized-elaine-supersagacious.ngrok-free.dev"));
+        config.setAllowedOrigins(corsOrigins);
         config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","PATCH"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
