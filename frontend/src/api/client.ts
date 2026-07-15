@@ -122,7 +122,7 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(data),
       }),
-    taxPreview: (data: { items: { itemId: number; quantity: number }[]; country: string; currency: string }) =>
+    taxPreview: (data: { items: { itemId: number; quantity: number }[]; country: string; currency: string; state?: string | null }) =>
       request<TaxPreview>('/api/orders/preview', { method: 'POST', body: JSON.stringify(data) }),
     cancel: (id: number) =>
       request<void>(`/api/orders/${id}/cancel`, { method: 'PATCH' }),
@@ -319,6 +319,8 @@ export const api = {
         request<AppSettings>(`/${ADMIN}/settings/relay`, { method: 'PATCH', body: JSON.stringify({ enabled }) }),
       setMsi: (enabled: boolean) =>
         request<AppSettings>(`/${ADMIN}/settings/msi`, { method: 'PATCH', body: JSON.stringify({ enabled }) }),
+      setShipping: (config: { standardShippingFee: number; extendedShippingFee: number; freeShippingThreshold: number }) =>
+        request<AppSettings>(`/${ADMIN}/settings/shipping`, { method: 'PATCH', body: JSON.stringify(config) }),
       brevoQuota: () => request<BrevoQuota>(`/${ADMIN}/settings/brevo-quota`),
     },
     users: {

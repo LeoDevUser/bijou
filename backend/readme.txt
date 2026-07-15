@@ -72,8 +72,9 @@ ADMIN_EMAIL / ADMIN_PASSWORD.
 
 Gotchas
 -------
-- ddl-auto is create-drop: the DB is WIPED on every backend restart.
-  Change to "update" before deploying to production.
+- ddl-auto is env-driven (DDL_AUTO). Local .env sets create-drop, so the DB
+  is WIPED and reseeded on every backend restart. In production leave
+  DDL_AUTO unset — it defaults to "update", which never deletes data.
 - Env vars are read at process start; after editing .env, restart the
   backend (and restart vite after editing frontend/.env).
 - Do NOT put project exports in ~/.bashrc — stray exported vars silently

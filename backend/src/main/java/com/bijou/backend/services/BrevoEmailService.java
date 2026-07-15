@@ -149,6 +149,7 @@ public class BrevoEmailService {
         BigDecimal dutyAmt     = event.dutyAmount()   != null ? event.dutyAmount()   : BigDecimal.ZERO;
         BigDecimal taxAmt      = event.taxAmount()    != null ? event.taxAmount()    : BigDecimal.ZERO;
         BigDecimal handlingAmt = event.handlingFee()  != null ? event.handlingFee()  : BigDecimal.ZERO;
+        BigDecimal shippingAmt = event.shippingFee()  != null ? event.shippingFee()  : BigDecimal.ZERO;
         BigDecimal itemsSubtotal = event.items().stream()
             .map(i -> i.unitPrice().multiply(BigDecimal.valueOf(i.quantity())))
             .reduce(BigDecimal.ZERO, BigDecimal::add)
@@ -160,7 +161,9 @@ public class BrevoEmailService {
         ctx.setVariable("hasDuty", dutyAmt.compareTo(BigDecimal.ZERO) > 0);
         ctx.setVariable("hasTax", taxAmt.compareTo(BigDecimal.ZERO) > 0);
         ctx.setVariable("hasHandlingFee", handlingAmt.compareTo(BigDecimal.ZERO) > 0);
-        ctx.setVariable("hasTaxBreakdown", dutyAmt.add(taxAmt).add(handlingAmt).compareTo(BigDecimal.ZERO) > 0);
+        ctx.setVariable("shippingFee", shippingAmt);
+        ctx.setVariable("hasShippingFee", shippingAmt.compareTo(BigDecimal.ZERO) > 0);
+        ctx.setVariable("hasTaxBreakdown", dutyAmt.add(taxAmt).add(handlingAmt).add(shippingAmt).compareTo(BigDecimal.ZERO) > 0);
         if (event.installments() != null) {
             BigDecimal monthly = event.total().divide(BigDecimal.valueOf(event.installments()), 2, RoundingMode.HALF_UP);
             ctx.setVariable("monthlyPayment", monthly);
@@ -200,6 +203,7 @@ public class BrevoEmailService {
         BigDecimal dutyAmt     = event.dutyAmount()   != null ? event.dutyAmount()   : BigDecimal.ZERO;
         BigDecimal taxAmt      = event.taxAmount()    != null ? event.taxAmount()    : BigDecimal.ZERO;
         BigDecimal handlingAmt = event.handlingFee()  != null ? event.handlingFee()  : BigDecimal.ZERO;
+        BigDecimal shippingAmt = event.shippingFee()  != null ? event.shippingFee()  : BigDecimal.ZERO;
         BigDecimal itemsSubtotal = event.items().stream()
             .map(i -> i.unitPrice().multiply(BigDecimal.valueOf(i.quantity())))
             .reduce(BigDecimal.ZERO, BigDecimal::add)
@@ -211,7 +215,9 @@ public class BrevoEmailService {
         ctx.setVariable("hasDuty", dutyAmt.compareTo(BigDecimal.ZERO) > 0);
         ctx.setVariable("hasTax", taxAmt.compareTo(BigDecimal.ZERO) > 0);
         ctx.setVariable("hasHandlingFee", handlingAmt.compareTo(BigDecimal.ZERO) > 0);
-        ctx.setVariable("hasTaxBreakdown", dutyAmt.add(taxAmt).add(handlingAmt).compareTo(BigDecimal.ZERO) > 0);
+        ctx.setVariable("shippingFee", shippingAmt);
+        ctx.setVariable("hasShippingFee", shippingAmt.compareTo(BigDecimal.ZERO) > 0);
+        ctx.setVariable("hasTaxBreakdown", dutyAmt.add(taxAmt).add(handlingAmt).add(shippingAmt).compareTo(BigDecimal.ZERO) > 0);
         ctx.setVariable("isBankTransfer", event.bankTransfer());
         if (event.installments() != null) {
             BigDecimal monthly = event.total().divide(BigDecimal.valueOf(event.installments()), 2, RoundingMode.HALF_UP);
@@ -251,6 +257,7 @@ public class BrevoEmailService {
         BigDecimal dutyAmt     = event.dutyAmount()  != null ? event.dutyAmount()  : BigDecimal.ZERO;
         BigDecimal taxAmt      = event.taxAmount()   != null ? event.taxAmount()   : BigDecimal.ZERO;
         BigDecimal handlingAmt = event.handlingFee() != null ? event.handlingFee() : BigDecimal.ZERO;
+        BigDecimal shippingAmt = event.shippingFee() != null ? event.shippingFee() : BigDecimal.ZERO;
         BigDecimal itemsSubtotal = event.items().stream()
             .map(i -> i.unitPrice().multiply(BigDecimal.valueOf(i.quantity())))
             .reduce(BigDecimal.ZERO, BigDecimal::add)
@@ -262,7 +269,9 @@ public class BrevoEmailService {
         ctx.setVariable("hasDuty", dutyAmt.compareTo(BigDecimal.ZERO) > 0);
         ctx.setVariable("hasTax", taxAmt.compareTo(BigDecimal.ZERO) > 0);
         ctx.setVariable("hasHandlingFee", handlingAmt.compareTo(BigDecimal.ZERO) > 0);
-        ctx.setVariable("hasTaxBreakdown", dutyAmt.add(taxAmt).add(handlingAmt).compareTo(BigDecimal.ZERO) > 0);
+        ctx.setVariable("shippingFee", shippingAmt);
+        ctx.setVariable("hasShippingFee", shippingAmt.compareTo(BigDecimal.ZERO) > 0);
+        ctx.setVariable("hasTaxBreakdown", dutyAmt.add(taxAmt).add(handlingAmt).add(shippingAmt).compareTo(BigDecimal.ZERO) > 0);
 
         String subject = messageSource.getMessage("mail.banktransfer.subject", new Object[]{ event.orderId() }, locale);
         send(event.email(), subject, templateEngine.process("emails/bank-transfer", ctx));

@@ -65,7 +65,7 @@ export default function Account() {
 
   const [addressForm, setAddressForm] = useState({
     addressLine1: '', addressLine2: '', colonial: '',
-    city: '', state: '', postalCode: '', country: 'CANADA', phoneNumber: '',
+    city: '', state: '', postalCode: '', country: 'MEXICO', phoneNumber: '',
   });
   const [addressMsg, setAddressMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [addressLoading, setAddressLoading] = useState(false);
@@ -197,8 +197,7 @@ export default function Account() {
                     onChange={e => setAddressForm(f => ({ ...f, country: e.target.value, state: '' }))}
                     className={`${inputClass} appearance-none cursor-pointer`}
                   >
-                    <option value="CANADA">Canada</option>
-                    <option value="UNITED_STATES">United States</option>
+                    {/* Mexico-only launch — re-add Canada / United States when cross-border returns */}
                     <option value="MEXICO">Mexico</option>
                   </select>
                 </div>

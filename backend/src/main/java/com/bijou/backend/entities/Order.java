@@ -75,6 +75,8 @@ public class Order {
     @Column
     private BigDecimal handlingFee;
     @Column
+    private BigDecimal shippingFee;
+    @Column
     private String facturaUrl;
     @Column
     private String facturaId;

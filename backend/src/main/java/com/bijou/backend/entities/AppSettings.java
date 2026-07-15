@@ -1,5 +1,7 @@
 package com.bijou.backend.entities;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -28,4 +30,13 @@ public class AppSettings {
 
     /** Whether MSI (Meses Sin Intereses) installment plans are offered at checkout. */
     private boolean msiEnabled;
+
+    /** Flat shipping fee (MXN) for standard-zone Mexican states. */
+    private BigDecimal standardShippingFee;
+
+    /** Flat shipping fee (MXN) for extended-zone states (Baja, remote south/southeast). */
+    private BigDecimal extendedShippingFee;
+
+    /** Item subtotal (MXN) at or above which shipping is free. */
+    private BigDecimal freeShippingThreshold;
 }

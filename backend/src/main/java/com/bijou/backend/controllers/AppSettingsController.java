@@ -12,6 +12,7 @@ import com.bijou.backend.services.AppSettingsToggleRequest;
 import com.bijou.backend.services.AppSettingsView;
 import com.bijou.backend.services.BrevoEmailService;
 import com.bijou.backend.services.BrevoQuotaView;
+import com.bijou.backend.services.ShippingConfigRequest;
 
 import lombok.RequiredArgsConstructor;
 
@@ -38,6 +39,11 @@ public class AppSettingsController {
     @PatchMapping("/${ADMIN_PAGE}/settings/msi")
     public ResponseEntity<AppSettingsView> toggleMsi(@RequestBody AppSettingsToggleRequest req) {
         return ResponseEntity.ok(appSettingsService.setMsiEnabled(req.enabled()));
+    }
+
+    @PatchMapping("/${ADMIN_PAGE}/settings/shipping")
+    public ResponseEntity<AppSettingsView> updateShipping(@RequestBody ShippingConfigRequest req) {
+        return ResponseEntity.ok(appSettingsService.updateShippingConfig(req));
     }
 
     @GetMapping("/${ADMIN_PAGE}/settings/brevo-quota")

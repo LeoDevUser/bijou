@@ -7,5 +7,6 @@ import com.bijou.backend.entities.Country;
 public record TaxPreviewRequest(
     List<OrderItemRequest> items,
     Country country,
-    Currency currency
+    Currency currency,
+    String state
 ) {}

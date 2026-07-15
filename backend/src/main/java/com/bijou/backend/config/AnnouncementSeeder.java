@@ -24,9 +24,9 @@ public class AnnouncementSeeder implements ApplicationRunner {
         if (announcementRepository.count() > 0) return;
         announcementRepository.saveAll(List.of(
             Announcement.builder()
-                .textEn("Complimentary shipping on orders over $150")
-                .textFr("Livraison offerte pour les commandes de plus de 150 $")
-                .textEs("Envío gratuito en pedidos superiores a $150")
+                .textEn("Complimentary shipping on orders over $2,000 MXN")
+                .textFr("Livraison offerte pour les commandes de plus de 2 000 $ MXN")
+                .textEs("Envío gratuito en pedidos superiores a $2,000 MXN")
                 .active(true).sortOrder(0).build(),
             Announcement.builder()
                 .textEn("New collection just arrived")

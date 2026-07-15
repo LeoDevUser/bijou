@@ -112,6 +112,7 @@ export interface OrderView {
   dutyAmount: number | null;
   taxAmount: number | null;
   handlingFee: number | null;
+  shippingFee: number | null;
   facturaUrl: string | null;
 }
 
@@ -160,6 +161,7 @@ export interface TaxPreview {
   dutyAmount: number;
   taxAmount: number;
   handlingFee: number;
+  shippingFee: number;
   total: number;
 }
 
@@ -281,6 +283,9 @@ export interface AppSettings {
   smtpRelayEnabled: boolean;
   disabledReason: string | null;
   msiEnabled: boolean;
+  standardShippingFee: number;
+  extendedShippingFee: number;
+  freeShippingThreshold: number;
 }
 
 export interface BrevoQuota {

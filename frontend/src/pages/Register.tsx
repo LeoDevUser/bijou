@@ -11,9 +11,8 @@ const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
   { value: 'es', label: 'Español' },
 ];
 
+// Mexico-only launch — re-add CANADA / UNITED_STATES when cross-border returns
 const COUNTRIES = [
-  { value: 'CANADA', label: 'Canada' },
-  { value: 'UNITED_STATES', label: 'United States' },
   { value: 'MEXICO', label: 'Mexico' },
 ];
 
@@ -27,7 +26,7 @@ export default function Register() {
     lastName: '',
     email: '',
     password: '',
-    country: 'CANADA',
+    country: 'MEXICO',
     phoneNumber: '',
     addressLine1: '',
     addressLine2: '',

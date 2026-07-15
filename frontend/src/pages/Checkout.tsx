@@ -8,9 +8,9 @@ import { useCurrency } from '../context/CurrencyContext';
 import type { Country, TaxPreview } from '../types';
 import { getStateOptions, getPostalCodePattern, getPostalCodePlaceholder } from '../data/addressOptions';
 
+// Mexico-only launch — re-add CANADA / UNITED_STATES here when cross-border
+// shipping returns (backend rejects non-MEXICO orders with SHIPPING_MEXICO_ONLY).
 const COUNTRIES: { value: Country; label: string }[] = [
-  { value: 'CANADA', label: 'Canada' },
-  { value: 'UNITED_STATES', label: 'United States' },
   { value: 'MEXICO', label: 'Mexico' },
 ];
 
@@ -25,7 +25,7 @@ export default function Checkout() {
     addressLine1: string; addressLine2: string; colonial: string;
     city: string; state: string; postalCode: string; country: Country;
   };
-  const emptyAddr: AddrForm = { addressLine1: '', addressLine2: '', colonial: '', city: '', state: '', postalCode: '', country: 'CANADA' };
+  const emptyAddr: AddrForm = { addressLine1: '', addressLine2: '', colonial: '', city: '', state: '', postalCode: '', country: 'MEXICO' };
   const [form, setForm] = useState<AddrForm>(emptyAddr);
   const [savedForm, setSavedForm] = useState<AddrForm | null>(null);
   const [useSaved, setUseSaved] = useState(false);
@@ -65,7 +65,8 @@ export default function Checkout() {
     if (!isAuthenticated) return;
     api.account.getProfile()
       .then(profile => {
-        if (profile.addressLine1) {
+        // Saved US/CA addresses predate the Mexico-only launch — can't ship there
+        if (profile.addressLine1 && profile.country === 'MEXICO') {
           const saved: AddrForm = {
             addressLine1: profile.addressLine1,
             addressLine2: profile.addressLine2 ?? '',
@@ -93,11 +94,12 @@ export default function Checkout() {
       items: items.map(i => ({ itemId: i.id, quantity: i.quantity })),
       country: form.country,
       currency,
+      state: form.state || null,
     }).then(p => {
       if (!ctrl.signal.aborted) setTaxPreview(p);
     }).catch(() => {});
     return () => ctrl.abort();
-  }, [isAuthenticated, items, form.country, currency]);
+  }, [isAuthenticated, items, form.country, form.state, currency]);
 
   function handleUseSavedToggle(use: boolean) {
     setUseSaved(use);
@@ -368,7 +370,7 @@ export default function Checkout() {
                 </div>
               ))}
             </div>
-            {taxPreview && (taxPreview.dutyAmount > 0 || taxPreview.taxAmount > 0 || taxPreview.handlingFee > 0) && (
+            {taxPreview && (taxPreview.dutyAmount > 0 || taxPreview.taxAmount > 0 || taxPreview.handlingFee > 0 || taxPreview.shippingFee > 0) && (
               <div className="space-y-1 border-t border-border pt-3 mb-3">
                 <div className="flex justify-between text-sm text-muted">
                   <span>{t('cart.subtotal')}</span>
@@ -392,6 +394,10 @@ export default function Checkout() {
                     <span>+{format(taxPreview.handlingFee)}</span>
                   </div>
                 )}
+                <div className="flex justify-between text-sm text-muted">
+                  <span>{t('checkout.shippingFee')}</span>
+                  <span>{taxPreview.shippingFee > 0 ? `+${format(taxPreview.shippingFee)}` : t('checkout.freeShipping')}</span>
+                </div>
               </div>
             )}
             {selectedPlan && (

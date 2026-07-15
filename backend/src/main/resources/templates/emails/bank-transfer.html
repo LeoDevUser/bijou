@@ -236,6 +236,16 @@
                                               th:text="'+$' + ${#numbers.formatDecimal(handlingFee, 1, 'COMMA', 2, 'POINT')} + ' MXN'">+$0.00 MXN</span>
                                     </td>
                                 </tr>
+                                <!-- Domestic shipping -->
+                                <tr th:if="${hasShippingFee}">
+                                    <td align="right" style="padding-bottom:4px;">
+                                        <span style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#666666;"
+                                              th:text="#{mail.order.shippingFee}">Shipping</span>
+                                        &nbsp;&nbsp;
+                                        <span style="font-size:13px;color:#aaaaaa;"
+                                              th:text="'+$' + ${#numbers.formatDecimal(shippingFee, 1, 'COMMA', 2, 'POINT')} + ' MXN'">+$0.00 MXN</span>
+                                    </td>
+                                </tr>
                                 <tr>
                                     <td align="right" style="border-top:1px solid #444444;padding-top:12px;">
                                         <span style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#888888;"

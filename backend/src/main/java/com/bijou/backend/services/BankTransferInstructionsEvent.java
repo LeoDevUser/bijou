@@ -16,6 +16,7 @@ public record BankTransferInstructionsEvent(
     BigDecimal dutyAmount,
     BigDecimal taxAmount,
     BigDecimal handlingFee,
+    BigDecimal shippingFee,
     String addressLine1,
     String city,
     String postalCode,

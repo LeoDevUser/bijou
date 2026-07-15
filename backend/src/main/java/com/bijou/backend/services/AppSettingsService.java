@@ -24,7 +24,9 @@ public class AppSettingsService {
     }
 
     private AppSettingsView toView(AppSettings s) {
-        return new AppSettingsView(s.isSmtpRelayEnabled(), s.getDisabledReason(), s.isMsiEnabled());
+        return new AppSettingsView(
+            s.isSmtpRelayEnabled(), s.getDisabledReason(), s.isMsiEnabled(),
+            s.getStandardShippingFee(), s.getExtendedShippingFee(), s.getFreeShippingThreshold());
     }
 
     @Transactional(readOnly = true)
@@ -61,6 +63,29 @@ public class AppSettingsService {
     @Transactional(readOnly = true)
     public boolean isMsiEnabled() {
         return load().isMsiEnabled();
+    }
+
+    @Transactional(readOnly = true)
+    public AppSettings shippingConfig() {
+        return load();
+    }
+
+    @Transactional
+    public AppSettingsView updateShippingConfig(ShippingConfigRequest req) {
+        if (req.standardShippingFee() == null || req.extendedShippingFee() == null
+                || req.freeShippingThreshold() == null
+                || req.standardShippingFee().signum() < 0
+                || req.extendedShippingFee().signum() < 0
+                || req.freeShippingThreshold().signum() < 0) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "SHIPPING_CONFIG_INVALID");
+        }
+        AppSettings s = load();
+        s.setStandardShippingFee(req.standardShippingFee());
+        s.setExtendedShippingFee(req.extendedShippingFee());
+        s.setFreeShippingThreshold(req.freeShippingThreshold());
+        log.info("shipping config updated — standard: {}, extended: {}, free over: {}",
+            req.standardShippingFee(), req.extendedShippingFee(), req.freeShippingThreshold());
+        return toView(repository.save(s));
     }
 
     /** Called when Brevo returns a 429. Auto-disables the relay via a single atomic UPDATE. */

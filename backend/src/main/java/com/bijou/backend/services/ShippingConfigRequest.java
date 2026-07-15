@@ -2,10 +2,7 @@ package com.bijou.backend.services;
 
 import java.math.BigDecimal;
 
-public record AppSettingsView(
-    boolean smtpRelayEnabled,
-    String disabledReason,
-    boolean msiEnabled,
+public record ShippingConfigRequest(
     BigDecimal standardShippingFee,
     BigDecimal extendedShippingFee,
     BigDecimal freeShippingThreshold

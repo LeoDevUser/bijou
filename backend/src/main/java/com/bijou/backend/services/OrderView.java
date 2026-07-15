@@ -30,5 +30,6 @@ public record OrderView(
     BigDecimal dutyAmount,
     BigDecimal taxAmount,
     BigDecimal handlingFee,
+    BigDecimal shippingFee,
     String facturaUrl
 ){}

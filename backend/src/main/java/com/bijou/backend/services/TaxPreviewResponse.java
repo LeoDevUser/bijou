@@ -7,5 +7,6 @@ public record TaxPreviewResponse(
     BigDecimal dutyAmount,
     BigDecimal taxAmount,
     BigDecimal handlingFee,
+    BigDecimal shippingFee,
     BigDecimal total
 ) {}

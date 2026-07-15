@@ -3,3 +3,4 @@ target/
 postman/
 readme.txt
 src/test/
+.env

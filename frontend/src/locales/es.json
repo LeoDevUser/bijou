@@ -111,7 +111,9 @@
       "months": "{{n}} meses",
       "summary": "Total: ${{total}} MXN · {{n}} pagos de ${{monthly}} MXN",
       "badge": "{{n}} meses sin intereses"
-    }
+    },
+    "shippingFee": "Envío",
+    "freeShipping": "Gratis"
   },
   "payment": {
     "title": "Pago",
@@ -372,8 +374,8 @@
       "headerColor": "Color del Título",
       "subheaderColor": "Color del Subtítulo",
       "taglineColor": "Color del Eslogan",
-      "ctaCategory": "CTA → Categoría",
-      "ctaLabel": "CTA → Etiqueta",
+      "ctaCategory": "Enlace a categoría",
+      "ctaLabel": "Enlace a etiqueta",
       "noneOption": "— Ninguno —",
       "browse": "Explorar",
       "browseTitle": "Biblioteca Cloudinary",
@@ -408,8 +410,6 @@
       "deleteConfirm": "¿Eliminar este anuncio?",
       "active": "Activo",
       "ctaNone": "Sin enlace",
-      "ctaCategory": "Enlace a categoría",
-      "ctaLabel": "Enlace a etiqueta",
       "ctaCollection": "Enlace a colección"
     },
     "theme": {
@@ -453,7 +453,13 @@
       "quotaSent": "{{sent}} / {{limit}} enviados hoy",
       "quotaRemaining": "{{count}} restantes",
       "quotaError": "No se pudo obtener la cuota de Brevo",
-      "quotaLoading": "Cargando cuota..."
+      "quotaLoading": "Cargando cuota...",
+      "shippingTitle": "Tarifas de envío (MXN)",
+      "shippingStandard": "Zona estándar",
+      "shippingExtended": "Zona extendida",
+      "shippingThreshold": "Gratis a partir de",
+      "shippingSave": "Guardar",
+      "shippingSaved": "Guardado"
     }
   },
   "account": {
@@ -494,13 +500,36 @@
   },
   "faq": {
     "title": "Preguntas Frecuentes",
-    "q1": { "q": "¿Los materiales son auténticos?", "a": "Absolutamente, en Bijou Monde trabajamos con materiales reales: plata Ley .925, oro de 10k y 14k con sello de pureza, y acero inoxidable quirúrgico 316L, resistente e hipoalergénico.\n\nCada pieza está seleccionada para ofrecerte calidad, durabilidad y seguridad en lo que usas." },
-    "q2": { "q": "¿Realizan envíos a Estados Unidos y Canadá?", "a": "Sí, realizamos envíos internacionales asegurados a través de FedEx y DHL Express. El tiempo de entrega estimado es de 3 a 5 días hábiles una vez procesado el pedido. Recibirás un número de rastreo en tiempo real para monitorear tu paquete." },
-    "q3": { "q": "¿Cómo sé cuál es mi talla de anillo?", "chartLink": "Ver Guía de Tallas", "a": "En Bijou Monde queremos que tu pieza encaje a la perfección desde el primer momento. Para encontrar tu talla ideal, te recomendamos seguir nuestra Guía de Tallas, donde podrás utilizar dos métodos sencillos y precisos:\n\n• Método del diámetro: Utiliza un anillo que te quede bien y mide su diámetro interno con una regla milimétrica.\n• Consulta la tabla: Compara la medida obtenida en milímetros con nuestra tabla de equivalencias para identificar tu talla.\n\nConsejo: Si estás entre dos tallas, te recomendamos elegir la más grande para mayor comodidad, especialmente en diseños de mayor grosor." },
-    "q4": { "q": "¿Tengo que pagar impuestos de importación?", "a": "Los pedidos internacionales pueden estar sujetos a aranceles e impuestos de importación según las leyes de tu país (Canadá/USA). Estos cargos son responsabilidad del cliente y se determinan en la aduana al llegar a su destino." },
-    "q5": { "q": "¿Qué métodos de pago aceptan?", "a": "Para tu seguridad, aceptamos pagos globales a través de Stripe (tarjetas de crédito/débito internacionales). Esta plataforma ofrece protección al comprador y cifrado de datos de nivel bancario." },
-    "q7": { "q": "¿Cómo cuido mis joyas?", "careLink": "Ver Guía de Cuidado", "a": "Cuidar tus piezas Bijou Monde es más sencillo de lo que parece.\n\nPara mantener su brillo y apariencia por más tiempo, te recomendamos:\n• Limpiarlas ocasionalmente con un paño suave\n• Evitar el contacto con perfumes, cremas y químicos\n• Quitarlas antes de bañarte, nadar o hacer ejercicio\n• Guardarlas en un lugar seco y separadas para evitar rayones\n\nCon estos cuidados básicos, tus joyas se mantendrán en excelente estado y listas para acompañarte todos los días." },
-    "q6": { "q": "¿Las joyas se manchan o pierden el brillo?", "a": "Como cualquier joya, nuestras piezas pueden presentar ligeros cambios con el uso y el paso del tiempo. Materiales como la plata pueden oscurecerse, y el brillo del oro o el acero puede suavizarse ligeramente dependiendo del uso diario.\n\nPero la buena noticia es que esto se puede prevenir y mantener fácilmente.\n\nPara conservar tus piezas en óptimas condiciones, te recomendamos:\n• Evitar el contacto con perfumes, cremas y químicos como cloro\n• Quitarlas antes de bañarte o hacer ejercicio\n• Guardarlas en un lugar seco y separado de otras piezas\n• Limpiarlas ocasionalmente con un paño suave\n\nCon estos cuidados, tu joyería Bijou Monde puede mantener su brillo y elegancia por mucho más tiempo.\n\nPorque no se trata solo de tener una joya… sino de mantenerla impecable en cada momento en que decides usarla." }
+    "q1": {
+      "q": "¿Los materiales son auténticos?",
+      "a": "Absolutamente, en Bijou Monde trabajamos con materiales reales: plata Ley .925, oro de 10k y 14k con sello de pureza, y acero inoxidable quirúrgico 316L, resistente e hipoalergénico.\n\nCada pieza está seleccionada para ofrecerte calidad, durabilidad y seguridad en lo que usas."
+    },
+    "q2": {
+      "q": "¿Realizan envíos a Estados Unidos y Canadá?",
+      "a": "Sí, realizamos envíos internacionales asegurados a través de FedEx y DHL Express. El tiempo de entrega estimado es de 3 a 5 días hábiles una vez procesado el pedido. Recibirás un número de rastreo en tiempo real para monitorear tu paquete."
+    },
+    "q3": {
+      "q": "¿Cómo sé cuál es mi talla de anillo?",
+      "chartLink": "Ver Guía de Tallas",
+      "a": "En Bijou Monde queremos que tu pieza encaje a la perfección desde el primer momento. Para encontrar tu talla ideal, te recomendamos seguir nuestra Guía de Tallas, donde podrás utilizar dos métodos sencillos y precisos:\n\n• Método del diámetro: Utiliza un anillo que te quede bien y mide su diámetro interno con una regla milimétrica.\n• Consulta la tabla: Compara la medida obtenida en milímetros con nuestra tabla de equivalencias para identificar tu talla.\n\nConsejo: Si estás entre dos tallas, te recomendamos elegir la más grande para mayor comodidad, especialmente en diseños de mayor grosor."
+    },
+    "q4": {
+      "q": "¿Tengo que pagar impuestos de importación?",
+      "a": "Los pedidos internacionales pueden estar sujetos a aranceles e impuestos de importación según las leyes de tu país (Canadá/USA). Estos cargos son responsabilidad del cliente y se determinan en la aduana al llegar a su destino."
+    },
+    "q5": {
+      "q": "¿Qué métodos de pago aceptan?",
+      "a": "Para tu seguridad, aceptamos pagos globales a través de Stripe (tarjetas de crédito/débito internacionales). Esta plataforma ofrece protección al comprador y cifrado de datos de nivel bancario."
+    },
+    "q7": {
+      "q": "¿Cómo cuido mis joyas?",
+      "careLink": "Ver Guía de Cuidado",
+      "a": "Cuidar tus piezas Bijou Monde es más sencillo de lo que parece.\n\nPara mantener su brillo y apariencia por más tiempo, te recomendamos:\n• Limpiarlas ocasionalmente con un paño suave\n• Evitar el contacto con perfumes, cremas y químicos\n• Quitarlas antes de bañarte, nadar o hacer ejercicio\n• Guardarlas en un lugar seco y separadas para evitar rayones\n\nCon estos cuidados básicos, tus joyas se mantendrán en excelente estado y listas para acompañarte todos los días."
+    },
+    "q6": {
+      "q": "¿Las joyas se manchan o pierden el brillo?",
+      "a": "Como cualquier joya, nuestras piezas pueden presentar ligeros cambios con el uso y el paso del tiempo. Materiales como la plata pueden oscurecerse, y el brillo del oro o el acero puede suavizarse ligeramente dependiendo del uso diario.\n\nPero la buena noticia es que esto se puede prevenir y mantener fácilmente.\n\nPara conservar tus piezas en óptimas condiciones, te recomendamos:\n• Evitar el contacto con perfumes, cremas y químicos como cloro\n• Quitarlas antes de bañarte o hacer ejercicio\n• Guardarlas en un lugar seco y separado de otras piezas\n• Limpiarlas ocasionalmente con un paño suave\n\nCon estos cuidados, tu joyería Bijou Monde puede mantener su brillo y elegancia por mucho más tiempo.\n\nPorque no se trata solo de tener una joya… sino de mantenerla impecable en cada momento en que decides usarla."
+    }
   },
   "shipping": {
     "title": "Política de Envíos",

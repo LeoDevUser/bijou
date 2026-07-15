@@ -2818,6 +2818,38 @@ function AdminSettings() {
     finally { setToggling(false); }
   }
 
+  const [shipForm, setShipForm] = useState<{ standard: string; extended: string; threshold: string } | null>(null);
+  const [shipSaving, setShipSaving] = useState(false);
+  const [shipSaved, setShipSaved] = useState(false);
+
+  useEffect(() => {
+    if (settings && shipForm === null) {
+      setShipForm({
+        standard: String(settings.standardShippingFee ?? ''),
+        extended: String(settings.extendedShippingFee ?? ''),
+        threshold: String(settings.freeShippingThreshold ?? ''),
+      });
+    }
+  }, [settings, shipForm]);
+
+  async function handleShippingSave(e: React.FormEvent) {
+    e.preventDefault();
+    if (!shipForm) return;
+    setShipSaving(true);
+    setShipSaved(false);
+    try {
+      const updated = await api.admin.settings.setShipping({
+        standardShippingFee: Number(shipForm.standard),
+        extendedShippingFee: Number(shipForm.extended),
+        freeShippingThreshold: Number(shipForm.threshold),
+      });
+      setSettings(updated);
+      setShipSaved(true);
+    } finally {
+      setShipSaving(false);
+    }
+  }
+
   const quotaPct = quota && quota !== 'error'
     ? Math.min(100, (quota.sentToday / quota.dailyLimit) * 100)
     : 0;
@@ -2893,6 +2925,40 @@ function AdminSettings() {
               {toggling ? '...' : settings.msiEnabled ? t('admin.settings.disable') : t('admin.settings.enable')}
             </button>
           </div>
+
+          {/* Shipping fees (MXN) */}
+          {shipForm && (
+            <form onSubmit={handleShippingSave} className="border border-border p-4 space-y-4">
+              <p className="text-xs uppercase tracking-widest text-muted">{t('admin.settings.shippingTitle')}</p>
+              <div className="grid grid-cols-3 gap-3">
+                {([
+                  ['standard', 'admin.settings.shippingStandard'],
+                  ['extended', 'admin.settings.shippingExtended'],
+                  ['threshold', 'admin.settings.shippingThreshold'],
+                ] as const).map(([key, label]) => (
+                  <div key={key}>
+                    <label className="block text-xs text-muted mb-1">{t(label)}</label>
+                    <input
+                      type="number" min="0" step="0.01" required
+                      value={shipForm[key]}
+                      onChange={e => { setShipSaved(false); setShipForm(f => f ? { ...f, [key]: e.target.value } : f); }}
+                      className="w-full border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors"
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  type="submit"
+                  disabled={shipSaving}
+                  className="text-xs uppercase tracking-widest border border-dark bg-dark text-white px-4 py-2 hover:bg-gold hover:border-gold transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  {shipSaving ? '...' : t('admin.settings.shippingSave')}
+                </button>
+                {shipSaved && <span className="text-xs text-green-600">{t('admin.settings.shippingSaved')}</span>}
+              </div>
+            </form>
+          )}
         </>
       )}
     </div>

@@ -44,11 +44,17 @@ public class OrderService {
     private final ItemRepository itemRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final TaxService taxService;
+    private final ShippingService shippingService;
     private final CloudinaryService cloudinaryService;
     private final AppSettingsService appSettingsService;
 
     @Transactional
     public Order create(Client client, OrderRequest req) {
+        // Mexico-only launch — reject anything else even if a stale client sends it
+        if (req.country() != Country.MEXICO) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "SHIPPING_MEXICO_ONLY");
+        }
+
         List<Long> itemIds = req.items().stream()
             .map(OrderItemRequest::itemId)
             .distinct()
@@ -95,8 +101,10 @@ public class OrderService {
         BigDecimal dutyAmount    = taxResult.dutyAmount();
         BigDecimal taxAmount     = taxResult.taxAmount();
         BigDecimal handlingFee   = taxResult.handlingFee();
-        total = total.add(taxResult.total());
-        log.info("tax breakdown — duty: {}, tax: {}, handling: {}", dutyAmount, taxAmount, handlingFee);
+        BigDecimal shippingFee   = shippingService.fee(req.country(), req.state(), total);
+        total = total.add(taxResult.total()).add(shippingFee);
+        log.info("fee breakdown — duty: {}, tax: {}, handling: {}, shipping: {}",
+            dutyAmount, taxAmount, handlingFee, shippingFee);
 
         // Apply MSI fee if applicable (MXN only, above 2000 MXN, valid plan)
         Integer installments = req.installments();
@@ -141,6 +149,7 @@ public class OrderService {
             .dutyAmount(dutyAmount)
             .taxAmount(taxAmount)
             .handlingFee(handlingFee)
+            .shippingFee(shippingFee)
             .client(client)
             .build();
         order.getOrderItems().forEach(oi -> oi.setOrder(order));
@@ -236,12 +245,14 @@ public class OrderService {
         }
 
         TaxResult taxResult = taxService.calculate(orderItems, req.country(), subtotal);
+        BigDecimal shippingFee = shippingService.fee(req.country(), req.state(), subtotal);
         return new TaxPreviewResponse(
             subtotal.setScale(2, RoundingMode.HALF_UP),
             taxResult.dutyAmount(),
             taxResult.taxAmount(),
             taxResult.handlingFee(),
-            subtotal.add(taxResult.total()).setScale(2, RoundingMode.HALF_UP)
+            shippingFee,
+            subtotal.add(taxResult.total()).add(shippingFee).setScale(2, RoundingMode.HALF_UP)
         );
     }
 
@@ -284,6 +295,7 @@ public class OrderService {
                 order.getDutyAmount(),
                 order.getTaxAmount(),
                 order.getHandlingFee(),
+                order.getShippingFee(),
                 order.getFacturaUrl());
     }
 
