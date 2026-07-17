@@ -505,8 +505,8 @@
       "a": "Absolutamente, en Bijou Monde trabajamos con materiales reales: plata Ley .925, oro de 10k y 14k con sello de pureza, y acero inoxidable quirúrgico 316L, resistente e hipoalergénico.\n\nCada pieza está seleccionada para ofrecerte calidad, durabilidad y seguridad en lo que usas."
     },
     "q2": {
-      "q": "¿Realizan envíos a Estados Unidos y Canadá?",
-      "a": "Sí, realizamos envíos internacionales asegurados a través de FedEx y DHL Express. El tiempo de entrega estimado es de 3 a 5 días hábiles una vez procesado el pedido. Recibirás un número de rastreo en tiempo real para monitorear tu paquete."
+      "q": "¿Hacen envíos a todo México?",
+      "a": "Sí, enviamos a toda la República Mexicana con paqueterías aseguradas y número de rastreo en tiempo real. El tiempo estimado de entrega es de 2 a 5 días hábiles una vez procesado el pedido. Por el momento no realizamos envíos internacionales."
     },
     "q3": {
       "q": "¿Cómo sé cuál es mi talla de anillo?",
@@ -514,8 +514,8 @@
       "a": "En Bijou Monde queremos que tu pieza encaje a la perfección desde el primer momento. Para encontrar tu talla ideal, te recomendamos seguir nuestra Guía de Tallas, donde podrás utilizar dos métodos sencillos y precisos:\n\n• Método del diámetro: Utiliza un anillo que te quede bien y mide su diámetro interno con una regla milimétrica.\n• Consulta la tabla: Compara la medida obtenida en milímetros con nuestra tabla de equivalencias para identificar tu talla.\n\nConsejo: Si estás entre dos tallas, te recomendamos elegir la más grande para mayor comodidad, especialmente en diseños de mayor grosor."
     },
     "q4": {
-      "q": "¿Tengo que pagar impuestos de importación?",
-      "a": "Los pedidos internacionales pueden estar sujetos a aranceles e impuestos de importación según las leyes de tu país (Canadá/USA). Estos cargos son responsabilidad del cliente y se determinan en la aduana al llegar a su destino."
+      "q": "¿Los precios incluyen impuestos?",
+      "a": "El IVA aplicable (16%; la joyería de oro está exenta) se calcula y desglosa en el checkout antes de confirmar tu pago. Al ser envíos nacionales, no existen cargos aduanales ni aranceles de importación."
     },
     "q5": {
       "q": "¿Qué métodos de pago aceptan?",
@@ -535,11 +535,10 @@
     "title": "Política de Envíos",
     "s1": {
       "title": "Cobertura de Envíos",
-      "intro": "En Bijou Monde realizamos envíos nacionales e internacionales con cobertura en:",
-      "i1": "México",
-      "i2": "Estados Unidos",
-      "i3": "Canadá",
-      "note": "Trabajamos con paqueterías de prestigio internacional como DHL, FedEx y UPS, garantizando seguridad, rastreo y confiabilidad en cada envío."
+      "intro": "En Bijou Monde realizamos envíos a toda la República Mexicana, con cobertura en:",
+      "i1": "Zona estándar: Ciudad de México y la mayor parte del país",
+      "i2": "Zona extendida: penínsulas y sureste (Baja California, Baja California Sur, Sonora, Chihuahua, Chiapas, Guerrero, Oaxaca, Quintana Roo y Yucatán)",
+      "note": "Trabajamos con paqueterías de prestigio como DHL, FedEx y Estafeta, garantizando seguridad, rastreo y confiabilidad en cada envío."
     },
     "s2": {
       "title": "Tiempos de Procesamiento",
@@ -554,34 +553,16 @@
         "i1": "Express: 1 a 2 días hábiles",
         "i2": "Estándar: 2 a 5 días hábiles"
       },
-      "us": {
-        "title": "Envíos a Estados Unidos",
-        "i1": "Express internacional: 1 a 3 días hábiles",
-        "i2": "Económico: 2 a 5 días hábiles"
-      },
-      "ca": {
-        "title": "Envíos a Canadá",
-        "i1": "Express internacional: 1 a 3 días hábiles",
-        "i2": "Económico: 2 a 5 días hábiles"
-      },
-      "note": "Los tiempos pueden extenderse por procesos aduanales o alta demanda."
+      "note": "Los tiempos pueden extenderse en zonas extendidas o por alta demanda."
     },
     "s4": {
       "title": "Costos de Envío",
-      "body": "El costo de envío se calcula automáticamente en el checkout en función de:",
-      "i1": "Peso (gramaje de la joyería)",
-      "i2": "Dimensiones del paquete",
-      "i3": "Destino",
-      "i4": "Tipo de envío seleccionado",
-      "note": "En envíos internacionales, los costos pueden variar considerablemente dependiendo del servicio (express vs económico)."
-    },
-    "s5": {
-      "title": "Impuestos y Aduanas",
-      "intro": "Para envíos internacionales:",
-      "i1": "El cliente es responsable de impuestos, aranceles o cargos aduanales",
-      "i2": "Estos cargos no están incluidos en el precio del producto ni en el envío",
-      "i3": "Pueden variar según la legislación de cada país",
-      "note": "Los procesos aduanales pueden generar retrasos fuera del control de Bijou Monde."
+      "body": "El costo de envío se calcula automáticamente en el checkout según el estado de destino:",
+      "i1": "Zona estándar: $149 MXN",
+      "i2": "Zona extendida: $219 MXN",
+      "i3": "Envío gratuito en pedidos superiores a $2,000 MXN",
+      "i4": "Empaque seguro y número de rastreo incluidos",
+      "note": "El monto exacto se muestra siempre en el checkout antes de confirmar tu pedido."
     },
     "s6": {
       "title": "Rastreo de Pedidos",
@@ -692,17 +673,17 @@
     },
     "s8": {
       "title": "Envíos",
-      "intro": "Enviamos a México, Estados Unidos y Canadá. Los tiempos de entrega estimados varían según el destino:",
-      "i1": "México: 3 a 7 días hábiles",
-      "i2": "Estados Unidos: 7 a 14 días hábiles",
-      "i3": "Canadá: 10 a 18 días hábiles"
+      "intro": "Enviamos a toda la República Mexicana. Los tiempos de entrega estimados son:",
+      "i1": "Zona estándar: 2 a 5 días hábiles",
+      "i2": "Zona extendida: 3 a 7 días hábiles",
+      "i3": "Los tiempos pueden extenderse por alta demanda o causas ajenas a Bijou Monde"
     },
     "s9": {
-      "title": "Envíos Internacionales",
-      "intro": "Para pedidos fuera de México:",
-      "i1": "El cliente es responsable de cualquier impuesto, arancel o cargo aduanal aplicable en su país",
-      "i2": "Los tiempos de entrega pueden extenderse por procesos aduanales",
-      "i3": "Bijou Monde no se hace responsable por retrasos ocasionados por autoridades o paqueterías internacionales"
+      "title": "Ámbito de Envíos",
+      "intro": "Por el momento, Bijou Monde realiza envíos únicamente dentro de México:",
+      "i1": "No es posible procesar pedidos con dirección de entrega fuera de México",
+      "i2": "El costo de envío depende del estado de destino (zona estándar o extendida)",
+      "i3": "Envío gratuito en pedidos superiores a $2,000 MXN"
     },
     "s10": {
       "title": "Cambios y Devoluciones",

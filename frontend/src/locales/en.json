@@ -505,8 +505,8 @@
       "a": "Absolutely. At Bijou Monde we work with real materials: .925 Sterling Silver, 10K and 14K gold with a purity hallmark, and 316L surgical stainless steel — resistant and hypoallergenic.\n\nEvery piece is carefully selected to offer you quality, durability, and safety in what you wear."
     },
     "q2": {
-      "q": "Do you ship to the United States and Canada?",
-      "a": "Yes, we ship internationally with insurance through FedEx and DHL Express. The estimated delivery time is 3 to 5 business days once the order is processed. You will receive a real-time tracking number to monitor your package."
+      "q": "Do you ship throughout Mexico?",
+      "a": "Yes, we ship to every state in Mexico with insured carriers and real-time tracking. Estimated delivery is 2 to 5 business days once your order is processed. We do not currently offer international shipping."
     },
     "q3": {
       "q": "How do I know my ring size?",
@@ -514,8 +514,8 @@
       "a": "At Bijou Monde we want your piece to fit perfectly from the very first moment. To find your ideal size, we recommend following our Size Guide, where you can use two simple and accurate methods:\n\n• Diameter method: Use a ring that fits you well and measure its inner diameter with a millimeter ruler.\n• Consult the chart: Compare the measurement in millimeters with our equivalence table to identify your size.\n\nTip: If you are between two sizes, we recommend choosing the larger one for greater comfort, especially for thicker designs."
     },
     "q4": {
-      "q": "Do I have to pay import taxes?",
-      "a": "International orders may be subject to import duties and taxes according to the laws of your country (Canada/USA). These charges are the customer's responsibility and are determined by customs upon arrival at the destination."
+      "q": "Do prices include taxes?",
+      "a": "Applicable VAT (IVA, 16%; gold jewelry is exempt) is calculated and itemized at checkout before you confirm payment. Since all shipments are domestic, there are no customs fees or import duties."
     },
     "q5": {
       "q": "What payment methods do you accept?",
@@ -535,11 +535,10 @@
     "title": "Shipping Policy",
     "s1": {
       "title": "Shipping Coverage",
-      "intro": "At Bijou Monde we ship nationally and internationally with coverage in:",
-      "i1": "Mexico",
-      "i2": "United States",
-      "i3": "Canada",
-      "note": "We work with internationally recognized carriers such as DHL, FedEx, and UPS, ensuring security, tracking, and reliability in every shipment."
+      "intro": "At Bijou Monde we ship throughout Mexico, with coverage in:",
+      "i1": "Standard zone: Mexico City and most of the country",
+      "i2": "Extended zone: the peninsulas and south/southeast (Baja California, Baja California Sur, Sonora, Chihuahua, Chiapas, Guerrero, Oaxaca, Quintana Roo, and Yucatán)",
+      "note": "We work with trusted carriers such as DHL, FedEx, and Estafeta, ensuring security, tracking, and reliability on every shipment."
     },
     "s2": {
       "title": "Processing Times",
@@ -554,34 +553,16 @@
         "i1": "Express: 1 to 2 business days",
         "i2": "Standard: 2 to 5 business days"
       },
-      "us": {
-        "title": "United States",
-        "i1": "International Express: 1 to 3 business days",
-        "i2": "Economy: 2 to 5 business days"
-      },
-      "ca": {
-        "title": "Canada",
-        "i1": "International Express: 1 to 3 business days",
-        "i2": "Economy: 2 to 5 business days"
-      },
-      "note": "Delivery times may be extended due to customs processes or high demand."
+      "note": "Delivery may take longer in extended zones or during periods of high demand."
     },
     "s4": {
       "title": "Shipping Costs",
-      "body": "Shipping costs are automatically calculated at checkout based on:",
-      "i1": "Weight (jewelry grams)",
-      "i2": "Package dimensions",
-      "i3": "Destination",
-      "i4": "Selected shipping type",
-      "note": "For international shipments, costs may vary considerably depending on the service (express vs. economy)."
-    },
-    "s5": {
-      "title": "Taxes and Customs",
-      "intro": "For international shipments:",
-      "i1": "The customer is responsible for any applicable taxes, tariffs, or customs charges",
-      "i2": "These charges are not included in the product price or shipping cost",
-      "i3": "They may vary according to the legislation of each country",
-      "note": "Customs processes may cause delays beyond Bijou Monde's control."
+      "body": "Shipping cost is calculated automatically at checkout based on the destination state:",
+      "i1": "Standard zone: $149 MXN",
+      "i2": "Extended zone: $219 MXN",
+      "i3": "Free shipping on orders over $2,000 MXN",
+      "i4": "Secure packaging and tracking number included",
+      "note": "The exact amount is always shown at checkout before you confirm your order."
     },
     "s6": {
       "title": "Order Tracking",
@@ -692,17 +673,17 @@
     },
     "s8": {
       "title": "Shipping",
-      "intro": "We ship to Mexico, the United States, and Canada. Estimated delivery times vary by destination:",
-      "i1": "Mexico: 3–7 business days",
-      "i2": "United States: 7–14 business days",
-      "i3": "Canada: 10–18 business days"
+      "intro": "We ship throughout Mexico. Estimated delivery times are:",
+      "i1": "Standard zone: 2–5 business days",
+      "i2": "Extended zone: 3–7 business days",
+      "i3": "Times may be extended due to high demand or causes beyond Bijou Monde's control"
     },
     "s9": {
-      "title": "International Shipping",
-      "intro": "For orders outside Mexico:",
-      "i1": "The customer is responsible for any applicable taxes, tariffs, or customs charges in their country",
-      "i2": "Delivery times may be extended due to customs processes",
-      "i3": "Bijou Monde is not responsible for delays caused by international authorities or couriers"
+      "title": "Shipping Scope",
+      "intro": "At this time, Bijou Monde ships only within Mexico:",
+      "i1": "Orders with a delivery address outside Mexico cannot be processed",
+      "i2": "Shipping cost depends on the destination state (standard or extended zone)",
+      "i3": "Free shipping on orders over $2,000 MXN"
     },
     "s10": {
       "title": "Returns and Exchanges",

@@ -15,7 +15,6 @@ export default function Shipping() {
           <ul className="list-disc list-inside space-y-1 mb-3">
             <li>{p('s1.i1')}</li>
             <li>{p('s1.i2')}</li>
-            <li>{p('s1.i3')}</li>
           </ul>
           <p className="text-muted italic">{p('s1.note')}</p>
         </section>
@@ -32,7 +31,7 @@ export default function Shipping() {
         <section>
           <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s3.title')}</h2>
           <div className="space-y-4 mt-3">
-            {(['mx', 'us', 'ca'] as const).map(zone => (
+            {(['mx'] as const).map(zone => (
               <div key={zone}>
                 <h3 className="font-medium text-dark mb-1">{p(`s3.${zone}.title`)}</h3>
                 <ul className="list-disc list-inside space-y-1">
@@ -55,17 +54,6 @@ export default function Shipping() {
             <li>{p('s4.i4')}</li>
           </ul>
           <p className="text-muted italic">{p('s4.note')}</p>
-        </section>
-
-        <section>
-          <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s5.title')}</h2>
-          <p className="mb-3">{p('s5.intro')}</p>
-          <ul className="list-disc list-inside space-y-1 mb-3">
-            <li>{p('s5.i1')}</li>
-            <li>{p('s5.i2')}</li>
-            <li>{p('s5.i3')}</li>
-          </ul>
-          <p className="text-muted italic">{p('s5.note')}</p>
         </section>
 
         <section>

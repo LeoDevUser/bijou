@@ -505,8 +505,8 @@
       "a": "Absolument. Chez Bijou Monde, nous travaillons avec de véritables matériaux : argent Ley .925, or 10K et 14K avec poinçon de pureté, et acier inoxydable chirurgical 316L, résistant et hypoallergénique.\n\nChaque pièce est sélectionnée pour vous offrir qualité, durabilité et sécurité dans ce que vous portez."
     },
     "q2": {
-      "q": "Livrez-vous aux États-Unis et au Canada ?",
-      "a": "Oui, nous effectuons des livraisons internationales assurées via FedEx et DHL Express. Le délai de livraison estimé est de 3 à 5 jours ouvrables une fois la commande traitée. Vous recevrez un numéro de suivi en temps réel pour surveiller votre colis."
+      "q": "Livrez-vous dans tout le Mexique ?",
+      "a": "Oui, nous livrons dans toute la République mexicaine avec des transporteurs assurés et un suivi en temps réel. Le délai de livraison estimé est de 2 à 5 jours ouvrables après le traitement de la commande. Nous ne proposons pas de livraison internationale pour le moment."
     },
     "q3": {
       "q": "Comment connaître ma taille de bague ?",
@@ -514,8 +514,8 @@
       "a": "Chez Bijou Monde, nous souhaitons que votre pièce s'adapte parfaitement dès le premier instant. Pour trouver votre taille idéale, nous vous recommandons de consulter notre Guide des Tailles, où vous pouvez utiliser deux méthodes simples et précises :\n\n• Méthode du diamètre : Utilisez une bague qui vous va bien et mesurez son diamètre intérieur avec une règle millimétrique.\n• Consultez le tableau : Comparez la mesure obtenue en millimètres avec notre tableau d'équivalences pour identifier votre taille.\n\nConseil : Si vous êtes entre deux tailles, nous vous recommandons de choisir la plus grande pour plus de confort, notamment pour les designs plus épais."
     },
     "q4": {
-      "q": "Dois-je payer des taxes d'importation ?",
-      "a": "Les commandes internationales peuvent être soumises à des droits et taxes d'importation conformément aux lois de votre pays (Canada/USA). Ces frais sont à la charge du client et sont déterminés par la douane à l'arrivée à destination."
+      "q": "Les prix incluent-ils les taxes ?",
+      "a": "La TVA applicable (IVA, 16 % ; la joaillerie en or est exonérée) est calculée et détaillée lors du paiement avant la confirmation. Toutes nos livraisons étant nationales, il n'y a ni frais de douane ni droits d'importation."
     },
     "q5": {
       "q": "Quels modes de paiement acceptez-vous ?",
@@ -535,11 +535,10 @@
     "title": "Politique d'Expédition",
     "s1": {
       "title": "Couverture des Expéditions",
-      "intro": "Chez Bijou Monde, nous expédions à l'échelle nationale et internationale avec une couverture vers :",
-      "i1": "Mexique",
-      "i2": "États-Unis",
-      "i3": "Canada",
-      "note": "Nous travaillons avec des transporteurs reconnus internationalement tels que DHL, FedEx et UPS, garantissant sécurité, suivi et fiabilité pour chaque envoi."
+      "intro": "Chez Bijou Monde, nous livrons dans toute la République mexicaine, avec une couverture :",
+      "i1": "Zone standard : Mexico et la majeure partie du pays",
+      "i2": "Zone étendue : les péninsules et le sud-est (Baja California, Baja California Sur, Sonora, Chihuahua, Chiapas, Guerrero, Oaxaca, Quintana Roo et Yucatán)",
+      "note": "Nous travaillons avec des transporteurs reconnus tels que DHL, FedEx et Estafeta, garantissant sécurité, suivi et fiabilité pour chaque envoi."
     },
     "s2": {
       "title": "Délais de Traitement",
@@ -554,34 +553,16 @@
         "i1": "Express : 1 à 2 jours ouvrables",
         "i2": "Standard : 2 à 5 jours ouvrables"
       },
-      "us": {
-        "title": "États-Unis",
-        "i1": "Express international : 1 à 3 jours ouvrables",
-        "i2": "Économique : 2 à 5 jours ouvrables"
-      },
-      "ca": {
-        "title": "Canada",
-        "i1": "Express international : 1 à 3 jours ouvrables",
-        "i2": "Économique : 2 à 5 jours ouvrables"
-      },
-      "note": "Les délais peuvent être prolongés en raison de procédures douanières ou d'une forte demande."
+      "note": "Les délais peuvent être prolongés dans les zones étendues ou en période de forte demande."
     },
     "s4": {
       "title": "Frais d'Expédition",
-      "body": "Les frais d'expédition sont calculés automatiquement lors du paiement en fonction de :",
-      "i1": "Poids (grammes de la bijouterie)",
-      "i2": "Dimensions du colis",
-      "i3": "Destination",
-      "i4": "Type d'expédition sélectionné",
-      "note": "Pour les envois internationaux, les coûts peuvent varier considérablement selon le service (express vs. économique)."
-    },
-    "s5": {
-      "title": "Taxes et Douanes",
-      "intro": "Pour les envois internationaux :",
-      "i1": "Le client est responsable de toute taxe, droit de douane ou frais applicables",
-      "i2": "Ces frais ne sont pas inclus dans le prix du produit ni dans les frais d'expédition",
-      "i3": "Ils peuvent varier selon la législation de chaque pays",
-      "note": "Les procédures douanières peuvent entraîner des retards hors du contrôle de Bijou Monde."
+      "body": "Les frais de livraison sont calculés automatiquement lors du paiement selon l'État de destination :",
+      "i1": "Zone standard : 149 $ MXN",
+      "i2": "Zone étendue : 219 $ MXN",
+      "i3": "Livraison offerte pour les commandes de plus de 2 000 $ MXN",
+      "i4": "Emballage sécurisé et numéro de suivi inclus",
+      "note": "Le montant exact est toujours affiché lors du paiement avant la confirmation de votre commande."
     },
     "s6": {
       "title": "Suivi des Commandes",
@@ -692,17 +673,17 @@
     },
     "s8": {
       "title": "Livraison",
-      "intro": "Nous livrons au Mexique, aux États-Unis et au Canada. Les délais de livraison estimés varient selon la destination :",
-      "i1": "Mexique : 3 à 7 jours ouvrables",
-      "i2": "États-Unis : 7 à 14 jours ouvrables",
-      "i3": "Canada : 10 à 18 jours ouvrables"
+      "intro": "Nous livrons dans toute la République mexicaine. Les délais de livraison estimés sont :",
+      "i1": "Zone standard : 2 à 5 jours ouvrables",
+      "i2": "Zone étendue : 3 à 7 jours ouvrables",
+      "i3": "Les délais peuvent être prolongés en cas de forte demande ou de causes indépendantes de Bijou Monde"
     },
     "s9": {
-      "title": "Livraisons Internationales",
-      "intro": "Pour les commandes hors du Mexique :",
-      "i1": "Le client est responsable de toute taxe, droit de douane ou frais applicables dans son pays",
-      "i2": "Les délais de livraison peuvent être prolongés en raison des procédures douanières",
-      "i3": "Bijou Monde n'est pas responsable des retards causés par les autorités ou transporteurs internationaux"
+      "title": "Portée des Livraisons",
+      "intro": "Pour le moment, Bijou Monde livre uniquement au Mexique :",
+      "i1": "Les commandes avec une adresse de livraison hors du Mexique ne peuvent pas être traitées",
+      "i2": "Les frais de livraison dépendent de l'État de destination (zone standard ou étendue)",
+      "i3": "Livraison offerte pour les commandes de plus de 2 000 $ MXN"
     },
     "s10": {
       "title": "Échanges et Retours",
