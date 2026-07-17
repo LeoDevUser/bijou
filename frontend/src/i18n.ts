@@ -13,7 +13,7 @@ i18n
       fr: { translation: fr },
       es: { translation: es },
     },
-    lng: (localStorage.getItem('language') as string | null) ?? 'en',
+    lng: (localStorage.getItem('language') as string | null) ?? 'es',
     fallbackLng: 'en',
     interpolation: {
       escapeValue: false,

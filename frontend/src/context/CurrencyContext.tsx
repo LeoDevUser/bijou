@@ -14,9 +14,7 @@ const CURRENCIES: Currency[] = ['MXN', 'USD', 'CAD'];
 function detectCurrency(): Currency {
   const saved = localStorage.getItem('currency') as Currency | null;
   if (saved && CURRENCIES.includes(saved)) return saved;
-  const region = navigator.language.split('-')[1]?.toUpperCase();
-  if (region === 'US') return 'USD';
-  if (region === 'CA') return 'CAD';
+  // Mexico-only store: MXN for everyone regardless of browser locale.
   return 'MXN';
 }
 
