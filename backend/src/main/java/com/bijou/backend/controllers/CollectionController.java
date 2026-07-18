@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -86,8 +87,9 @@ public class CollectionController {
     @PatchMapping(value = "/${ADMIN_PAGE}/collections/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CollectionView> uploadImage(
             @PathVariable Long id,
-            @RequestPart("file") MultipartFile file) {
-        return ResponseEntity.ok(collectionService.uploadMedia(id, file));
+            @RequestPart("file") MultipartFile file,
+            @RequestParam(value = "name", required = false) String name) {
+        return ResponseEntity.ok(collectionService.uploadMedia(id, file, name));
     }
 
     @DeleteMapping("/${ADMIN_PAGE}/collections/{id}/image")
@@ -126,8 +128,9 @@ public class CollectionController {
     public ResponseEntity<CollectionSiteAssetView> uploadAssetImage(
             @PathVariable Long id,
             @PathVariable String slot,
-            @RequestPart("file") MultipartFile file) {
-        return ResponseEntity.ok(collectionService.uploadAssetMedia(id, slot, file));
+            @RequestPart("file") MultipartFile file,
+            @RequestParam(value = "name", required = false) String name) {
+        return ResponseEntity.ok(collectionService.uploadAssetMedia(id, slot, file, name));
     }
 
     @DeleteMapping("/${ADMIN_PAGE}/collections/{id}/assets/{slot}/image")

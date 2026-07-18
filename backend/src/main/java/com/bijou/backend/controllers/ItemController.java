@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -72,10 +73,11 @@ public class ItemController {
     @PostMapping(value = "/${ADMIN_PAGE}/items", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ItemView> createItemWithImage(
             @RequestPart("item") @Valid ItemRequest req,
-            @RequestPart(value = "file", required = false) MultipartFile file) {
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            @RequestParam(value = "name", required = false) String name) {
         ItemView view = itemService.createItem(req);
         if (file != null && !file.isEmpty()) {
-            view = itemService.addAsset(view.id(), cloudinaryService.upload(file), "image");
+            view = itemService.addAsset(view.id(), cloudinaryService.upload(file, name), "image");
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(view);
     }
@@ -89,24 +91,28 @@ public class ItemController {
     public ResponseEntity<ItemView> updateItemWithImage(
             @PathVariable Long id,
             @RequestPart("item") @Valid ItemRequest req,
-            @RequestPart(value = "file", required = false) MultipartFile file) {
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            @RequestParam(value = "name", required = false) String name) {
         ItemView view = itemService.updateItem(id, req);
         if (file != null && !file.isEmpty()) {
-            view = itemService.addAsset(view.id(), cloudinaryService.upload(file), "image");
+            view = itemService.addAsset(view.id(), cloudinaryService.upload(file, name), "image");
         }
         return ResponseEntity.ok(view);
     }
 
     @PostMapping(value = "/${ADMIN_PAGE}/items/{itemId}/assets", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ItemView> addAsset(@PathVariable Long itemId, @RequestPart("file") MultipartFile file) {
+    public ResponseEntity<ItemView> addAsset(
+            @PathVariable Long itemId,
+            @RequestPart("file") MultipartFile file,
+            @RequestParam(value = "name", required = false) String name) {
         String contentType = file.getContentType();
         CloudinaryResponse res;
         String resourceType;
         if (contentType != null && contentType.startsWith("video/")) {
-            res = cloudinaryService.uploadVideo(file);
+            res = cloudinaryService.uploadVideo(file, name);
             resourceType = "video";
         } else {
-            res = cloudinaryService.upload(file);
+            res = cloudinaryService.upload(file, name);
             resourceType = "image";
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(itemService.addAsset(itemId, res, resourceType));

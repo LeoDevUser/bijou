@@ -379,7 +379,7 @@
       "noneOption": "— Ninguno —",
       "browse": "Explorar",
       "browseTitle": "Biblioteca Cloudinary",
-      "browseSearch": "Buscar por ID...",
+      "browseSearch": "Buscar por nombre...",
       "browseImages": "Imágenes",
       "browseVideos": "Videos",
       "browseSelect": "Seleccionar",
@@ -410,7 +410,9 @@
       "deleteConfirm": "¿Eliminar este anuncio?",
       "active": "Activo",
       "ctaNone": "Sin enlace",
-      "ctaCollection": "Enlace a colección"
+      "ctaCollection": "Enlace a colección",
+      "mediaNamePrompt": "Nombra este archivo (visible en la biblioteca de medios)",
+      "browseRename": "Renombrar"
     },
     "theme": {
       "title": "Tema de Color",

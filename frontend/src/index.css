@@ -46,6 +46,17 @@
   }
 }
 
+/* iOS overlays a large play glyph on videos it refuses to autoplay (Low Power
+   Mode etc.). Our decorative videos show a poster and start on any tap, so the
+   glyph is redundant — hide it. Videos with real controls are unaffected. */
+video:not([controls])::-webkit-media-controls-start-playback-button {
+  display: none !important;
+  -webkit-appearance: none;
+}
+video:not([controls])::-webkit-media-controls {
+  display: none !important;
+}
+
 .bijou-navbar-border {
   border-color: var(--bijou-navbar-separator);
 }

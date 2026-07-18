@@ -379,7 +379,7 @@
       "noneOption": "— None —",
       "browse": "Browse",
       "browseTitle": "Cloudinary Library",
-      "browseSearch": "Search by ID...",
+      "browseSearch": "Search by name...",
       "browseImages": "Images",
       "browseVideos": "Videos",
       "browseSelect": "Select",
@@ -410,7 +410,9 @@
       "deleteConfirm": "Delete this announcement?",
       "active": "Active",
       "ctaNone": "No link",
-      "ctaCollection": "Link to collection"
+      "ctaCollection": "Link to collection",
+      "mediaNamePrompt": "Name this file (shown in the media library)",
+      "browseRename": "Rename"
     },
     "theme": {
       "title": "Color Theme",

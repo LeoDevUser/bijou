@@ -3,6 +3,7 @@ package com.bijou.backend.controllers;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,6 +23,15 @@ public class CloudinaryAdminController {
             @RequestParam(defaultValue = "image") String type,
             @RequestParam(required = false) String nextCursor) {
         return ResponseEntity.ok(cloudinaryService.listResources(type, nextCursor));
+    }
+
+    @PatchMapping("/${ADMIN_PAGE}/cloudinary/resources/name")
+    public ResponseEntity<Void> renameResource(
+            @RequestParam String publicId,
+            @RequestParam(defaultValue = "image") String type,
+            @RequestParam String name) {
+        cloudinaryService.setDisplayName(publicId, type, name);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/${ADMIN_PAGE}/cloudinary/resources")

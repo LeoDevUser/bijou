@@ -11,7 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.bijou.backend.entities.MediaAssetName;
 import com.bijou.backend.exception.AppException;
+import com.bijou.backend.repositories.MediaAssetNameRepository;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 
@@ -24,12 +26,74 @@ import lombok.extern.slf4j.Slf4j;
 public class CloudinaryService {
 
     private final Cloudinary cloudinary;
+    private final MediaAssetNameRepository mediaAssetNameRepository;
     private static final Set<String> ALLOWED_IMAGE_TYPES = new HashSet<>(List.of("image/png", "image/jpeg", "image/webp"));
     private static final Set<String> ALLOWED_VIDEO_TYPES = new HashSet<>(List.of("video/mp4", "video/webm", "video/quicktime"));
     private static final long MAX_VIDEO_BYTES = 50L * 1024 * 1024;
     private static final long MAX_PDF_BYTES = 10L * 1024 * 1024;
 
+    /**
+     * Admin-provided display name → Cloudinary public_id. Slugified so it is
+     * URL-safe. The slug is used as-is when free; a short random suffix is
+     * appended only when that public_id is already taken (Cloudinary silently
+     * OVERWRITES an existing asset on public_id collision, which would break
+     * every stored URL pointing at the old one).
+     */
+    private String toPublicId(String name, String resourceType) {
+        String slug = java.text.Normalizer.normalize(name, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase()
+                .replaceAll("[^a-z0-9]+", "-")
+                .replaceAll("(^-+|-+$)", "");
+        if (slug.length() > 60) slug = slug.substring(0, 60);
+        if (slug.isBlank() || isPublicIdTaken(slug, resourceType)) {
+            String suffix = java.util.UUID.randomUUID().toString().substring(0, 6);
+            return slug.isBlank() ? suffix : slug + "-" + suffix;
+        }
+        return slug;
+    }
+
+    private boolean isPublicIdTaken(String publicId, String resourceType) {
+        try {
+            cloudinary.api().resource(publicId,
+                ObjectUtils.asMap("resource_type", resourceType != null ? resourceType : "image"));
+            return true;
+        } catch (com.cloudinary.api.exceptions.NotFound e) {
+            return false;
+        } catch (Exception e) {
+            // Can't verify (network/rate limit) — suffix to be safe, an
+            // unverified bare slug could overwrite an existing asset.
+            log.warn("could not check public_id '{}', suffixing: {}", publicId, e.getMessage());
+            return true;
+        }
+    }
+
+    private Map<String, Object> uploadOptions(String name, String resourceType) {
+        Map<String, Object> options = new java.util.LinkedHashMap<>();
+        if (resourceType != null) options.put("resource_type", resourceType);
+        if (name != null && !name.isBlank()) options.put("public_id", toPublicId(name, resourceType));
+        return options;
+    }
+
+    /** Upsert the display name stored in our DB for a Cloudinary asset. */
+    public void setDisplayName(String publicId, String resourceType, String name) {
+        if (name == null || name.isBlank()) return;
+        MediaAssetName row = mediaAssetNameRepository
+                .findByPublicIdAndResourceType(publicId, resourceType)
+                .orElseGet(() -> MediaAssetName.builder()
+                        .publicId(publicId)
+                        .resourceType(resourceType)
+                        .build());
+        row.setDisplayName(name.trim());
+        mediaAssetNameRepository.save(row);
+        log.info("set display name for {} '{}'", resourceType, publicId);
+    }
+
     public CloudinaryResponse upload(MultipartFile file) {
+        return upload(file, null);
+    }
+
+    public CloudinaryResponse upload(MultipartFile file, String name) {
         if (file.isEmpty()) {
             log.warn("attempted to upload an empty file");
             throw new AppException(HttpStatus.BAD_REQUEST, "FILE_EMPTY");
@@ -41,8 +105,9 @@ public class CloudinaryService {
         }
 
         try {
-            Map<?,?> res = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+            Map<?,?> res = cloudinary.uploader().upload(file.getBytes(), uploadOptions(name, null));
             log.info("uploaded new image");
+            setDisplayName((String) res.get("public_id"), "image", name);
             return new CloudinaryResponse(
                 (String) res.get("public_id"),
                 (String) res.get("secure_url"),
@@ -57,6 +122,10 @@ public class CloudinaryService {
     }
 
     public CloudinaryResponse uploadVideo(MultipartFile file) {
+        return uploadVideo(file, null);
+    }
+
+    public CloudinaryResponse uploadVideo(MultipartFile file, String name) {
         if (file.isEmpty()) {
             log.warn("attempted to upload an empty file");
             throw new AppException(HttpStatus.BAD_REQUEST, "FILE_EMPTY");
@@ -73,9 +142,9 @@ public class CloudinaryService {
         }
 
         try {
-            Map<?,?> res = cloudinary.uploader().upload(file.getBytes(),
-                ObjectUtils.asMap("resource_type", "video"));
+            Map<?,?> res = cloudinary.uploader().upload(file.getBytes(), uploadOptions(name, "video"));
             log.info("uploaded new video");
+            setDisplayName((String) res.get("public_id"), "video", name);
             return new CloudinaryResponse(
                 (String) res.get("public_id"),
                 (String) res.get("secure_url"),
@@ -135,16 +204,25 @@ public class CloudinaryService {
             Map<?, ?> result = cloudinary.api().resources(params);
             Object rawList = result.get("resources");
             List<?> rawResources = rawList instanceof List<?> l ? l : List.of();
+            List<String> publicIds = rawResources.stream()
+                    .map(raw -> (String) ((Map<?, ?>) raw).get("public_id"))
+                    .toList();
+            Map<String, String> displayNames = new java.util.HashMap<>();
+            for (MediaAssetName n : mediaAssetNameRepository.findByResourceTypeAndPublicIdIn(resourceType, publicIds)) {
+                displayNames.put(n.getPublicId(), n.getDisplayName());
+            }
             List<CloudinaryResourceView> resources = new ArrayList<>();
             for (Object raw : rawResources) {
                 Map<?, ?> r = (Map<?, ?>) raw;
+                String publicId = (String) r.get("public_id");
                 resources.add(new CloudinaryResourceView(
-                        (String) r.get("public_id"),
+                        publicId,
                         (String) r.get("resource_type"),
                         (String) r.get("format"),
                         r.get("bytes") instanceof Number n ? n.longValue() : 0L,
                         (String) r.get("created_at"),
-                        (String) r.get("secure_url")));
+                        (String) r.get("secure_url"),
+                        displayNames.get(publicId)));
             }
             String cursor = (String) result.get("next_cursor");
             log.info("listed {} {} resources", resources.size(), resourceType);
@@ -158,6 +236,8 @@ public class CloudinaryService {
     public void delete(String imageId, String resourceType) {
         try {
             cloudinary.uploader().destroy(imageId, ObjectUtils.asMap("resource_type", resourceType));
+            mediaAssetNameRepository.findByPublicIdAndResourceType(imageId, resourceType)
+                    .ifPresent(mediaAssetNameRepository::delete);
             log.info("deleted {} '{}'", resourceType, imageId);
         } catch (IOException e) {
             log.error("error deleting {}: {}", resourceType, e.getMessage());

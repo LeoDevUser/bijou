@@ -5,6 +5,8 @@ import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { pickLocale } from '../types';
 import type { OrderView } from '../types';
+import AutoplayVideo from '../components/ui/AutoplayVideo';
+import { optimizedImageUrl } from '../utils/cloudinary';
 
 
 const STATUS_COLOR: Record<string, string> = {
@@ -111,8 +113,8 @@ export default function Orders() {
                     <div className="flex items-center gap-2">
                       {item.imageUrl
                         ? item.resourceType === 'video'
-                          ? <video src={item.imageUrl} className="w-10 h-10 object-cover bg-[#F0EDE8] flex-shrink-0" autoPlay muted loop playsInline />
-                          : <img src={item.imageUrl} alt={name} className="w-10 h-10 object-cover bg-[#F0EDE8] flex-shrink-0" />
+                          ? <AutoplayVideo src={item.imageUrl} className="w-10 h-10 object-cover bg-[#F0EDE8] flex-shrink-0" />
+                          : <img src={optimizedImageUrl(item.imageUrl)} alt={name} className="w-10 h-10 object-cover bg-[#F0EDE8] flex-shrink-0" />
                         : <div className="w-10 h-10 bg-[#F0EDE8] flex-shrink-0" />
                       }
                       <div>

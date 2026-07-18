@@ -4,13 +4,15 @@ import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import type { CollectionView } from '../types';
 import { pickLocale } from '../types';
+import AutoplayVideo from '../components/ui/AutoplayVideo';
+import { optimizedImageUrl } from '../utils/cloudinary';
 
 function CollectionMedia({ c, className }: { c: CollectionView; className: string }) {
   if (!c.imageUrl) return null;
   if (c.resourceType === 'video') {
-    return <video src={c.imageUrl} className={className} autoPlay muted loop playsInline />;
+    return <AutoplayVideo src={c.imageUrl} className={className} />;
   }
-  return <img src={c.imageUrl} alt={pickLocale(c.headerEn, c.headerFr, c.headerEs, 'en') || ''} className={className} />;
+  return <img src={optimizedImageUrl(c.imageUrl)} alt={pickLocale(c.headerEn, c.headerFr, c.headerEs, 'en') || ''} className={className} />;
 }
 
 export default function Collections() {

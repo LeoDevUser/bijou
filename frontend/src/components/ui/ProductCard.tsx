@@ -5,6 +5,8 @@ import { useCart } from '../../context/CartContext';
 import { useCurrency } from '../../context/CurrencyContext';
 import type { ItemView } from '../../types';
 import { pickLocale } from '../../types';
+import AutoplayVideo from './AutoplayVideo';
+import { optimizedImageUrl } from '../../utils/cloudinary';
 
 function effectivePrice(price: number, discountPercent: number | null): number {
   if (!discountPercent) return price;
@@ -64,18 +66,14 @@ export default function ProductCard({ item }: { item: ItemView }) {
         {/* Current asset */}
         {currentAsset ? (
           currentAsset.resourceType === 'video' ? (
-            <video
+            <AutoplayVideo
               key={currentAsset.id}
-              src={currentAsset.imageUrl ?? undefined}
+              src={currentAsset.imageUrl ?? ''}
               className="w-full h-full object-cover"
-              muted
-              autoPlay
-              loop
-              playsInline
             />
           ) : (
             <img
-              src={currentAsset.imageUrl ?? ''}
+              src={optimizedImageUrl(currentAsset.imageUrl ?? '')}
               alt={name}
               className={`w-full h-full object-cover transition-transform duration-500 ${!hasMultiple ? 'group-hover:scale-105' : ''}`}
             />

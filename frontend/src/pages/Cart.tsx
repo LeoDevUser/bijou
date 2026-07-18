@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useCart } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
+import AutoplayVideo from '../components/ui/AutoplayVideo';
+import { optimizedImageUrl } from '../utils/cloudinary';
 
 export default function Cart() {
   const { t } = useTranslation();
@@ -36,8 +38,8 @@ export default function Cart() {
               <Link to={`/shop/${item.id}`} className="w-24 h-24 bg-[#F0EDE8] flex-shrink-0 overflow-hidden">
                 {item.imageUrl && (
                   item.resourceType === 'video'
-                    ? <video src={item.imageUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
-                    : <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                    ? <AutoplayVideo src={item.imageUrl} className="w-full h-full object-cover" />
+                    : <img src={optimizedImageUrl(item.imageUrl)} alt={item.name} className="w-full h-full object-cover" />
                 )}
               </Link>
               <div className="flex-1 flex flex-col justify-between">

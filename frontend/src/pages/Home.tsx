@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import ProductCard from '../components/ui/ProductCard';
+import AutoplayVideo from '../components/ui/AutoplayVideo';
+import { optimizedImageUrl } from '../utils/cloudinary';
 import CollectionPage from './CollectionPage';
 import type { ItemView } from '../types';
 import { pickLocale } from '../types';
@@ -34,9 +36,9 @@ function ctaHref(entry: AssetEntry | undefined): string {
 function SlotMedia({ entry, alt, className }: { entry: AssetEntry; alt: string; className: string }) {
   if (!entry.url) return null;
   if (entry.resourceType === 'video') {
-    return <video src={entry.url} className={`${className} object-top md:object-center`} autoPlay muted loop playsInline />;
+    return <AutoplayVideo src={entry.url} className={`${className} object-top md:object-center`} />;
   }
-  return <img src={entry.url} alt={alt} className={className} />;
+  return <img src={optimizedImageUrl(entry.url)} alt={alt} className={className} />;
 }
 
 export default function Home() {

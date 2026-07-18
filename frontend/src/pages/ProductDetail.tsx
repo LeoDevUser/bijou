@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import { useCart } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
+import AutoplayVideo from '../components/ui/AutoplayVideo';
+import { optimizedVideoUrl, optimizedImageUrl } from '../utils/cloudinary';
 import type { ItemView } from '../types';
 import { pickLocale } from '../types';
 
@@ -212,20 +214,16 @@ export default function ProductDetail() {
             <div className="relative bg-[#F0EDE8] aspect-square overflow-hidden">
               {currentAsset ? (
                 currentAsset.resourceType === 'video' ? (
-                  <video
+                  <AutoplayVideo
                     key={currentAsset.id}
-                    src={currentAsset.imageUrl ?? undefined}
+                    src={currentAsset.imageUrl ?? ''}
                     className="w-full h-full object-cover"
                     controls
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
                     onClick={openLightbox}
                   />
                 ) : (
                   <img
-                    src={currentAsset.imageUrl ?? ''}
+                    src={optimizedImageUrl(currentAsset.imageUrl ?? '')}
                     alt={name}
                     className="w-full h-full object-cover cursor-zoom-in"
                     onClick={openLightbox}
@@ -263,7 +261,7 @@ export default function ProductDetail() {
                     {asset.resourceType === 'video' ? (
                       <div className="w-full h-full flex items-center justify-center text-[10px] text-muted uppercase tracking-widest">vid</div>
                     ) : (
-                      <img src={asset.imageUrl ?? ''} alt="" className="w-full h-full object-cover" />
+                      <img src={optimizedImageUrl(asset.imageUrl ?? '')} alt="" className="w-full h-full object-cover" />
                     )}
                   </button>
                 ))}
@@ -380,7 +378,7 @@ export default function ProductDetail() {
               currentAsset.resourceType === 'video' ? (
                 <video
                   key={currentAsset.id}
-                  src={currentAsset.imageUrl ?? undefined}
+                  src={currentAsset.imageUrl ? optimizedVideoUrl(currentAsset.imageUrl) : undefined}
                   className="max-w-full max-h-full object-contain"
                   style={{ maxHeight: '90vh', maxWidth: '90vw' }}
                   controls

@@ -5,6 +5,19 @@ import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, 
 import { pickLocale, isItemIncomplete, isLabelIncomplete } from '../types';
 import { useTheme, THEME_DEFAULTS, mergeCollectionTheme } from '../context/ThemeContext';
 
+// ── Media naming ──────────────────────────────────────────────────────────────
+
+/**
+ * Ask the admin to name an upload; the backend uses it as the Cloudinary
+ * public_id so the media library shows readable names. Cancelling or leaving
+ * it empty falls back to the filename without extension.
+ */
+function promptMediaName(file: File, promptText: string): string {
+  const fallback = file.name.replace(/\.[^.]+$/, '');
+  const entered = window.prompt(promptText, fallback);
+  return (entered ?? fallback).trim() || fallback;
+}
+
 // ── Color utilities ───────────────────────────────────────────────────────────
 
 function parseColorToRgba(value: string): [number, number, number, number] {
@@ -527,7 +540,7 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [pendingFiles, setPendingFiles] = useState<{ file: File; name: string }[]>([]);
   const [currentAssets, setCurrentAssets] = useState(item?.assets ?? []);
   const [browsingMedia, setBrowsingMedia] = useState(false);
   const [weightUnit, setWeightUnit] = useState<'g' | 'oz'>('g');
@@ -576,8 +589,8 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
         const created = await api.admin.items.create(payload);
         itemId = created.id;
       }
-      for (const file of pendingFiles) {
-        await api.admin.items.addAsset(itemId, file);
+      for (const { file, name } of pendingFiles) {
+        await api.admin.items.addAsset(itemId, file, name);
       }
       onSaved();
     } catch {
@@ -738,7 +751,7 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
                 type="file"
                 multiple
                 accept="image/*,video/mp4,video/webm,video/quicktime"
-                onChange={e => setPendingFiles(Array.from(e.target.files ?? []))}
+                onChange={e => setPendingFiles(Array.from(e.target.files ?? []).map(file => ({ file, name: promptMediaName(file, t('admin.site.mediaNamePrompt')) })))}
                 className="text-sm text-muted"
               />
               <button
@@ -1122,6 +1135,7 @@ function CollectionFormModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
   const [browsingCard, setBrowsingCard] = useState(false);
   const [pickedMedia, setPickedMedia] = useState<{ publicId: string; resourceType: string; secureUrl: string } | null>(null);
   const [form, setForm] = useState({
@@ -1161,7 +1175,7 @@ function CollectionFormModal({
         saved = await api.admin.collections.create(payload);
       }
       if (file) {
-        saved = await api.admin.collections.uploadImage(saved.id, file);
+        saved = await api.admin.collections.uploadImage(saved.id, file, fileName ?? undefined);
       } else if (pickedMedia) {
         saved = await api.admin.collections.pickMedia(saved.id, pickedMedia);
       }
@@ -1280,7 +1294,12 @@ function CollectionFormModal({
             type="file"
             accept="image/png,image/jpeg,image/webp,video/mp4,video/webm,video/quicktime"
             className="hidden"
-            onChange={e => { setPickedMedia(null); setFile(e.target.files?.[0] ?? null); }}
+            onChange={e => {
+              setPickedMedia(null);
+              const f = e.target.files?.[0] ?? null;
+              setFile(f);
+              setFileName(f ? promptMediaName(f, t('admin.site.mediaNamePrompt')) : null);
+            }}
           />
           <div className="flex gap-2">
             <button
@@ -1367,8 +1386,19 @@ function CloudinaryBrowserModal({ onSelect, onClose }: {
     } finally { setDeleting(null); }
   }
 
+  async function handleRename(resource: CloudinaryResource) {
+    const entered = window.prompt(t('admin.site.mediaNamePrompt'), resource.displayName ?? resource.publicId);
+    const name = entered?.trim();
+    if (!name || name === (resource.displayName ?? resource.publicId)) return;
+    await api.admin.cloudinary.rename(resource.publicId, resource.resourceType, name);
+    setPage(prev => prev
+      ? { ...prev, resources: prev.resources.map(r => r.publicId === resource.publicId ? { ...r, displayName: name } : r) }
+      : prev);
+  }
+
   const filtered = (page?.resources ?? []).filter(r =>
-    !search || r.publicId.toLowerCase().includes(search.toLowerCase()));
+    !search || (r.displayName ?? '').toLowerCase().includes(search.toLowerCase())
+    || r.publicId.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center" onClick={onClose}>
@@ -1415,7 +1445,7 @@ function CloudinaryBrowserModal({ onSelect, onClose }: {
           {filtered.map(resource => (
             <div key={resource.publicId} className="flex items-center gap-3 border border-border px-3 py-2 hover:border-dark transition-colors">
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-mono truncate">{resource.publicId}</p>
+                <p className="text-xs font-mono truncate">{resource.displayName ?? resource.publicId}</p>
                 <p className="text-xs text-muted mt-0.5">
                   {resource.format.toUpperCase()} · {(resource.bytes / 1024).toFixed(0)} KB · {resource.createdAt?.slice(0, 10)}
                 </p>
@@ -1426,6 +1456,12 @@ function CloudinaryBrowserModal({ onSelect, onClose }: {
                   className="text-xs uppercase tracking-widest border border-dark bg-dark text-white px-3 py-1 hover:bg-gold transition-colors"
                 >
                   {t('admin.site.browseSelect')}
+                </button>
+                <button
+                  onClick={() => handleRename(resource)}
+                  className="text-xs uppercase tracking-widest border border-border px-3 py-1 hover:border-dark transition-colors"
+                >
+                  {t('admin.site.browseRename')}
                 </button>
                 <button
                   onClick={() => handleDelete(resource)}
@@ -1515,10 +1551,10 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, onUpdate }: {
     } finally { setSaving(false); }
   }
 
-  async function handleUpload(slot: string, file: File) {
+  async function handleUpload(slot: string, file: File, name: string) {
     setUploading(slot);
     try {
-      const updated = await api.admin.collections.uploadAssetImage(collectionId, slot, file);
+      const updated = await api.admin.collections.uploadAssetImage(collectionId, slot, file, name);
       onUpdate(updated);
     } finally { setUploading(null); }
   }
@@ -1586,7 +1622,7 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, onUpdate }: {
                     type="file"
                     accept="image/png,image/jpeg,image/webp,video/mp4,video/webm,video/quicktime"
                     className="hidden"
-                    onChange={e => { const f = e.target.files?.[0]; if (f) handleUpload(slot, f); e.target.value = ''; }}
+                    onChange={e => { const f = e.target.files?.[0]; if (f) handleUpload(slot, f, promptMediaName(f, t('admin.site.mediaNamePrompt'))); e.target.value = ''; }}
                   />
                 </label>
                 <button

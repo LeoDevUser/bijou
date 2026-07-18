@@ -254,6 +254,7 @@ export interface CloudinaryResource {
   bytes: number;
   createdAt: string;
   secureUrl: string;
+  displayName: string | null;
 }
 
 export interface CloudinaryResourcesPage {

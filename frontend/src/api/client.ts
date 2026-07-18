@@ -156,9 +156,10 @@ export const api = {
         request<void>(`/${ADMIN}/items/activate/${id}`, { method: 'PATCH' }),
       deactivate: (id: number) =>
         request<void>(`/${ADMIN}/items/deactivate/${id}`, { method: 'PATCH' }),
-      addAsset: async (itemId: number, file: File): Promise<ItemView> => {
+      addAsset: async (itemId: number, file: File, name?: string): Promise<ItemView> => {
         const form = new FormData();
         form.append('file', file);
+        if (name) form.append('name', name);
         const res = await fetch(`${BASE_URL}/${ADMIN}/items/${itemId}/assets`, {
           method: 'POST',
           credentials: 'include',
@@ -172,10 +173,11 @@ export const api = {
         request<ItemView>(`/${ADMIN}/items/${itemId}/assets/${assetId}`, { method: 'DELETE' }),
       pickAsset: (itemId: number, data: { publicId: string; resourceType: string; secureUrl: string }) =>
         request<ItemView>(`/${ADMIN}/items/${itemId}/assets/pick`, { method: 'PATCH', body: JSON.stringify(data) }),
-      createWithImage: async (data: ItemRequest, file: File): Promise<ItemView> => {
+      createWithImage: async (data: ItemRequest, file: File, name?: string): Promise<ItemView> => {
         const form = new FormData();
         form.append('item', new Blob([JSON.stringify(data)], { type: 'application/json' }));
         form.append('file', file);
+        if (name) form.append('name', name);
         const res = await fetch(`${BASE_URL}/${ADMIN}/items`, {
           method: 'POST',
           credentials: 'include',
@@ -185,10 +187,11 @@ export const api = {
         if (!res.ok) { const body = await res.json().catch(() => ({})); throw { status: res.status, ...body }; }
         return res.json();
       },
-      updateWithImage: async (id: number, data: ItemRequest, file: File): Promise<ItemView> => {
+      updateWithImage: async (id: number, data: ItemRequest, file: File, name?: string): Promise<ItemView> => {
         const form = new FormData();
         form.append('item', new Blob([JSON.stringify(data)], { type: 'application/json' }));
         form.append('file', file);
+        if (name) form.append('name', name);
         const res = await fetch(`${BASE_URL}/${ADMIN}/items/${id}`, {
           method: 'PATCH',
           credentials: 'include',
@@ -233,9 +236,10 @@ export const api = {
         request<CollectionView>(`/${ADMIN}/collections`, { method: 'POST', body: JSON.stringify(data) }),
       updateText: (id: number, data: { labelIds: number[]; categoryIds: number[]; headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; color: string }) =>
         request<CollectionView>(`/${ADMIN}/collections/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-      uploadImage: async (id: number, file: File): Promise<CollectionView> => {
+      uploadImage: async (id: number, file: File, name?: string): Promise<CollectionView> => {
         const form = new FormData();
         form.append('file', file);
+        if (name) form.append('name', name);
         const res = await fetch(`${BASE_URL}/${ADMIN}/collections/${id}/image`, {
           method: 'PATCH',
           credentials: 'include',
@@ -251,9 +255,10 @@ export const api = {
         request<void>(`/${ADMIN}/collections/${id}`, { method: 'DELETE' }),
       updateAsset: (id: number, slot: string, data: { headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; taglineEn: string | null; taglineFr: string | null; taglineEs: string | null; color: string; headerColor: string | null; subheaderColor: string | null; taglineColor: string | null; ctaCategory: string | null; ctaLabelId: number | null }) =>
         request<CollectionSiteAssetView>(`/${ADMIN}/collections/${id}/assets/${slot}`, { method: 'PATCH', body: JSON.stringify(data) }),
-      uploadAssetImage: async (id: number, slot: string, file: File): Promise<CollectionSiteAssetView> => {
+      uploadAssetImage: async (id: number, slot: string, file: File, name?: string): Promise<CollectionSiteAssetView> => {
         const form = new FormData();
         form.append('file', file);
+        if (name) form.append('name', name);
         const res = await fetch(`${BASE_URL}/${ADMIN}/collections/${id}/assets/${slot}/image`, {
           method: 'PATCH',
           credentials: 'include',
@@ -283,6 +288,10 @@ export const api = {
       delete: (publicId: string, type: string) => {
         const params = new URLSearchParams({ publicId, type });
         return request<void>(`/${ADMIN}/cloudinary/resources?${params}`, { method: 'DELETE' });
+      },
+      rename: (publicId: string, type: string, name: string) => {
+        const params = new URLSearchParams({ publicId, type, name });
+        return request<void>(`/${ADMIN}/cloudinary/resources/name?${params}`, { method: 'PATCH' });
       },
     },
     theme: {

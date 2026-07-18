@@ -70,6 +70,30 @@ Stripe webhooks (separate terminal, needed for checkout flows):
 Admin panel: http://localhost:5173/<ADMIN_PAGE>, log in with
 ADMIN_EMAIL / ADMIN_PASSWORD.
 
+Demo over ngrok (no deploy)
+---------------------------
+Run backend + frontend as above, then tunnel ONLY the vite port:
+
+  ngrok http --url=nonschematized-elaine-supersagacious.ngrok-free.dev 5173
+
+Share that https URL. One tunnel is enough: the vite proxy forwards
+/api, /auth, /public, /account/ and the admin path to localhost:8080
+server-side, so visitors' browsers only ever see one origin.
+
+- The ngrok domain must be in server.allowedHosts in vite.config.ts
+  (already is), or vite refuses the request.
+- The vite proxy rewrites the Origin header to http://localhost:5173
+  (already configured) — without it the backend's CORS check 403s every
+  POST (login etc.) while GETs still work, since browsers only attach
+  Origin to POSTs. If that half-broken pattern ever comes back, check
+  the proxy config first; do NOT need to touch backend CORS_ORIGINS.
+- First-time machine setup: ngrok config add-authtoken <token> (token
+  from dashboard.ngrok.com, same account that owns the domain above).
+- Seed demo data AFTER the backend is up — a backend restart wipes the
+  DB (see create-drop below).
+- Visitors see ngrok's free-tier interstitial once; it also makes the
+  console log a bogus "Manifest: syntax error" — both harmless.
+
 Gotchas
 -------
 - ddl-auto is env-driven (DDL_AUTO). Local .env sets create-drop, so the DB

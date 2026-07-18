@@ -176,12 +176,12 @@ public class CollectionService {
     }
 
     @Transactional
-    public CollectionView uploadMedia(Long id, MultipartFile file) {
+    public CollectionView uploadMedia(Long id, MultipartFile file, String name) {
         Collection collection = findOrThrow(id);
         String oldImageId = collection.getImageId();
         String oldResourceType = collection.getResourceType();
         boolean isVideo = VIDEO_TYPES.contains(file.getContentType());
-        CloudinaryResponse res = isVideo ? cloudinaryService.uploadVideo(file) : cloudinaryService.upload(file);
+        CloudinaryResponse res = isVideo ? cloudinaryService.uploadVideo(file, name) : cloudinaryService.upload(file, name);
         collection.setImageUrl(res.url());
         collection.setImageId(res.imageId());
         collection.setResourceType(isVideo ? "video" : "image");
@@ -244,12 +244,12 @@ public class CollectionService {
     }
 
     @Transactional
-    public CollectionSiteAssetView uploadAssetMedia(Long collectionId, String slot, MultipartFile file) {
+    public CollectionSiteAssetView uploadAssetMedia(Long collectionId, String slot, MultipartFile file, String name) {
         CollectionSiteAsset asset = findAssetOrThrow(collectionId, slot);
         String oldImageId = asset.getImageId();
         String oldResourceType = asset.getResourceType();
         boolean isVideo = VIDEO_TYPES.contains(file.getContentType());
-        CloudinaryResponse res = isVideo ? cloudinaryService.uploadVideo(file) : cloudinaryService.upload(file);
+        CloudinaryResponse res = isVideo ? cloudinaryService.uploadVideo(file, name) : cloudinaryService.upload(file, name);
         asset.setImageUrl(res.url());
         asset.setImageId(res.imageId());
         asset.setResourceType(isVideo ? "video" : "image");

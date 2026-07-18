@@ -6,5 +6,6 @@ public record CloudinaryResourceView(
         String format,
         long bytes,
         String createdAt,
-        String secureUrl) {
+        String secureUrl,
+        String displayName) {
 }
