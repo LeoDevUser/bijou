@@ -1,6 +1,7 @@
 package com.bijou.backend.services;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +22,14 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Computes and persists metal-indexed prices:
  *
- *   price = ceil10( mxnPerGram × formula.factor × weightGrams + margin )
+ *   wholesale = (mxnPerGram × formula.factor + work) × weightGrams
+ *   price     = ceil10( wholesale × (1 + margin / 100) )
+ *
+ * work (w) is per gram (labor that scales with piece size); margin (m) is a
+ * percentage markup over the wholesale cost (default 47, i.e. +47%). The
+ * wholesale figure is intentionally not stored anywhere — it's cheap to
+ * re-derive from the same inputs (metal price, factor, work, weight), and
+ * the admin UI recomputes it client-side for display.
  *
  * Prices are written into Item.price (compute-and-persist), so checkout,
  * Stripe, views and stats all read the same number with no live dependency
@@ -35,20 +43,27 @@ import lombok.extern.slf4j.Slf4j;
 public class DynamicPricingService {
 
     private static final BigDecimal TEN = BigDecimal.TEN;
+    private static final BigDecimal ONE_HUNDRED = BigDecimal.valueOf(100);
 
     private final MetalPriceService metalPriceService;
     private final ItemRepository itemRepository;
 
-    /** Empty when the formula is NONE/null or no metal price has ever been fetched. */
-    public Optional<BigDecimal> computePrice(PricingFormula formula, float weightGrams, BigDecimal margin) {
+    /**
+     * price = ceil10( (mxnPerGram × factor + work) × weightGrams × (1 + margin/100) )
+     * Empty when the formula is NONE/null or no metal price has ever been fetched.
+     */
+    public Optional<BigDecimal> computePrice(PricingFormula formula, float weightGrams, BigDecimal work, BigDecimal margin) {
         if (formula == null || formula == PricingFormula.NONE) return Optional.empty();
         return metalPriceService.mxnPerGram(formula.metal()).map(perGram -> {
-            BigDecimal base = perGram
+            BigDecimal perGramTotal = perGram
                     .multiply(formula.factor())
-                    .multiply(BigDecimal.valueOf(weightGrams))
-                    .add(margin == null ? BigDecimal.ZERO : margin);
+                    .add(work == null ? BigDecimal.ZERO : work);
+            BigDecimal wholesale = perGramTotal.multiply(BigDecimal.valueOf(weightGrams));
+            BigDecimal markupMultiplier = BigDecimal.ONE.add(
+                    (margin == null ? BigDecimal.ZERO : margin).divide(ONE_HUNDRED, MathContext.DECIMAL64));
+            BigDecimal marked = wholesale.multiply(markupMultiplier);
             // ceil to the next multiple of 10 MXN (e.g. 2311 -> 2320)
-            return base.divide(TEN, 0, RoundingMode.CEILING).multiply(TEN);
+            return marked.divide(TEN, 0, RoundingMode.CEILING).multiply(TEN);
         });
     }
 
@@ -62,7 +77,7 @@ public class DynamicPricingService {
         if (dynamicItems.isEmpty()) return;
         int updated = 0;
         for (Item item : dynamicItems) {
-            Optional<BigDecimal> price = computePrice(item.getPricingFormula(), item.getWeightGrams(), item.getPricingMargin());
+            Optional<BigDecimal> price = computePrice(item.getPricingFormula(), item.getWeightGrams(), item.getPricingWork(), item.getPricingMargin());
             if (price.isPresent() && price.get().compareTo(item.getPrice()) != 0) {
                 item.setPrice(price.get());
                 itemRepository.save(item);

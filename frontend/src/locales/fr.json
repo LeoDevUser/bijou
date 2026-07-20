@@ -309,9 +309,11 @@
       "dynamicPricing10k": "Or 10k",
       "dynamicPricing14k": "Or 14k",
       "dynamicPricing925": "Argent .925",
-      "dynamicMargin": "Marge (m, MXN)",
+      "dynamicMargin": "Marge (m, % de majoration)",
       "dynamicPricePreview": "Prix calculé du jour",
-      "dynamicPriceUnavailable": "Source du cours du métal indisponible — le prix fixe sera utilisé en attendant."
+      "dynamicPriceUnavailable": "Source du cours du métal indisponible — le prix fixe sera utilisé en attendant.",
+      "dynamicWork": "Travail (w, MXN/g)",
+      "dynamicWholesalePreview": "Prix de gros (avant majoration)"
     },
     "users": {
       "sortByMoney": "Par Montant Dépensé",

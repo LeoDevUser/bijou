@@ -507,6 +507,7 @@ interface ItemFormData {
   usmcaQualified: boolean;
   weightGrams: string;
   pricingFormula: PricingFormula;
+  pricingWork: string;
   pricingMargin: string;
 }
 
@@ -515,10 +516,17 @@ const emptyForm: ItemFormData = {
   descriptionEn: '', descriptionFr: '', descriptionEs: '',
   price: '', stock: '', discountPercent: '', categoryId: 0, labelIds: [],
   material: 'SILVER', usmcaQualified: false, weightGrams: '',
-  pricingFormula: 'NONE', pricingMargin: '',
+  pricingFormula: 'NONE', pricingWork: '', pricingMargin: '',
 };
 
-/** Mirror of the backend formula: precio = ceil10(mxnPorGramo × factor × gramos + m). */
+/** Default markup applied over wholesale cost when dynamic pricing is first enabled. */
+const DEFAULT_MARGIN_PERCENT = 47;
+
+/**
+ * Mirror of the backend formula:
+ *   wholesale = (mxnPorGramo × factor + w) × gramos
+ *   precio    = ceil10(wholesale × (1 + m / 100))
+ */
 const PRICING_FACTORS: Record<Exclude<PricingFormula, 'NONE'>, { factor: number; metal: 'gold' | 'silver' }> = {
   GOLD_10K: { factor: 0.445, metal: 'gold' },
   GOLD_14K: { factor: 0.616, metal: 'gold' },
@@ -546,6 +554,7 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
           material: item.material ?? '', usmcaQualified: item.usmcaQualified ?? false,
           weightGrams: item.weightGrams ? String(item.weightGrams) : '',
           pricingFormula: item.pricingFormula ?? 'NONE',
+          pricingWork: item.pricingWork != null ? String(item.pricingWork) : '',
           pricingMargin: item.pricingMargin != null ? String(item.pricingMargin) : '',
         }
       : { ...emptyForm, categoryId: allCategories[0]?.id ?? 0 }
@@ -598,6 +607,7 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
         usmcaQualified: form.usmcaQualified,
         weightGrams: weightInGrams(),
         pricingFormula: form.pricingFormula === 'NONE' ? null : form.pricingFormula,
+        pricingWork: form.pricingFormula !== 'NONE' && form.pricingWork ? parseFloat(form.pricingWork) : null,
         pricingMargin: form.pricingFormula !== 'NONE' && form.pricingMargin ? parseFloat(form.pricingMargin) : null,
       };
       let itemId: number;
@@ -711,7 +721,17 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
             <div className="flex gap-2">
               <select
                 value={form.pricingFormula}
-                onChange={e => setForm(f => ({ ...f, pricingFormula: e.target.value as PricingFormula }))}
+                onChange={e => {
+                  const next = e.target.value as PricingFormula;
+                  setForm(f => ({
+                    ...f,
+                    pricingFormula: next,
+                    // Prefill the default markup the first time dynamic pricing is turned on.
+                    pricingMargin: f.pricingFormula === 'NONE' && next !== 'NONE' && !f.pricingMargin
+                      ? String(DEFAULT_MARGIN_PERCENT)
+                      : f.pricingMargin,
+                  }));
+                }}
                 className={`${inputClass} flex-1 appearance-none cursor-pointer`}
               >
                 <option value="NONE">{t('admin.modal.dynamicPricingNone')}</option>
@@ -722,6 +742,15 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
               {form.pricingFormula !== 'NONE' && (
                 <input
                   type="number" min="0" step="0.01"
+                  placeholder={t('admin.modal.dynamicWork')}
+                  value={form.pricingWork}
+                  onChange={e => setForm(f => ({ ...f, pricingWork: e.target.value }))}
+                  className={`${inputClass} flex-1`}
+                />
+              )}
+              {form.pricingFormula !== 'NONE' && (
+                <input
+                  type="number" min="0" step="0.1"
                   placeholder={t('admin.modal.dynamicMargin')}
                   value={form.pricingMargin}
                   onChange={e => setForm(f => ({ ...f, pricingMargin: e.target.value }))}
@@ -736,13 +765,21 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
                 return <p className="text-xs text-muted mt-1">{t('admin.modal.dynamicPriceUnavailable')}</p>;
               }
               const grams = weightInGrams();
+              const w = parseFloat(form.pricingWork) || 0;
               const m = parseFloat(form.pricingMargin) || 0;
-              const computed = Math.ceil((perGram * cfg.factor * grams + m) / 10) * 10;
+              const wholesale = (perGram * cfg.factor + w) * grams;
+              const computed = Math.ceil(wholesale * (1 + m / 100) / 10) * 10;
               return (
-                <p className="text-xs text-muted mt-1">
-                  {t('admin.modal.dynamicPricePreview')}: <span className="font-medium text-dark">${computed.toLocaleString()} MXN</span>
-                  {' '}({perGram.toFixed(2)} MXN/g × {cfg.factor} × {grams} g + {m})
-                </p>
+                <div className="text-xs text-muted mt-1 space-y-0.5">
+                  <p>
+                    {t('admin.modal.dynamicWholesalePreview')}: <span className="font-medium text-dark">${wholesale.toLocaleString(undefined, { maximumFractionDigits: 2 })} MXN</span>
+                    {' '}({perGram.toFixed(2)} MXN/g × {cfg.factor} + {w}) × {grams} g
+                  </p>
+                  <p>
+                    {t('admin.modal.dynamicPricePreview')}: <span className="font-medium text-dark">${computed.toLocaleString()} MXN</span>
+                    {' '}(+{m}%)
+                  </p>
+                </div>
               );
             })()}
           </div>

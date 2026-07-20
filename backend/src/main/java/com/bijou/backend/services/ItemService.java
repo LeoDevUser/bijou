@@ -43,8 +43,9 @@ public class ItemService {
      * admin-entered price so a feed outage never blocks saving an item.
      */
     private BigDecimal resolvePrice(ItemRequest req) {
+        BigDecimal work = req.pricingWork() == null ? null : BigDecimal.valueOf(req.pricingWork());
         BigDecimal margin = req.pricingMargin() == null ? null : BigDecimal.valueOf(req.pricingMargin());
-        return dynamicPricingService.computePrice(req.pricingFormula(), req.weightGrams(), margin)
+        return dynamicPricingService.computePrice(req.pricingFormula(), req.weightGrams(), work, margin)
                 .orElse(BigDecimal.valueOf(req.price()));
     }
 
@@ -88,6 +89,7 @@ public class ItemService {
                 item.isUsmcaQualified(),
                 item.getWeightGrams(),
                 item.getPricingFormula(),
+                item.getPricingWork(),
                 item.getPricingMargin()
             );
     }
@@ -107,6 +109,7 @@ public class ItemService {
                 item.isUsmcaQualified(),
                 item.getWeightGrams(),
                 item.getPricingFormula(),
+                item.getPricingWork(),
                 item.getPricingMargin()
             );
     }
@@ -121,6 +124,7 @@ public class ItemService {
             .stock(req.stock())
             .price(resolvePrice(req))
             .pricingFormula(req.pricingFormula())
+            .pricingWork(req.pricingWork() == null ? null : BigDecimal.valueOf(req.pricingWork()))
             .pricingMargin(req.pricingMargin() == null ? null : BigDecimal.valueOf(req.pricingMargin()))
             .nameEn(req.nameEn())
             .nameFr(req.nameFr())
@@ -147,6 +151,7 @@ public class ItemService {
         item.setNameEs(req.nameEs());
         item.setStock(req.stock());
         item.setPricingFormula(req.pricingFormula());
+        item.setPricingWork(req.pricingWork() == null ? null : BigDecimal.valueOf(req.pricingWork()));
         item.setPricingMargin(req.pricingMargin() == null ? null : BigDecimal.valueOf(req.pricingMargin()));
         item.setPrice(resolvePrice(req));
         item.setLabels(resolveLabels(req.labelIds()));

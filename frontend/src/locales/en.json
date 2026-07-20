@@ -309,9 +309,11 @@
       "dynamicPricing10k": "10k Gold",
       "dynamicPricing14k": "14k Gold",
       "dynamicPricing925": ".925 Silver",
-      "dynamicMargin": "Margin (m, MXN)",
+      "dynamicMargin": "Margin (m, % markup)",
       "dynamicPricePreview": "Today's computed price",
-      "dynamicPriceUnavailable": "Metal price feed unavailable — the fixed price will be used until it recovers."
+      "dynamicPriceUnavailable": "Metal price feed unavailable — the fixed price will be used until it recovers.",
+      "dynamicWork": "Work (w, MXN/g)",
+      "dynamicWholesalePreview": "Wholesale (before markup)"
     },
     "users": {
       "sortByMoney": "By Money Spent",

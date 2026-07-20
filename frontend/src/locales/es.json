@@ -309,9 +309,11 @@
       "dynamicPricing10k": "Oro 10k",
       "dynamicPricing14k": "Oro 14k",
       "dynamicPricing925": "Plata .925",
-      "dynamicMargin": "Margen (m, MXN)",
+      "dynamicMargin": "Margen (m, % de markup)",
       "dynamicPricePreview": "Precio calculado de hoy",
-      "dynamicPriceUnavailable": "Fuente del precio del metal no disponible — se usará el precio fijo hasta que se recupere."
+      "dynamicPriceUnavailable": "Fuente del precio del metal no disponible — se usará el precio fijo hasta que se recupere.",
+      "dynamicWork": "Trabajo (w, MXN/g)",
+      "dynamicWholesalePreview": "Precio de mayoreo (sin markup)"
     },
     "users": {
       "sortByMoney": "Por Dinero Gastado",

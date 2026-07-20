@@ -93,6 +93,8 @@ public class Item {
     /** Metal-indexed pricing formula; null or NONE = static admin-entered price. */
     @Enumerated(EnumType.STRING)
     private PricingFormula pricingFormula;
-    /** m in the pricing formula: per-item margin in MXN (labor, stones, profit). */
+    /** w in the pricing formula: work on the piece, MXN per gram (scales with weight). */
+    private BigDecimal pricingWork;
+    /** m in the pricing formula: markup percentage over wholesale cost (e.g. 47 = +47%). */
     private BigDecimal pricingMargin;
 }

@@ -382,7 +382,7 @@ public class CollectionService {
                 item.getPrice(), labelViews, CategoryService.toView(item.getCategory()),
                 item.getDescriptionEn(), item.getDescriptionFr(), item.getDescriptionEs(),
                 assetViews, item.getDiscountPercent(), item.getMaterial(), item.isUsmcaQualified(), item.getWeightGrams(),
-                item.getPricingFormula(), item.getPricingMargin());
+                item.getPricingFormula(), item.getPricingWork(), item.getPricingMargin());
     }
 
     /**

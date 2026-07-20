@@ -24,5 +24,6 @@ public record ItemView(
         boolean usmcaQualified,
         float weightGrams,
         PricingFormula pricingFormula,
+        BigDecimal pricingWork,
         BigDecimal pricingMargin
 ) {}

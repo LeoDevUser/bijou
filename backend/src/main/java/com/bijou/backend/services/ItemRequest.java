@@ -21,5 +21,6 @@ public record ItemRequest(
     boolean usmcaQualified,
     float weightGrams,
     PricingFormula pricingFormula,
+    Float pricingWork,
     Float pricingMargin
 ) {}

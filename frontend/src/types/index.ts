@@ -37,6 +37,7 @@ export interface ItemView {
   usmcaQualified: boolean;
   weightGrams: number;
   pricingFormula: PricingFormula | null;
+  pricingWork: number | null;
   pricingMargin: number | null;
 }
 
@@ -138,6 +139,7 @@ export interface ItemRequest {
   usmcaQualified: boolean;
   weightGrams: number;
   pricingFormula: PricingFormula | null;
+  pricingWork: number | null;
   pricingMargin: number | null;
 }
 
