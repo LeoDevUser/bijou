@@ -11,11 +11,6 @@ const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
   { value: 'es', label: 'Español' },
 ];
 
-// Mexico-only launch — re-add CANADA / UNITED_STATES when cross-border returns
-const COUNTRIES = [
-  { value: 'MEXICO', label: 'Mexico' },
-];
-
 export default function Register() {
   const { t } = useTranslation();
   const { register } = useAuth();
@@ -43,12 +38,7 @@ export default function Register() {
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value } = e.target;
-    setForm(f => {
-      const next = { ...f, [name]: value };
-      // Reset state when country changes — the old value is invalid for the new list
-      if (name === 'country') next.state = '';
-      return next;
-    });
+    setForm(f => ({ ...f, [name]: value }));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -87,8 +77,13 @@ export default function Register() {
 
   const inputClass = 'w-full border border-border bg-cream px-4 py-3 text-sm outline-none focus:border-dark transition-colors';
   const labelClass = 'block text-xs uppercase tracking-widest mb-2';
-  const stateOptions = getStateOptions(form.country);
-  const stateLabel = form.country === 'CANADA' ? t('auth.province') : t('auth.state');
+  // Mexico-only launch — country is fixed, so the address form is always Mexican.
+  const stateOptions = getStateOptions('MEXICO');
+  const stateLabel = t('auth.state');
+
+  // Inline markers so it's obvious at a glance which fields must be filled in.
+  const Req = () => <span className="text-red-500 ml-0.5" aria-hidden="true">*</span>;
+  const Opt = () => <span className="text-muted normal-case tracking-normal ml-1.5 text-[10px]">({t('auth.optional')})</span>;
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-6 py-16">
@@ -100,22 +95,22 @@ export default function Register() {
           {/* Name */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>{t('auth.firstName')}</label>
+              <label className={labelClass}>{t('auth.firstName')}<Req /></label>
               <input name="firstName" value={form.firstName} onChange={handleChange} required className={inputClass} />
             </div>
             <div>
-              <label className={labelClass}>{t('auth.lastName')}</label>
+              <label className={labelClass}>{t('auth.lastName')}<Req /></label>
               <input name="lastName" value={form.lastName} onChange={handleChange} required className={inputClass} />
             </div>
           </div>
 
           {/* Credentials */}
           <div>
-            <label className={labelClass}>{t('auth.email')}</label>
+            <label className={labelClass}>{t('auth.email')}<Req /></label>
             <input name="email" type="email" value={form.email} onChange={handleChange} required className={inputClass} />
           </div>
           <div>
-            <label className={labelClass}>{t('auth.password')}</label>
+            <label className={labelClass}>{t('auth.password')}<Req /></label>
             <div className="relative">
               <input name="password" type={showPassword ? 'text' : 'password'} value={form.password} onChange={handleChange} required className={`${inputClass} pr-12`} />
               <button
@@ -138,58 +133,50 @@ export default function Register() {
             </div>
           </div>
 
-          {/* Country — drives the rest of the address form */}
-          <div>
-            <label className={labelClass}>{t('checkout.country')}</label>
-            <select name="country" value={form.country} onChange={handleChange} required className={`${inputClass} appearance-none cursor-pointer`}>
-              {COUNTRIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-            </select>
-          </div>
+          {/* Address + phone are optional at sign-up — collected at checkout if left blank */}
+          <p className="text-xs text-muted -mt-1">{t('auth.optionalAddressNote')}</p>
 
           {/* Phone */}
           <div>
-            <label className={labelClass}>{t('auth.phoneNumber')}</label>
+            <label className={labelClass}>{t('auth.phoneNumber')}<Opt /></label>
             <input
               name="phoneNumber"
               type="tel"
               value={form.phoneNumber}
               onChange={handleChange}
-              required
-              placeholder={getPhonePlaceholder(form.country)}
+              placeholder={getPhonePlaceholder('MEXICO')}
               className={inputClass}
             />
           </div>
 
           {/* Address Line 1 */}
           <div>
-            <label className={labelClass}>{t('auth.addressLine1')}</label>
-            <input name="addressLine1" value={form.addressLine1} onChange={handleChange} required className={inputClass} />
+            <label className={labelClass}>{t('auth.addressLine1')}<Opt /></label>
+            <input name="addressLine1" value={form.addressLine1} onChange={handleChange} className={inputClass} />
           </div>
 
           {/* Address Line 2 */}
           <div>
-            <label className={labelClass}>{t('auth.addressLine2')}</label>
+            <label className={labelClass}>{t('auth.addressLine2')}<Opt /></label>
             <input name="addressLine2" value={form.addressLine2} onChange={handleChange} className={inputClass} />
           </div>
 
-          {/* Colonia — Mexico only */}
-          {form.country === 'MEXICO' && (
-            <div>
-              <label className={labelClass}>{t('auth.colonial')}</label>
-              <input name="colonial" value={form.colonial} onChange={handleChange} required className={inputClass} />
-            </div>
-          )}
+          {/* Colonia */}
+          <div>
+            <label className={labelClass}>{t('auth.colonial')}<Opt /></label>
+            <input name="colonial" value={form.colonial} onChange={handleChange} className={inputClass} />
+          </div>
 
-          {/* City + State/Province */}
+          {/* City + State */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>{t('auth.city')}</label>
-              <input name="city" value={form.city} onChange={handleChange} required className={inputClass} />
+              <label className={labelClass}>{t('auth.city')}<Opt /></label>
+              <input name="city" value={form.city} onChange={handleChange} className={inputClass} />
             </div>
             <div>
-              <label className={labelClass}>{stateLabel}</label>
-              <select name="state" value={form.state} onChange={handleChange} required className={`${inputClass} appearance-none cursor-pointer`}>
-                <option value="" disabled>— {stateLabel} —</option>
+              <label className={labelClass}>{stateLabel}<Opt /></label>
+              <select name="state" value={form.state} onChange={handleChange} className={`${inputClass} appearance-none cursor-pointer`}>
+                <option value="">— {stateLabel} —</option>
                 {stateOptions.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
@@ -197,21 +184,20 @@ export default function Register() {
 
           {/* Postal Code */}
           <div>
-            <label className={labelClass}>{t('auth.postalCode')}</label>
+            <label className={labelClass}>{t('auth.postalCode')}<Opt /></label>
             <input
               name="postalCode"
               value={form.postalCode}
               onChange={handleChange}
-              required
-              pattern={getPostalCodePattern(form.country)}
-              placeholder={getPostalCodePlaceholder(form.country)}
+              pattern={getPostalCodePattern('MEXICO')}
+              placeholder={getPostalCodePlaceholder('MEXICO')}
               className={inputClass}
             />
           </div>
 
           {/* Language */}
           <div>
-            <label className={labelClass}>{t('auth.language')}</label>
+            <label className={labelClass}>{t('auth.language')}<Req /></label>
             <select name="language" value={form.language} onChange={handleChange} required className={`${inputClass} appearance-none cursor-pointer`}>
               {LANGUAGE_OPTIONS.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>

@@ -6,7 +6,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import type { Country, TaxPreview } from '../types';
-import { getStateOptions, getPostalCodePattern, getPostalCodePlaceholder } from '../data/addressOptions';
+import { getStateOptions, getPostalCodePattern, getPostalCodePlaceholder, getPhonePlaceholder } from '../data/addressOptions';
 
 // Mexico-only launch — re-add CANADA / UNITED_STATES here when cross-border
 // shipping returns (backend rejects non-MEXICO orders with SHIPPING_MEXICO_ONLY).
@@ -29,6 +29,9 @@ export default function Checkout() {
   const [form, setForm] = useState<AddrForm>(emptyAddr);
   const [savedForm, setSavedForm] = useState<AddrForm | null>(null);
   const [useSaved, setUseSaved] = useState(false);
+  // Phone is optional at sign-up, so collect it here when the profile has none.
+  const [phone, setPhone] = useState('');
+  const [phoneRequired, setPhoneRequired] = useState(false);
   const [installments, setInstallments] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,6 +68,8 @@ export default function Checkout() {
     if (!isAuthenticated) return;
     api.account.getProfile()
       .then(profile => {
+        // Phone is optional at sign-up; require it here if the profile still lacks one
+        setPhoneRequired(!profile.phoneNumber?.trim());
         // Saved US/CA addresses predate the Mexico-only launch — can't ship there
         if (profile.addressLine1 && profile.country === 'MEXICO') {
           const saved: AddrForm = {
@@ -113,6 +118,10 @@ export default function Checkout() {
     setLoading(true);
     setError(null);
     try {
+      // Save the phone number to the profile if it was missing at sign-up
+      if (phoneRequired) {
+        await api.account.changePhone(phone.trim());
+      }
       const { order, clientSecret } = await api.orders.create({
         items: items.map(i => ({ itemId: i.id, quantity: i.quantity })),
         addressLine1: form.addressLine1,
@@ -193,6 +202,21 @@ export default function Checkout() {
             </select>
           </div>
 
+          {/* Phone — only when the profile has none (optional at sign-up) */}
+          {phoneRequired && (
+            <div>
+              <label className={labelClass}>{t('auth.phoneNumber')}</label>
+              <input
+                type="tel"
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                required
+                placeholder={getPhonePlaceholder(form.country)}
+                className={inputClass}
+              />
+            </div>
+          )}
+
           {/* Address Line 1 */}
           <div>
             <label className={labelClass}>{t('auth.addressLine1')}</label>
@@ -208,7 +232,7 @@ export default function Checkout() {
 
           {/* Address Line 2 */}
           <div>
-            <label className={labelClass}>{t('auth.addressLine2')}</label>
+            <label className={labelClass}>{t('auth.addressLine2')}<span className="text-muted normal-case tracking-normal ml-1.5 text-[10px]">({t('auth.optional')})</span></label>
             <input
               type="text"
               value={form.addressLine2}

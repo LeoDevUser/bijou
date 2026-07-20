@@ -63,6 +63,12 @@ public class AccountController {
         return ResponseEntity.ok().build();
     }
 
+    @PatchMapping("/phone")
+    public ResponseEntity<Void> changePhone(@AuthenticationPrincipal Client client, @RequestParam String phoneNumber) {
+        clientService.updatePhone(client, phoneNumber);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/${ADMIN_PAGE}/promote")
     public ResponseEntity<Void> promote(@AuthenticationPrincipal Client admin, @Valid @RequestBody PromoteRequest req) {
         clientService.promote(admin, req);

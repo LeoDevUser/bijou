@@ -51,6 +51,11 @@ public class AuthService {
         return pswd.length() >= 8 && pswd.length() <= 30 && checkChars(pswd);
     }
 
+    // NOT NULL address columns default to empty when omitted at sign-up.
+    private static String nvl(String s) {
+        return s == null ? "" : s;
+    }
+
     public AuthTokenPair register(RegisterRequest req) {
         log.info("registration attempt for email {}", req.email());
         String email = req.email();
@@ -63,29 +68,24 @@ public class AuthService {
             log.warn("invalid password, need a password between 8 and 30 characters with one uppercase, one lowercase, one digit, one special character");
             throw new AppException(HttpStatus.BAD_REQUEST, "PASSWORD_INVALID");
         }
-        if (req.addressLine1() == null || req.addressLine1().isBlank()) {
-            log.warn("invalid address: addressLine1 is blank");
-            throw new AppException(HttpStatus.BAD_REQUEST, "ADDRESS_INVALID");
-        }
-
-        Country country = Country.valueOf(req.country());
-        if (country == Country.MEXICO && (req.colonial() == null || req.colonial().isBlank())) {
-            log.warn("colonial is required for Mexican addresses");
-            throw new AppException(HttpStatus.BAD_REQUEST, "COLONIAL_REQUIRED");
-        }
+        // Address + phone are optional at sign-up and collected at checkout instead.
+        // The columns are NOT NULL, so store empty strings for anything not provided.
+        Country country = (req.country() == null || req.country().isBlank())
+            ? Country.MEXICO
+            : Country.valueOf(req.country());
 
         Language lang = Language.valueOf(req.language());
 
         String encoded = passwordEncoder.encode(pswd);
         Client client = Client.builder()
-            .addressLine1(req.addressLine1())
+            .addressLine1(nvl(req.addressLine1()))
             .addressLine2(req.addressLine2())
             .colonial(req.colonial())
-            .city(req.city())
-            .state(req.state())
-            .postalCode(req.postalCode())
+            .city(nvl(req.city()))
+            .state(nvl(req.state()))
+            .postalCode(nvl(req.postalCode()))
             .country(country)
-            .phoneNumber(req.phoneNumber())
+            .phoneNumber(nvl(req.phoneNumber()))
             .firstName(req.firstName())
             .email(email)
             .lastName(req.lastName())

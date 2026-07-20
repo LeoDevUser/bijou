@@ -135,6 +135,16 @@ public class ClientService {
         log.info("updated Language of {}", client.getEmail());
     }
 
+    // Used at checkout to capture a phone number that was left blank at sign-up.
+    public void updatePhone(Client client, String phoneNumber) {
+        if (phoneNumber == null || phoneNumber.isBlank()) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "PHONE_REQUIRED");
+        }
+        client.setPhoneNumber(phoneNumber);
+        clientRepository.save(client);
+        log.info("updated phone of {}", client.getEmail());
+    }
+
     public void promote(Client admin, PromoteRequest req) {
         if (!passwordEncoder.matches(req.adminPassword(), admin.getPassword())) {
             log.warn("wrong password");

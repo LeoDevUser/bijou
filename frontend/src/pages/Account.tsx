@@ -225,7 +225,7 @@ export default function Account() {
                 </div>
                 {/* Address Line 2 */}
                 <div>
-                  <label className="block text-xs uppercase tracking-widest mb-2">{t('auth.addressLine2')}</label>
+                  <label className="block text-xs uppercase tracking-widest mb-2">{t('auth.addressLine2')}<span className="text-muted normal-case tracking-normal ml-1.5 text-[10px]">({t('auth.optional')})</span></label>
                   <input
                     value={addressForm.addressLine2}
                     onChange={e => setAddressForm(f => ({ ...f, addressLine2: e.target.value }))}

@@ -12,19 +12,15 @@ public record RegisterRequest(
     String firstName,
     @NotBlank
     String lastName,
-    @NotBlank
+    // Address + phone are optional at sign-up (Mexico-only launch). They are
+    // collected at checkout instead, where they become required if still missing.
     String addressLine1,
     String addressLine2,
     String colonial,
-    @NotBlank
     String city,
-    @NotBlank
     String state,
-    @NotBlank
     String postalCode,
-    @NotBlank
     String country,
-    @NotBlank
     String phoneNumber,
     @NotBlank
     String language

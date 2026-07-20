@@ -142,6 +142,8 @@ export const api = {
       request<void>('/account/address', { method: 'PATCH', body: JSON.stringify(req) }),
     changeLanguage: (newLanguage: string) =>
       request<void>(`/account/language?newLanguage=${encodeURIComponent(newLanguage)}`, { method: 'PATCH' }),
+    changePhone: (phoneNumber: string) =>
+      request<void>(`/account/phone?phoneNumber=${encodeURIComponent(phoneNumber)}`, { method: 'PATCH' }),
   },
   admin: {
     items: {
