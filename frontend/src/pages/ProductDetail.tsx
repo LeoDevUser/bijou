@@ -293,7 +293,7 @@ export default function ProductDetail() {
               </div>
             )}
 
-            <p className="text-[#555] text-sm leading-relaxed mb-8">{description}</p>
+            <p className="text-[#555] text-sm leading-relaxed mb-8 whitespace-pre-line">{description}</p>
 
             {item.stock === 0 ? (
               <p className="text-xs uppercase tracking-widest text-muted border border-border px-8 py-4 text-center">
