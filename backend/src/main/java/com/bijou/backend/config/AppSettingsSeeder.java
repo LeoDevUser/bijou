@@ -27,7 +27,7 @@ public class AppSettingsSeeder implements ApplicationRunner {
             .smtpRelayEnabled(true)
             .msiEnabled(false)
             .standardShippingFee(new BigDecimal("149"))
-            .extendedShippingFee(new BigDecimal("219"))
+            .extendedShippingFee(new BigDecimal("249"))
             .freeShippingThreshold(new BigDecimal("2000"))
             .build());
     }

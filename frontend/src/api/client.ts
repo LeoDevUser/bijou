@@ -77,6 +77,7 @@ export const api = {
       fetch(`${BASE_URL}/auth/logout`, { method: 'POST', credentials: 'include' })
         .then(() => {}),
   },
+  metalPrices: () => request<{ goldMxnPerGram: number | null; silverMxnPerGram: number | null }>('/public/metal-prices'),
   items: {
     list: () => request<ItemView[]>('/public/items'),
     trending: () => request<ItemView[]>('/public/items/trending'),

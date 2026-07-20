@@ -36,6 +36,8 @@ export interface ItemView {
   material: JewelryMaterial | null;
   usmcaQualified: boolean;
   weightGrams: number;
+  pricingFormula: PricingFormula | null;
+  pricingMargin: number | null;
 }
 
 export interface ItemViewVerbose extends ItemView {
@@ -118,6 +120,8 @@ export interface OrderView {
 
 export type JewelryMaterial = 'SILVER' | 'GOLD' | 'STEEL' | 'OTHER';
 
+export type PricingFormula = 'NONE' | 'GOLD_10K' | 'GOLD_14K' | 'SILVER_925';
+
 export interface ItemRequest {
   nameEn: string;
   nameFr: string;
@@ -133,6 +137,8 @@ export interface ItemRequest {
   material: JewelryMaterial;
   usmcaQualified: boolean;
   weightGrams: number;
+  pricingFormula: PricingFormula | null;
+  pricingMargin: number | null;
 }
 
 export interface VerboseClient {

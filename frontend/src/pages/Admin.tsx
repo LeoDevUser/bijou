@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ThemeConfig, AppSettings, BrevoQuota, CloudinaryResource, CloudinaryResourcesPage, JewelryMaterial } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ThemeConfig, AppSettings, BrevoQuota, CloudinaryResource, CloudinaryResourcesPage, JewelryMaterial, PricingFormula } from '../types';
 import { pickLocale, isItemIncomplete, isLabelIncomplete } from '../types';
 import { useTheme, THEME_DEFAULTS, mergeCollectionTheme } from '../context/ThemeContext';
 
@@ -506,6 +506,8 @@ interface ItemFormData {
   material: string;
   usmcaQualified: boolean;
   weightGrams: string;
+  pricingFormula: PricingFormula;
+  pricingMargin: string;
 }
 
 const emptyForm: ItemFormData = {
@@ -513,6 +515,14 @@ const emptyForm: ItemFormData = {
   descriptionEn: '', descriptionFr: '', descriptionEs: '',
   price: '', stock: '', discountPercent: '', categoryId: 0, labelIds: [],
   material: 'SILVER', usmcaQualified: false, weightGrams: '',
+  pricingFormula: 'NONE', pricingMargin: '',
+};
+
+/** Mirror of the backend formula: precio = ceil10(mxnPorGramo × factor × gramos + m). */
+const PRICING_FACTORS: Record<Exclude<PricingFormula, 'NONE'>, { factor: number; metal: 'gold' | 'silver' }> = {
+  GOLD_10K: { factor: 0.445, metal: 'gold' },
+  GOLD_14K: { factor: 0.616, metal: 'gold' },
+  SILVER_925: { factor: 1, metal: 'silver' },
 };
 
 interface ItemModalProps {
@@ -535,6 +545,8 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
           categoryId: item.category.id, labelIds: item.labels.map(l => l.id),
           material: item.material ?? '', usmcaQualified: item.usmcaQualified ?? false,
           weightGrams: item.weightGrams ? String(item.weightGrams) : '',
+          pricingFormula: item.pricingFormula ?? 'NONE',
+          pricingMargin: item.pricingMargin != null ? String(item.pricingMargin) : '',
         }
       : { ...emptyForm, categoryId: allCategories[0]?.id ?? 0 }
   );
@@ -543,6 +555,11 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
   const [pendingFiles, setPendingFiles] = useState<{ file: File; name: string }[]>([]);
   const [currentAssets, setCurrentAssets] = useState(item?.assets ?? []);
   const [browsingMedia, setBrowsingMedia] = useState(false);
+  const [metalPrices, setMetalPrices] = useState<{ goldMxnPerGram: number | null; silverMxnPerGram: number | null } | null>(null);
+
+  useEffect(() => {
+    api.metalPrices().then(setMetalPrices).catch(() => setMetalPrices(null));
+  }, []);
   const [weightUnit, setWeightUnit] = useState<'g' | 'oz'>('g');
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -572,7 +589,7 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
       const payload: ItemRequest = {
         nameEn: form.nameEn, nameFr: form.nameFr, nameEs: form.nameEs,
         descriptionEn: form.descriptionEn, descriptionFr: form.descriptionFr, descriptionEs: form.descriptionEs,
-        price: parseFloat(form.price),
+        price: form.price ? parseFloat(form.price) : 0,
         stock: parseInt(form.stock),
         discountPercent: form.discountPercent ? parseInt(form.discountPercent) : null,
         categoryId: form.categoryId,
@@ -580,6 +597,8 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
         material: form.material as JewelryMaterial,
         usmcaQualified: form.usmcaQualified,
         weightGrams: weightInGrams(),
+        pricingFormula: form.pricingFormula === 'NONE' ? null : form.pricingFormula,
+        pricingMargin: form.pricingFormula !== 'NONE' && form.pricingMargin ? parseFloat(form.pricingMargin) : null,
       };
       let itemId: number;
       if (item) {
@@ -624,7 +643,14 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.price')}</label>
-              <input type="number" step="0.01" min="0" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} required className={inputClass} />
+              <input
+                type="number" step="0.01" min="0"
+                value={form.price}
+                onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
+                required={form.pricingFormula === 'NONE'}
+                disabled={form.pricingFormula !== 'NONE'}
+                className={`${inputClass} ${form.pricingFormula !== 'NONE' ? 'opacity-50' : ''}`}
+              />
             </div>
             <div>
               <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.stock')}</label>
@@ -679,6 +705,46 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
                   : `${(parseFloat(form.weightGrams) * OZ_TO_G).toFixed(3)} g`}
               </p>
             )}
+          </div>
+          <div>
+            <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.dynamicPricing')}</label>
+            <div className="flex gap-2">
+              <select
+                value={form.pricingFormula}
+                onChange={e => setForm(f => ({ ...f, pricingFormula: e.target.value as PricingFormula }))}
+                className={`${inputClass} flex-1 appearance-none cursor-pointer`}
+              >
+                <option value="NONE">{t('admin.modal.dynamicPricingNone')}</option>
+                <option value="GOLD_10K">{t('admin.modal.dynamicPricing10k')}</option>
+                <option value="GOLD_14K">{t('admin.modal.dynamicPricing14k')}</option>
+                <option value="SILVER_925">{t('admin.modal.dynamicPricing925')}</option>
+              </select>
+              {form.pricingFormula !== 'NONE' && (
+                <input
+                  type="number" min="0" step="0.01"
+                  placeholder={t('admin.modal.dynamicMargin')}
+                  value={form.pricingMargin}
+                  onChange={e => setForm(f => ({ ...f, pricingMargin: e.target.value }))}
+                  className={`${inputClass} flex-1`}
+                />
+              )}
+            </div>
+            {form.pricingFormula !== 'NONE' && (() => {
+              const cfg = PRICING_FACTORS[form.pricingFormula as Exclude<PricingFormula, 'NONE'>];
+              const perGram = cfg.metal === 'gold' ? metalPrices?.goldMxnPerGram : metalPrices?.silverMxnPerGram;
+              if (perGram == null) {
+                return <p className="text-xs text-muted mt-1">{t('admin.modal.dynamicPriceUnavailable')}</p>;
+              }
+              const grams = weightInGrams();
+              const m = parseFloat(form.pricingMargin) || 0;
+              const computed = Math.ceil((perGram * cfg.factor * grams + m) / 10) * 10;
+              return (
+                <p className="text-xs text-muted mt-1">
+                  {t('admin.modal.dynamicPricePreview')}: <span className="font-medium text-dark">${computed.toLocaleString()} MXN</span>
+                  {' '}({perGram.toFixed(2)} MXN/g × {cfg.factor} × {grams} g + {m})
+                </p>
+              );
+            })()}
           </div>
           <label className="flex items-center gap-3 cursor-pointer select-none">
             <input

@@ -90,4 +90,9 @@ public class Item {
     /** Weight in grams. */
     @Column(nullable = false)
     private float weightGrams;
+    /** Metal-indexed pricing formula; null or NONE = static admin-entered price. */
+    @Enumerated(EnumType.STRING)
+    private PricingFormula pricingFormula;
+    /** m in the pricing formula: per-item margin in MXN (labor, stones, profit). */
+    private BigDecimal pricingMargin;
 }

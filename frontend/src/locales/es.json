@@ -303,7 +303,15 @@
       "noAssets": "Sin archivos multimedia.",
       "filesSelected": "archivo(s) seleccionado(s) — se subirán al guardar",
       "save": "Guardar",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "dynamicPricing": "Precio dinámico",
+      "dynamicPricingNone": "Precio fijo",
+      "dynamicPricing10k": "Oro 10k",
+      "dynamicPricing14k": "Oro 14k",
+      "dynamicPricing925": "Plata .925",
+      "dynamicMargin": "Margen (m, MXN)",
+      "dynamicPricePreview": "Precio calculado de hoy",
+      "dynamicPriceUnavailable": "Fuente del precio del metal no disponible — se usará el precio fijo hasta que se recupere."
     },
     "users": {
       "sortByMoney": "Por Dinero Gastado",

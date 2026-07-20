@@ -35,6 +35,18 @@ public class ItemService {
     private final LabelRepository labelRepository;
     private final CategoryRepository categoryRepository;
     private final OrderRepository orderRepository;
+    private final DynamicPricingService dynamicPricingService;
+
+    /**
+     * Static price from the request, unless a pricing formula is set and the
+     * metal feed has data — then the computed price wins. Falls back to the
+     * admin-entered price so a feed outage never blocks saving an item.
+     */
+    private BigDecimal resolvePrice(ItemRequest req) {
+        BigDecimal margin = req.pricingMargin() == null ? null : BigDecimal.valueOf(req.pricingMargin());
+        return dynamicPricingService.computePrice(req.pricingFormula(), req.weightGrams(), margin)
+                .orElse(BigDecimal.valueOf(req.price()));
+    }
 
     private List<LabelView> toLabelViews(List<Label> labels) {
         if (labels == null) return List.of();
@@ -74,7 +86,9 @@ public class ItemService {
                 item.getDiscountPercent(),
                 item.getMaterial(),
                 item.isUsmcaQualified(),
-                item.getWeightGrams()
+                item.getWeightGrams(),
+                item.getPricingFormula(),
+                item.getPricingMargin()
             );
     }
 
@@ -91,7 +105,9 @@ public class ItemService {
                 item.getDiscountPercent(),
                 item.getMaterial(),
                 item.isUsmcaQualified(),
-                item.getWeightGrams()
+                item.getWeightGrams(),
+                item.getPricingFormula(),
+                item.getPricingMargin()
             );
     }
 
@@ -103,7 +119,9 @@ public class ItemService {
         }
         Item item = Item.builder()
             .stock(req.stock())
-            .price(BigDecimal.valueOf(req.price()))
+            .price(resolvePrice(req))
+            .pricingFormula(req.pricingFormula())
+            .pricingMargin(req.pricingMargin() == null ? null : BigDecimal.valueOf(req.pricingMargin()))
             .nameEn(req.nameEn())
             .nameFr(req.nameFr())
             .nameEs(req.nameEs())
@@ -128,7 +146,9 @@ public class ItemService {
         item.setNameFr(req.nameFr());
         item.setNameEs(req.nameEs());
         item.setStock(req.stock());
-        item.setPrice(BigDecimal.valueOf(req.price()));
+        item.setPricingFormula(req.pricingFormula());
+        item.setPricingMargin(req.pricingMargin() == null ? null : BigDecimal.valueOf(req.pricingMargin()));
+        item.setPrice(resolvePrice(req));
         item.setLabels(resolveLabels(req.labelIds()));
         item.setCategory(resolveCategory(req.categoryId()));
         item.setDescriptionEn(req.descriptionEn());

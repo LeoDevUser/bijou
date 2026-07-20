@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import com.bijou.backend.entities.JewelryMaterial;
+import com.bijou.backend.entities.PricingFormula;
 
 public record ItemViewVerbose(
         Long id,
@@ -29,5 +30,7 @@ public record ItemViewVerbose(
         Integer discountPercent,
         JewelryMaterial material,
         boolean usmcaQualified,
-        float weightGrams
+        float weightGrams,
+        PricingFormula pricingFormula,
+        BigDecimal pricingMargin
 ) {}

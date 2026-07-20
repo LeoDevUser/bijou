@@ -303,7 +303,15 @@
       "noAssets": "Aucun média.",
       "filesSelected": "fichier(s) sélectionné(s) — seront téléchargés lors de l'enregistrement",
       "save": "Enregistrer",
-      "cancel": "Annuler"
+      "cancel": "Annuler",
+      "dynamicPricing": "Prix dynamique",
+      "dynamicPricingNone": "Prix fixe",
+      "dynamicPricing10k": "Or 10k",
+      "dynamicPricing14k": "Or 14k",
+      "dynamicPricing925": "Argent .925",
+      "dynamicMargin": "Marge (m, MXN)",
+      "dynamicPricePreview": "Prix calculé du jour",
+      "dynamicPriceUnavailable": "Source du cours du métal indisponible — le prix fixe sera utilisé en attendant."
     },
     "users": {
       "sortByMoney": "Par Montant Dépensé",
