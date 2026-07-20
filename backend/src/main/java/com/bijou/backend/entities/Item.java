@@ -77,8 +77,12 @@ public class Item {
     private BigDecimal totalSales = BigDecimal.ZERO;
     @Builder.Default
     private boolean active = true;
+    // Long-form descriptions — TEXT so they aren't capped at the default VARCHAR(255)
+    @Column(columnDefinition = "TEXT")
     private String descriptionEn;
+    @Column(columnDefinition = "TEXT")
     private String descriptionFr;
+    @Column(columnDefinition = "TEXT")
     private String descriptionEs;
     private Integer discountPercent;
     @Enumerated(EnumType.STRING)
