@@ -19,6 +19,7 @@ public record ItemViewVerbose(
         String descriptionFr,
         String descriptionEs,
         List<ItemAssetView> assets,
+        List<ItemSizeView> sizes,
         int nbSold,
         int nbSoldMonth,
         BigDecimal totalSales,

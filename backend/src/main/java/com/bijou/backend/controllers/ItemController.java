@@ -20,6 +20,7 @@ import com.bijou.backend.repositories.SalesStats;
 import com.bijou.backend.services.CloudinaryResponse;
 import com.bijou.backend.services.CloudinaryService;
 import com.bijou.backend.services.ItemRequest;
+import com.bijou.backend.services.ItemSizeRequest;
 import com.bijou.backend.services.ItemService;
 import com.bijou.backend.services.ItemView;
 import com.bijou.backend.services.PickMediaRequest;
@@ -126,6 +127,21 @@ public class ItemController {
     @DeleteMapping("/${ADMIN_PAGE}/items/{itemId}/assets/{assetId}")
     public ResponseEntity<ItemView> deleteAsset(@PathVariable Long itemId, @PathVariable Long assetId) {
         return ResponseEntity.ok(itemService.deleteAsset(itemId, assetId));
+    }
+
+    @PostMapping("/${ADMIN_PAGE}/items/{itemId}/sizes")
+    public ResponseEntity<ItemView> addSizes(@PathVariable Long itemId, @RequestBody @Valid List<ItemSizeRequest> reqs) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(itemService.addSizes(itemId, reqs));
+    }
+
+    @PatchMapping("/${ADMIN_PAGE}/items/{itemId}/sizes/{sizeId}")
+    public ResponseEntity<ItemView> updateSize(@PathVariable Long itemId, @PathVariable Long sizeId, @RequestBody @Valid ItemSizeRequest req) {
+        return ResponseEntity.ok(itemService.updateSize(itemId, sizeId, req));
+    }
+
+    @DeleteMapping("/${ADMIN_PAGE}/items/{itemId}/sizes/{sizeId}")
+    public ResponseEntity<ItemView> deleteSize(@PathVariable Long itemId, @PathVariable Long sizeId) {
+        return ResponseEntity.ok(itemService.deleteSize(itemId, sizeId));
     }
 
     @DeleteMapping("/${ADMIN_PAGE}/items/{id}")

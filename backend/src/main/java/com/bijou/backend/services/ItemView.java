@@ -19,6 +19,7 @@ public record ItemView(
         String descriptionFr,
         String descriptionEs,
         List<ItemAssetView> assets,
+        List<ItemSizeView> sizes,
         Integer discountPercent,
         JewelryMaterial material,
         boolean usmcaQualified,

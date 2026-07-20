@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useCart } from '../context/CartContext';
+import { useCart, cartLineKey } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
 import AutoplayVideo from '../components/ui/AutoplayVideo';
 import { optimizedImageUrl } from '../utils/cloudinary';
@@ -34,7 +34,7 @@ export default function Cart() {
         {/* Line items */}
         <div className="space-y-6">
           {items.map(item => (
-            <div key={item.id} className="flex gap-4 border-b border-border pb-6">
+            <div key={cartLineKey(item)} className="flex gap-4 border-b border-border pb-6">
               <Link to={`/shop/${item.id}`} className="w-24 h-24 bg-[#F0EDE8] flex-shrink-0 overflow-hidden">
                 {item.imageUrl && (
                   item.resourceType === 'video'
@@ -44,27 +44,30 @@ export default function Cart() {
               </Link>
               <div className="flex-1 flex flex-col justify-between">
                 <div className="flex justify-between">
-                  <p className="text-sm tracking-wide">{item.name}</p>
+                  <div>
+                    <p className="text-sm tracking-wide">{item.name}</p>
+                    {item.sizeLabel && <p className="text-xs text-muted mt-0.5">{item.sizeLabel}</p>}
+                  </div>
                   <p className="text-sm">{format(item.price * item.quantity)}</p>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center border border-border">
                     <button
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                      onClick={() => updateQuantity(cartLineKey(item), item.quantity - 1)}
                       className="px-3 py-1 text-sm hover:bg-[#F0EDE8] transition-colors cursor-pointer"
                     >
                       −
                     </button>
                     <span className="px-3 py-1 text-sm border-x border-border">{item.quantity}</span>
                     <button
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      onClick={() => updateQuantity(cartLineKey(item), item.quantity + 1)}
                       className="px-3 py-1 text-sm hover:bg-[#F0EDE8] transition-colors cursor-pointer"
                     >
                       +
                     </button>
                   </div>
                   <button
-                    onClick={() => removeItem(item.id)}
+                    onClick={() => removeItem(cartLineKey(item))}
                     className="text-xs uppercase tracking-wider text-muted hover:text-dark transition-colors cursor-pointer"
                   >
                     {t('cart.remove')}

@@ -77,9 +77,23 @@ public class DynamicPricingService {
         if (dynamicItems.isEmpty()) return;
         int updated = 0;
         for (Item item : dynamicItems) {
+            boolean dirty = false;
             Optional<BigDecimal> price = computePrice(item.getPricingFormula(), item.getWeightGrams(), item.getPricingWork(), item.getPricingMargin());
             if (price.isPresent() && price.get().compareTo(item.getPrice()) != 0) {
                 item.setPrice(price.get());
+                dirty = true;
+            }
+            // Each size is priced off its own weight (and optional work override),
+            // using the parent item's formula and margin.
+            for (var size : item.getSizes()) {
+                var work = size.getPricingWork() != null ? size.getPricingWork() : item.getPricingWork();
+                Optional<BigDecimal> sizePrice = computePrice(item.getPricingFormula(), size.getWeightGrams(), work, item.getPricingMargin());
+                if (sizePrice.isPresent() && sizePrice.get().compareTo(size.getPrice()) != 0) {
+                    size.setPrice(sizePrice.get());
+                    dirty = true;
+                }
+            }
+            if (dirty) {
                 itemRepository.save(item);
                 updated++;
             }

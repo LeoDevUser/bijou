@@ -118,14 +118,15 @@ export default function Orders() {
                         : <div className="w-10 h-10 bg-[#F0EDE8] flex-shrink-0" />
                       }
                       <div>
-                        <p className="text-xs">{name}</p>
+                        <p className="text-xs">{name}{item.sizeLabel ? ` · ${item.sizeLabel}` : ''}</p>
                         <p className="text-xs text-muted">×{item.quantity}</p>
                       </div>
                     </div>
                   );
+                  const key = `${item.itemId}:${item.sizeLabel ?? ''}`;
                   return item.active
-                    ? <Link key={item.itemId} to={`/shop/${item.itemId}`} className="hover:opacity-75 transition-opacity">{content}</Link>
-                    : <div key={item.itemId}>{content}</div>;
+                    ? <Link key={key} to={`/shop/${item.itemId}`} className="hover:opacity-75 transition-opacity">{content}</Link>
+                    : <div key={key}>{content}</div>;
                 })}
               </div>
 

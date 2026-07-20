@@ -376,12 +376,18 @@ public class CollectionService {
                 item.getAssets().stream()
                         .map(a -> new ItemAssetView(a.getId(), a.getImageUrl(), a.getImageId(), a.getResourceType()))
                         .toList();
+        List<ItemSizeView> sizeViews = item.getSizes() == null ? List.of() :
+                item.getSizes().stream()
+                        .map(s -> new ItemSizeView(s.getId(), s.getSize(), s.getStock(), s.getWeightGrams(), s.getPrice(),
+                                s.getPricingWork(), s.getDescriptionEn(), s.getDescriptionFr(), s.getDescriptionEs(),
+                                s.getSortOrder(), s.isActive()))
+                        .toList();
         return new ItemView(
                 item.getId(), item.getStock(),
                 item.getNameEn(), item.getNameFr(), item.getNameEs(),
                 item.getPrice(), labelViews, CategoryService.toView(item.getCategory()),
                 item.getDescriptionEn(), item.getDescriptionFr(), item.getDescriptionEs(),
-                assetViews, item.getDiscountPercent(), item.getMaterial(), item.isUsmcaQualified(), item.getWeightGrams(),
+                assetViews, sizeViews, item.getDiscountPercent(), item.getMaterial(), item.isUsmcaQualified(), item.getWeightGrams(),
                 item.getPricingFormula(), item.getPricingWork(), item.getPricingMargin());
     }
 

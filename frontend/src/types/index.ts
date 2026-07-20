@@ -19,6 +19,20 @@ export interface CategoryView {
   nameEs: string | null;
 }
 
+export interface ItemSizeView {
+  id: number;
+  size: string;
+  stock: number;
+  weightGrams: number;
+  price: number;
+  pricingWork: number | null;
+  descriptionEn: string | null;
+  descriptionFr: string | null;
+  descriptionEs: string | null;
+  sortOrder: number;
+  active: boolean;
+}
+
 export interface ItemView {
   id: number;
   stock: number;
@@ -32,6 +46,7 @@ export interface ItemView {
   descriptionFr: string | null;
   descriptionEs: string | null;
   assets: ItemAssetView[];
+  sizes: ItemSizeView[];
   discountPercent: number | null;
   material: JewelryMaterial | null;
   usmcaQualified: boolean;
@@ -72,6 +87,7 @@ export interface SalesStats {
 
 export interface OrderItemView {
   itemId: number;
+  sizeLabel: string | null;
   unitPrice: number;
   quantity: number;
   nameEn: string | null;
@@ -143,6 +159,17 @@ export interface ItemRequest {
   pricingMargin: number | null;
 }
 
+export interface ItemSizeRequest {
+  size: string;
+  stock: number;
+  weightGrams: number;
+  price: number | null;
+  pricingWork: number | null;
+  descriptionEn: string | null;
+  descriptionFr: string | null;
+  descriptionEs: string | null;
+}
+
 export interface VerboseClient {
   id: number;
   firstName: string;
@@ -180,6 +207,8 @@ export interface CartItem {
   quantity: number;
   imageUrl?: string | null;
   resourceType?: string;
+  sizeId?: number | null;
+  sizeLabel?: string | null;
 }
 
 export interface AnnouncementView {

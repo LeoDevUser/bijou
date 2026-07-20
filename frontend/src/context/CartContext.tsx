@@ -1,11 +1,18 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import type { CartItem } from '../types';
 
+// A cart line is identified by item + chosen size, so the same product in two
+// sizes lives as two separate lines.
+// eslint-disable-next-line react-refresh/only-export-components
+export function cartLineKey(i: { id: number; sizeId?: number | null }): string {
+  return `${i.id}:${i.sizeId ?? ''}`;
+}
+
 interface CartContextType {
   items: CartItem[];
   addItem: (item: CartItem) => void;
-  removeItem: (id: number) => void;
-  updateQuantity: (id: number, quantity: number) => void;
+  removeItem: (key: string) => void;
+  updateQuantity: (key: string, quantity: number) => void;
   clear: () => void;
   total: number;
   count: number;
@@ -18,21 +25,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   function addItem(item: CartItem) {
     setItems(prev => {
-      const existing = prev.find(i => i.id === item.id);
+      const key = cartLineKey(item);
+      const existing = prev.find(i => cartLineKey(i) === key);
       if (existing) {
-        return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i);
+        return prev.map(i => cartLineKey(i) === key ? { ...i, quantity: i.quantity + item.quantity } : i);
       }
       return [...prev, item];
     });
   }
 
-  function removeItem(id: number) {
-    setItems(prev => prev.filter(i => i.id !== id));
+  function removeItem(key: string) {
+    setItems(prev => prev.filter(i => cartLineKey(i) !== key));
   }
 
-  function updateQuantity(id: number, quantity: number) {
-    if (quantity <= 0) return removeItem(id);
-    setItems(prev => prev.map(i => i.id === id ? { ...i, quantity } : i));
+  function updateQuantity(key: string, quantity: number) {
+    if (quantity <= 0) return removeItem(key);
+    setItems(prev => prev.map(i => cartLineKey(i) === key ? { ...i, quantity } : i));
   }
 
   function clear() {

@@ -17,6 +17,7 @@ import com.bijou.backend.entities.Client;
 import com.bijou.backend.exception.AppException;
 import com.bijou.backend.entities.Country;
 import com.bijou.backend.entities.Item;
+import com.bijou.backend.entities.ItemSize;
 import com.bijou.backend.entities.Order;
 import com.bijou.backend.entities.OrderItem;
 import com.bijou.backend.entities.Role;
@@ -68,29 +69,39 @@ public class OrderService {
         if (itemMap.size() != itemIds.size()) {
             throw new AppException(HttpStatus.NOT_FOUND, "ITEMS_NOT_FOUND");
         }
-        //check if we have sufficient stock
-        for (OrderItemRequest orderItem : req.items()) {
-            Item item = itemMap.get(orderItem.itemId());
-            if (item.getStock() < orderItem.quantity()) {
-                log.warn("item {} has insufficient stock", item.getNameEn());
-                throw new AppException(HttpStatus.UNPROCESSABLE_CONTENT, "INSUFFICIENT_STOCK", item.getNameEn());
-            }
-        }
-        
-        //update stock
+        // Check stock and decrement in one pass (whole method is transactional, so any
+        // later failure rolls the decrements back). Sized items draw from the chosen
+        // size's stock and price; single-option items from the item's own.
         List<OrderItem> orderItems = new ArrayList<>();
         BigDecimal total = BigDecimal.ZERO;
         for (OrderItemRequest orderItemReq : req.items()) {
             Item item = itemMap.get(orderItemReq.itemId());
-            item.setStock(item.getStock() - orderItemReq.quantity());
+            OrderItem.OrderItemBuilder builder = OrderItem.builder().item(item).quantity(orderItemReq.quantity());
+            BigDecimal basePrice;
+            if (!item.getSizes().isEmpty()) {
+                ItemSize size = item.getSizes().stream()
+                    .filter(s -> s.getId().equals(orderItemReq.sizeId()))
+                    .findFirst()
+                    .orElseThrow(() -> new AppException(HttpStatus.BAD_REQUEST, "SIZE_REQUIRED", item.getNameEn()));
+                if (size.getStock() < orderItemReq.quantity()) {
+                    log.warn("size {} of item {} has insufficient stock", size.getSize(), item.getNameEn());
+                    throw new AppException(HttpStatus.UNPROCESSABLE_CONTENT, "INSUFFICIENT_STOCK", item.getNameEn());
+                }
+                size.setStock(size.getStock() - orderItemReq.quantity());
+                basePrice = size.getPrice();
+                builder.itemSize(size).sizeLabel(size.getSize());
+            } else {
+                if (item.getStock() < orderItemReq.quantity()) {
+                    log.warn("item {} has insufficient stock", item.getNameEn());
+                    throw new AppException(HttpStatus.UNPROCESSABLE_CONTENT, "INSUFFICIENT_STOCK", item.getNameEn());
+                }
+                item.setStock(item.getStock() - orderItemReq.quantity());
+                basePrice = item.getPrice();
+            }
             BigDecimal unitPrice = item.getDiscountPercent() != null && item.getDiscountPercent() > 0
-                ? item.getPrice().multiply(BigDecimal.valueOf(100 - item.getDiscountPercent()).movePointLeft(2))
-                : item.getPrice();
-            OrderItem orderItem = OrderItem.builder()
-                .item(item)
-                .quantity(orderItemReq.quantity())
-                .unitPrice(unitPrice)
-                .build();
+                ? basePrice.multiply(BigDecimal.valueOf(100 - item.getDiscountPercent()).movePointLeft(2))
+                : basePrice;
+            OrderItem orderItem = builder.unitPrice(unitPrice).build();
             orderItems.add(orderItem);
             total = total.add(orderItem.getUnitPrice().multiply(BigDecimal.valueOf(orderItem.getQuantity())));
         }
@@ -188,7 +199,18 @@ public class OrderService {
                 log.warn("item {} no longer exists, skipping stock restoration", orderItem.getItem().getId());
                 return;
             }
-            item.setStock(item.getStock() + orderItem.getQuantity());
+            if (orderItem.getItemSize() != null) {
+                // Restore to the specific size; skip if the size was since deleted.
+                Long sizeId = orderItem.getItemSize().getId();
+                item.getSizes().stream()
+                    .filter(s -> s.getId().equals(sizeId))
+                    .findFirst()
+                    .ifPresentOrElse(
+                        s -> s.setStock(s.getStock() + orderItem.getQuantity()),
+                        () -> log.warn("size {} no longer exists, skipping stock restoration", sizeId));
+            } else {
+                item.setStock(item.getStock() + orderItem.getQuantity());
+            }
         });
 
         order.setStatus(Status.CANCELLED);
@@ -236,9 +258,17 @@ public class OrderService {
         for (OrderItemRequest r : req.items()) {
             Item item = itemMap.get(r.itemId());
             if (item == null) continue;
+            BigDecimal basePrice = item.getPrice();
+            if (r.sizeId() != null && !item.getSizes().isEmpty()) {
+                basePrice = item.getSizes().stream()
+                    .filter(s -> s.getId().equals(r.sizeId()))
+                    .findFirst()
+                    .map(ItemSize::getPrice)
+                    .orElse(item.getPrice());
+            }
             BigDecimal unitPrice = item.getDiscountPercent() != null && item.getDiscountPercent() > 0
-                ? item.getPrice().multiply(BigDecimal.valueOf(100 - item.getDiscountPercent()).movePointLeft(2))
-                : item.getPrice();
+                ? basePrice.multiply(BigDecimal.valueOf(100 - item.getDiscountPercent()).movePointLeft(2))
+                : basePrice;
             OrderItem oi = OrderItem.builder().item(item).quantity(r.quantity()).unitPrice(unitPrice).build();
             orderItems.add(oi);
             subtotal = subtotal.add(unitPrice.multiply(BigDecimal.valueOf(r.quantity())));
@@ -273,6 +303,7 @@ public class OrderService {
                     var item = orderItem.getItem();
                     return new OrderItemView(
                         item.getId(),
+                        orderItem.getSizeLabel(),
                         orderItem.getUnitPrice(),
                         orderItem.getQuantity(),
                         item.getNameEn(),

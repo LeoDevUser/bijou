@@ -13,6 +13,7 @@ import jakarta.transaction.Transactional;
 import com.bijou.backend.entities.Category;
 import com.bijou.backend.entities.Item;
 import com.bijou.backend.entities.ItemAsset;
+import com.bijou.backend.entities.ItemSize;
 import com.bijou.backend.entities.Label;
 import com.bijou.backend.exception.AppException;
 import com.bijou.backend.repositories.CategoryRepository;
@@ -61,6 +62,27 @@ public class ItemService {
             .toList();
     }
 
+    private List<ItemSizeView> toSizeViews(List<ItemSize> sizes) {
+        if (sizes == null) return List.of();
+        return sizes.stream()
+            .map(s -> new ItemSizeView(
+                s.getId(), s.getSize(), s.getStock(), s.getWeightGrams(), s.getPrice(), s.getPricingWork(),
+                s.getDescriptionEn(), s.getDescriptionFr(), s.getDescriptionEs(), s.getSortOrder(), s.isActive()))
+            .toList();
+    }
+
+    /**
+     * Effective price of a size: the formula-computed price (weight-driven, using
+     * the item's formula/margin and the size's work override) when the item is
+     * formula-priced, otherwise the size's own static price.
+     */
+    private BigDecimal resolveSizePrice(Item item, ItemSizeRequest req) {
+        BigDecimal work = req.pricingWork() != null ? BigDecimal.valueOf(req.pricingWork()) : item.getPricingWork();
+        return dynamicPricingService
+            .computePrice(item.getPricingFormula(), req.weightGrams(), work, item.getPricingMargin())
+            .orElse(req.price() != null ? BigDecimal.valueOf(req.price()) : BigDecimal.ZERO);
+    }
+
     private List<Label> resolveLabels(List<Long> labelIds) {
         if (labelIds == null || labelIds.isEmpty()) return List.of();
         return labelRepository.findAllById(labelIds);
@@ -84,6 +106,7 @@ public class ItemService {
                 item.getPrice(), toLabelViews(item.getLabels()), CategoryService.toView(item.getCategory()),
                 item.getDescriptionEn(), item.getDescriptionFr(), item.getDescriptionEs(),
                 toAssetViews(item.getAssets()),
+                toSizeViews(item.getSizes()),
                 item.getDiscountPercent(),
                 item.getMaterial(),
                 item.isUsmcaQualified(),
@@ -101,6 +124,7 @@ public class ItemService {
                 item.getPrice(), toLabelViews(item.getLabels()), CategoryService.toView(item.getCategory()),
                 item.getDescriptionEn(), item.getDescriptionFr(), item.getDescriptionEs(),
                 toAssetViews(item.getAssets()),
+                toSizeViews(item.getSizes()),
                 item.getNbSold(), item.getNbSoldMonth(), item.getTotalSales(),
                 item.getTotalSalesWeek(), item.getTotalSalesMonth(), item.getTotalSalesQuarter(),
                 item.getTotalSalesYear(), item.isActive(),
@@ -219,6 +243,74 @@ public class ItemService {
         }
         log.info("deleted asset #{} from item #{} ({})", assetId, itemId, displayName(item));
         return toItemView(item);
+    }
+
+    // ── Sizes ───────────────────────────────────────────────────────────────
+
+    /**
+     * Append one or more sizes. When adding the first size(s) the admin also
+     * submits a size representing the item's original configuration, so an item
+     * with sizes always has its original captured as a named size.
+     */
+    @Transactional
+    public ItemView addSizes(Long itemId, List<ItemSizeRequest> reqs) {
+        Item item = findAnyItemOrThrow(itemId);
+        int nextOrder = item.getSizes().size();
+        for (ItemSizeRequest req : reqs) {
+            ItemSize size = ItemSize.builder()
+                .item(item)
+                .size(req.size())
+                .stock(req.stock())
+                .weightGrams(req.weightGrams())
+                .price(resolveSizePrice(item, req))
+                .pricingWork(req.pricingWork() == null ? null : BigDecimal.valueOf(req.pricingWork()))
+                .descriptionEn(req.descriptionEn())
+                .descriptionFr(req.descriptionFr())
+                .descriptionEs(req.descriptionEs())
+                .sortOrder(nextOrder++)
+                .build();
+            item.getSizes().add(size);
+        }
+        itemRepository.save(item);
+        log.info("added {} size(s) to item #{} ({})", reqs.size(), itemId, displayName(item));
+        return toItemView(item);
+    }
+
+    @Transactional
+    public ItemView updateSize(Long itemId, Long sizeId, ItemSizeRequest req) {
+        Item item = findAnyItemOrThrow(itemId);
+        ItemSize size = findSizeOrThrow(item, sizeId);
+        size.setSize(req.size());
+        size.setStock(req.stock());
+        size.setWeightGrams(req.weightGrams());
+        size.setPricingWork(req.pricingWork() == null ? null : BigDecimal.valueOf(req.pricingWork()));
+        size.setPrice(resolveSizePrice(item, req));
+        size.setDescriptionEn(req.descriptionEn());
+        size.setDescriptionFr(req.descriptionFr());
+        size.setDescriptionEs(req.descriptionEs());
+        itemRepository.save(item);
+        log.info("updated size #{} of item #{}", sizeId, itemId);
+        return toItemView(item);
+    }
+
+    @Transactional
+    public ItemView deleteSize(Long itemId, Long sizeId) {
+        Item item = findAnyItemOrThrow(itemId);
+        ItemSize size = findSizeOrThrow(item, sizeId);
+        item.getSizes().remove(size);
+        for (int i = 0; i < item.getSizes().size(); i++) {
+            item.getSizes().get(i).setSortOrder(i);
+        }
+        itemRepository.save(item);
+        log.info("deleted size #{} from item #{}", sizeId, itemId);
+        return toItemView(item);
+    }
+
+    private ItemSize findSizeOrThrow(Item item, Long sizeId) {
+        return item.getSizes().stream()
+            .filter(s -> s.getId().equals(sizeId))
+            .findFirst()
+            .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "SIZE_NOT_FOUND"));
     }
 
     public void deactivate(Long id) {

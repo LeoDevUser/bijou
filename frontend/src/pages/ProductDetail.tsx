@@ -18,6 +18,7 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [added, setAdded] = useState(false);
   const [assetIndex, setAssetIndex] = useState(0);
+  const [selectedSizeId, setSelectedSizeId] = useState<number | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Lightbox
@@ -32,10 +33,20 @@ export default function ProductDetail() {
   useEffect(() => {
     if (!id) return;
     api.items.get(Number(id))
-      .then(data => { setItem(data); setAssetIndex(0); })
+      .then(data => {
+        setItem(data);
+        setAssetIndex(0);
+        // Default to the first in-stock size (or first size) when the product has sizes.
+        const active = (data.sizes ?? []).filter(s => s.active);
+        setSelectedSizeId(active.length ? (active.find(s => s.stock > 0) ?? active[0]).id : null);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [id]);
+
+  const activeSizes = (item?.sizes ?? []).filter(s => s.active);
+  const hasSizes = activeSizes.length > 0;
+  const selectedSize = hasSizes ? (activeSizes.find(s => s.id === selectedSizeId) ?? null) : null;
 
   const assets = item?.assets ?? [];
   const hasMultiple = assets.length > 1;
@@ -56,10 +67,20 @@ export default function ProductDetail() {
   }, [assets.length]);
 
   const name = item ? pickLocale(item.nameEn, item.nameFr, item.nameEs, i18n.language) : '';
-  const description = item ? pickLocale(item.descriptionEn, item.descriptionFr, item.descriptionEs, i18n.language) : '';
+  // A chosen size overrides price, stock, and (per-language) description.
+  const description = item
+    ? pickLocale(
+        selectedSize?.descriptionEn || item.descriptionEn,
+        selectedSize?.descriptionFr || item.descriptionFr,
+        selectedSize?.descriptionEs || item.descriptionEs,
+        i18n.language,
+      )
+    : '';
+  const basePrice = selectedSize ? Number(selectedSize.price) : Number(item?.price ?? 0);
+  const effectiveStock = selectedSize ? selectedSize.stock : (item?.stock ?? 0);
 
   const hasDiscount = !!item?.discountPercent;
-  const salePrice = item ? (hasDiscount ? Number(item.price) * (1 - item.discountPercent! / 100) : Number(item.price)) : 0;
+  const salePrice = hasDiscount ? basePrice * (1 - item!.discountPercent! / 100) : basePrice;
 
   function goTo(i: number) {
     setAssetIndex(i);
@@ -78,7 +99,12 @@ export default function ProductDetail() {
 
   function handleAddToCart() {
     if (!item) return;
-    addItem({ id: item.id, name, price: salePrice, quantity: 1, imageUrl: assets[0]?.imageUrl ?? null, resourceType: assets[0]?.resourceType });
+    if (hasSizes && !selectedSize) return;
+    addItem({
+      id: item.id, name, price: salePrice, quantity: 1,
+      imageUrl: assets[0]?.imageUrl ?? null, resourceType: assets[0]?.resourceType,
+      sizeId: selectedSize?.id ?? null, sizeLabel: selectedSize?.size ?? null,
+    });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   }
@@ -276,11 +302,34 @@ export default function ProductDetail() {
             {hasDiscount ? (
               <div className="flex items-center gap-3 mb-6">
                 <p className="text-xl">{format(salePrice)}</p>
-                <p className="text-lg line-through text-muted">{format(Number(item.price))}</p>
+                <p className="text-lg line-through text-muted">{format(basePrice)}</p>
                 <span className="text-xs uppercase tracking-widest border border-gold text-gold px-2 py-0.5">-{item.discountPercent}%</span>
               </div>
             ) : (
-              <p className="text-xl mb-6">{format(Number(item.price))}</p>
+              <p className="text-xl mb-6">{format(basePrice)}</p>
+            )}
+
+            {hasSizes && (
+              <div className="mb-6">
+                <p className="text-xs uppercase tracking-widest text-muted mb-2">{t('product.size')}</p>
+                <div className="flex flex-wrap gap-2">
+                  {activeSizes.map(s => {
+                    const soldOut = s.stock <= 0;
+                    const selected = s.id === selectedSizeId;
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        disabled={soldOut}
+                        onClick={() => setSelectedSizeId(s.id)}
+                        className={`text-xs uppercase tracking-widest px-4 py-2 border transition-colors ${selected ? 'bg-dark text-white border-dark' : 'border-border hover:border-dark'} ${soldOut ? 'opacity-40 line-through cursor-not-allowed' : 'cursor-pointer'}`}
+                      >
+                        {s.size}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             )}
 
             {item.labels?.length > 0 && (
@@ -295,7 +344,7 @@ export default function ProductDetail() {
 
             <p className="text-[#555] text-sm leading-relaxed mb-8 whitespace-pre-line">{description}</p>
 
-            {item.stock === 0 ? (
+            {effectiveStock === 0 ? (
               <p className="text-xs uppercase tracking-widest text-muted border border-border px-8 py-4 text-center">
                 {t('product.outOfStock')}
               </p>
@@ -311,7 +360,7 @@ export default function ProductDetail() {
             )}
 
             <p className="text-xs text-muted mt-4 text-center">
-              {item.stock} {t('product.inStock')}
+              {effectiveStock} {t('product.inStock')}
             </p>
           </div>
         </div>

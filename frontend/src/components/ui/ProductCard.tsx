@@ -18,7 +18,12 @@ export default function ProductCard({ item }: { item: ItemView }) {
   const { addItem } = useCart();
   const { format } = useCurrency();
   const name = pickLocale(item.nameEn, item.nameFr, item.nameEs, i18n.language);
-  const salePrice = effectivePrice(Number(item.price), item.discountPercent);
+  // Sized items advertise their cheapest active size ("from …") and route to the
+  // product page to pick a size rather than quick-adding without one.
+  const activeSizes = (item.sizes ?? []).filter(s => s.active);
+  const hasSizes = activeSizes.length > 0;
+  const displayPrice = hasSizes ? Math.min(...activeSizes.map(s => Number(s.price))) : Number(item.price);
+  const salePrice = effectivePrice(displayPrice, item.discountPercent);
   const hasDiscount = !!item.discountPercent;
 
   const assets = item.assets ?? [];
@@ -113,24 +118,34 @@ export default function ProductCard({ item }: { item: ItemView }) {
           </>
         )}
 
-        {/* Quick add — slides up on hover */}
-        <button
-          onClick={handleAddToCart}
-          className="absolute bottom-0 left-0 right-0 text-xs uppercase tracking-widest py-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300 cursor-pointer"
-          style={{ backgroundColor: 'var(--bijou-card-button-bg)', color: 'var(--bijou-card-button-text)' }}
-        >
-          {t('product.addToCart')}
-        </button>
+        {/* Quick add — slides up on hover. Sized items route to the product page
+            (a plain span, so the click bubbles to the card's Link) to pick a size. */}
+        {hasSizes ? (
+          <span
+            className="absolute bottom-0 left-0 right-0 text-center text-xs uppercase tracking-widest py-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300"
+            style={{ backgroundColor: 'var(--bijou-card-button-bg)', color: 'var(--bijou-card-button-text)' }}
+          >
+            {t('product.chooseSize')}
+          </span>
+        ) : (
+          <button
+            onClick={handleAddToCart}
+            className="absolute bottom-0 left-0 right-0 text-xs uppercase tracking-widest py-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300 cursor-pointer"
+            style={{ backgroundColor: 'var(--bijou-card-button-bg)', color: 'var(--bijou-card-button-text)' }}
+          >
+            {t('product.addToCart')}
+          </button>
+        )}
       </div>
       <p className="text-sm tracking-wide" style={{ color: 'var(--bijou-card-text)' }}>{name}</p>
       {hasDiscount ? (
         <p className="text-sm mt-0.5 flex items-center gap-2">
-          <span style={{ color: 'var(--bijou-site-text-accent)' }}>{format(salePrice)}</span>
-          <span className="line-through text-muted">{format(Number(item.price))}</span>
+          <span style={{ color: 'var(--bijou-site-text-accent)' }}>{hasSizes ? `${t('product.from')} ${format(salePrice)}` : format(salePrice)}</span>
+          <span className="line-through text-muted">{format(displayPrice)}</span>
           <span className="text-xs" style={{ color: 'var(--bijou-site-text-accent)' }}>-{item.discountPercent}%</span>
         </p>
       ) : (
-        <p className="text-sm mt-0.5" style={{ color: 'var(--bijou-site-text-accent)' }}>{format(Number(item.price))}</p>
+        <p className="text-sm mt-0.5" style={{ color: 'var(--bijou-site-text-accent)' }}>{hasSizes ? `${t('product.from')} ${format(displayPrice)}` : format(displayPrice)}</p>
       )}
     </Link>
   );

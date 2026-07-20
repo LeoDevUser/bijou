@@ -1,4 +1,4 @@
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ThemeConfig, TaxPreview, AppSettings, BrevoQuota, CloudinaryResourcesPage } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ThemeConfig, TaxPreview, AppSettings, BrevoQuota, CloudinaryResourcesPage } from '../types';
 import { getToken, setToken } from './tokenStore';
 
 interface LabelRequest { nameEn: string; nameFr: string; nameEs: string; }
@@ -108,7 +108,7 @@ export const api = {
   orders: {
     list: () => request<OrderView[]>('/api/orders'),
     create: (data: {
-      items: { itemId: number; quantity: number }[];
+      items: { itemId: number; sizeId?: number | null; quantity: number }[];
       addressLine1: string;
       addressLine2?: string | null;
       colonial?: string | null;
@@ -123,7 +123,7 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(data),
       }),
-    taxPreview: (data: { items: { itemId: number; quantity: number }[]; country: string; currency: string; state?: string | null }) =>
+    taxPreview: (data: { items: { itemId: number; sizeId?: number | null; quantity: number }[]; country: string; currency: string; state?: string | null }) =>
       request<TaxPreview>('/api/orders/preview', { method: 'POST', body: JSON.stringify(data) }),
     cancel: (id: number) =>
       request<void>(`/api/orders/${id}/cancel`, { method: 'PATCH' }),
@@ -174,6 +174,12 @@ export const api = {
       },
       deleteAsset: (itemId: number, assetId: number) =>
         request<ItemView>(`/${ADMIN}/items/${itemId}/assets/${assetId}`, { method: 'DELETE' }),
+      addSizes: (itemId: number, reqs: ItemSizeRequest[]) =>
+        request<ItemView>(`/${ADMIN}/items/${itemId}/sizes`, { method: 'POST', body: JSON.stringify(reqs) }),
+      updateSize: (itemId: number, sizeId: number, req: ItemSizeRequest) =>
+        request<ItemView>(`/${ADMIN}/items/${itemId}/sizes/${sizeId}`, { method: 'PATCH', body: JSON.stringify(req) }),
+      deleteSize: (itemId: number, sizeId: number) =>
+        request<ItemView>(`/${ADMIN}/items/${itemId}/sizes/${sizeId}`, { method: 'DELETE' }),
       pickAsset: (itemId: number, data: { publicId: string; resourceType: string; secureUrl: string }) =>
         request<ItemView>(`/${ADMIN}/items/${itemId}/assets/pick`, { method: 'PATCH', body: JSON.stringify(data) }),
       createWithImage: async (data: ItemRequest, file: File, name?: string): Promise<ItemView> => {

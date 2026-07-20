@@ -59,6 +59,9 @@
   },
   "product": {
     "addToCart": "Add to Cart",
+    "size": "Size",
+    "chooseSize": "Choose size",
+    "from": "From",
     "added": "Added",
     "inStock": "in stock",
     "outOfStock": "Out of Stock",
@@ -261,6 +264,20 @@
       "deleteConfirm": "Delete this product? This cannot be undone.",
       "deleteHasOrders": "This product has orders and cannot be deleted. Deactivate it instead.",
       "saveError": "Failed to save. Please try again."
+    },
+    "sizes": {
+      "title": "Sizes",
+      "add": "Add size",
+      "saveFirst": "Save the product first, then add sizes.",
+      "none": "No sizes — sold as a single option.",
+      "name": "Size",
+      "namePlaceholder": "e.g. 60 cm",
+      "dynamicPriceNote": "Price is calculated automatically from the weight.",
+      "descOverrides": "Description override (optional)",
+      "confirmDelete": "Delete this size?",
+      "newHeading": "New size",
+      "originalHeading": "Original — this product",
+      "firstHint": "Adding a size turns this product's current values into a size too. Name it, then add the new one."
     },
     "stats": {
       "overallTitle": "Overall Revenue",

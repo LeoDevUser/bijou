@@ -59,6 +59,9 @@
   },
   "product": {
     "addToCart": "Añadir al Carrito",
+    "size": "Talla",
+    "chooseSize": "Elegir talla",
+    "from": "Desde",
     "added": "Añadido",
     "inStock": "en stock",
     "outOfStock": "Sin Stock",
@@ -261,6 +264,20 @@
       "deleteConfirm": "¿Eliminar este producto? Esta acción no se puede deshacer.",
       "deleteHasOrders": "Este producto tiene pedidos y no puede eliminarse. Desactívalo en su lugar.",
       "saveError": "Error al guardar. Por favor, intenta de nuevo."
+    },
+    "sizes": {
+      "title": "Tallas",
+      "add": "Agregar talla",
+      "saveFirst": "Guarda el producto primero, luego agrega tallas.",
+      "none": "Sin tallas — se vende como una sola opción.",
+      "name": "Talla",
+      "namePlaceholder": "ej. 60 cm",
+      "dynamicPriceNote": "El precio se calcula automáticamente a partir del peso.",
+      "descOverrides": "Descripción específica (opcional)",
+      "confirmDelete": "¿Eliminar esta talla?",
+      "newHeading": "Nueva talla",
+      "originalHeading": "Original — este producto",
+      "firstHint": "Agregar una talla también convierte los valores actuales del producto en una talla. Nómbrala y luego agrega la nueva."
     },
     "stats": {
       "overallTitle": "Ingresos Generales",

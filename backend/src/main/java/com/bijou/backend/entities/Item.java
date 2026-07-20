@@ -60,6 +60,11 @@ public class Item {
     @OrderBy("sortOrder ASC")
     @Builder.Default
     private List<ItemAsset> assets = new ArrayList<>();
+    /** Optional sizes. When non-empty, per-size stock/weight/price override the item's own. */
+    @OneToMany(mappedBy = "item", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sortOrder ASC")
+    @Builder.Default
+    private List<ItemSize> sizes = new ArrayList<>();
     @Column(nullable = false)
     @Builder.Default
     private int nbSold = 0;

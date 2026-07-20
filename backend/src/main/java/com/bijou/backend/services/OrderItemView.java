@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 public record OrderItemView(
     Long itemId,
+    String sizeLabel,
     BigDecimal unitPrice,
     int quantity,
     String nameEn,

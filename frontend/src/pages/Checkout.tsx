@@ -96,7 +96,7 @@ export default function Checkout() {
     const ctrl = new AbortController();
     previewAbortRef.current = ctrl;
     api.orders.taxPreview({
-      items: items.map(i => ({ itemId: i.id, quantity: i.quantity })),
+      items: items.map(i => ({ itemId: i.id, sizeId: i.sizeId ?? null, quantity: i.quantity })),
       country: form.country,
       currency,
       state: form.state || null,
@@ -123,7 +123,7 @@ export default function Checkout() {
         await api.account.changePhone(phone.trim());
       }
       const { order, clientSecret } = await api.orders.create({
-        items: items.map(i => ({ itemId: i.id, quantity: i.quantity })),
+        items: items.map(i => ({ itemId: i.id, sizeId: i.sizeId ?? null, quantity: i.quantity })),
         addressLine1: form.addressLine1,
         addressLine2: form.addressLine2 || null,
         colonial: form.colonial || null,

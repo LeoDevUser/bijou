@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
-import type { ItemView, ItemViewVerbose, ItemRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ThemeConfig, AppSettings, BrevoQuota, CloudinaryResource, CloudinaryResourcesPage, JewelryMaterial, PricingFormula } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, ItemSizeView, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ThemeConfig, AppSettings, BrevoQuota, CloudinaryResource, CloudinaryResourcesPage, JewelryMaterial, PricingFormula } from '../types';
 import { pickLocale, isItemIncomplete, isLabelIncomplete } from '../types';
 import { useTheme, THEME_DEFAULTS, mergeCollectionTheme } from '../context/ThemeContext';
 
@@ -360,7 +360,7 @@ function AdminOrders() {
                                 : <div className="w-10 h-10 bg-[#F0EDE8] flex-shrink-0" />
                               }
                               <div className="min-w-0">
-                                <p className="text-sm truncate">{name}</p>
+                                <p className="text-sm truncate">{name}{item.sizeLabel ? ` · ${item.sizeLabel}` : ''}</p>
                                 <p className="text-xs text-muted">×{item.quantity}</p>
                               </div>
                             </div>
@@ -532,6 +532,247 @@ const PRICING_FACTORS: Record<Exclude<PricingFormula, 'NONE'>, { factor: number;
   GOLD_14K: { factor: 0.616, metal: 'gold' },
   SILVER_925: { factor: 1, metal: 'silver' },
 };
+
+// ── Item sizes ──────────────────────────────────────────────────────────────
+
+type SizeForm = { size: string; stock: string; weightGrams: string; price: string; descriptionEn: string; descriptionFr: string; descriptionEs: string };
+
+const emptySizeForm: SizeForm = { size: '', stock: '', weightGrams: '', price: '', descriptionEn: '', descriptionFr: '', descriptionEs: '' };
+
+// Module-scope so it isn't recreated each render (which would remount the inputs
+// and drop focus on every keystroke).
+function SizeFields({ value, onChange, isStatic, heading }: {
+  value: SizeForm; onChange: (f: SizeForm) => void; isStatic: boolean; heading?: string;
+}) {
+  const { t } = useTranslation();
+  const inputClass = 'w-full border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors';
+  return (
+    <div className="border border-border p-3 space-y-2">
+      {heading && <p className="text-[11px] uppercase tracking-widest text-muted">{heading}</p>}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="col-span-2">
+          <label className="text-[11px] uppercase tracking-widest text-muted">{t('admin.sizes.name')}</label>
+          <input value={value.size} onChange={e => onChange({ ...value, size: e.target.value })} placeholder={t('admin.sizes.namePlaceholder')} className={inputClass} />
+        </div>
+        <div>
+          <label className="text-[11px] uppercase tracking-widest text-muted">{t('admin.modal.stock')}</label>
+          <input type="number" min="0" value={value.stock} onChange={e => onChange({ ...value, stock: e.target.value })} className={inputClass} />
+        </div>
+        <div>
+          <label className="text-[11px] uppercase tracking-widest text-muted">{t('admin.modal.weight')} (g)</label>
+          <input type="number" min="0" step="0.001" value={value.weightGrams} onChange={e => onChange({ ...value, weightGrams: e.target.value })} className={inputClass} />
+        </div>
+        {isStatic ? (
+          <div className="col-span-2">
+            <label className="text-[11px] uppercase tracking-widest text-muted">{t('admin.modal.price')}</label>
+            <input type="number" min="0" step="0.01" value={value.price} onChange={e => onChange({ ...value, price: e.target.value })} className={inputClass} />
+          </div>
+        ) : (
+          <p className="col-span-2 text-[11px] text-muted">{t('admin.sizes.dynamicPriceNote')}</p>
+        )}
+      </div>
+      <details>
+        <summary className="text-[11px] uppercase tracking-widest text-muted cursor-pointer">{t('admin.sizes.descOverrides')}</summary>
+        <div className="space-y-2 mt-2">
+          <textarea placeholder="EN" rows={2} value={value.descriptionEn} onChange={e => onChange({ ...value, descriptionEn: e.target.value })} className={inputClass} />
+          <textarea placeholder="FR" rows={2} value={value.descriptionFr} onChange={e => onChange({ ...value, descriptionFr: e.target.value })} className={inputClass} />
+          <textarea placeholder="ES" rows={2} value={value.descriptionEs} onChange={e => onChange({ ...value, descriptionEs: e.target.value })} className={inputClass} />
+        </div>
+      </details>
+    </div>
+  );
+}
+
+/**
+ * Per-size CRUD inside the product edit modal. Sizes can only be added to a
+ * saved item. Adding the first size also captures the item's original
+ * configuration as a named size, so an item with sizes always has its original.
+ */
+function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
+  item: ItemView;
+  pricingFormula: PricingFormula;
+  onSizesChanged: (sizes: ItemSizeView[]) => void;
+}) {
+  const { t } = useTranslation();
+  const [sizes, setSizes] = useState<ItemSizeView[]>(item.sizes ?? []);
+  const [mode, setMode] = useState<'list' | 'add' | 'first' | number>('list');
+  const [form, setForm] = useState<SizeForm>(emptySizeForm);
+  const [origForm, setOrigForm] = useState<SizeForm>(emptySizeForm);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const isStatic = pricingFormula === 'NONE';
+
+  function apply(updated: ItemSizeView[]) {
+    setSizes(updated);
+    onSizesChanged(updated);
+  }
+
+  function toReq(f: SizeForm): ItemSizeRequest {
+    return {
+      size: f.size.trim(),
+      stock: parseInt(f.stock) || 0,
+      weightGrams: parseFloat(f.weightGrams) || 0,
+      price: isStatic ? (f.price ? parseFloat(f.price) : null) : null,
+      pricingWork: null,
+      descriptionEn: f.descriptionEn.trim() || null,
+      descriptionFr: f.descriptionFr.trim() || null,
+      descriptionEs: f.descriptionEs.trim() || null,
+    };
+  }
+
+  function startAdd() {
+    setError(null);
+    setForm(emptySizeForm);
+    if (sizes.length === 0) {
+      // First size: prefill the "original" row from the item's current values.
+      setOrigForm({
+        size: '',
+        stock: String(item.stock),
+        weightGrams: String(item.weightGrams),
+        price: isStatic ? String(item.price) : '',
+        descriptionEn: item.descriptionEn ?? '',
+        descriptionFr: item.descriptionFr ?? '',
+        descriptionEs: item.descriptionEs ?? '',
+      });
+      setMode('first');
+    } else {
+      setMode('add');
+    }
+  }
+
+  function startEdit(s: ItemSizeView) {
+    setError(null);
+    setForm({
+      size: s.size,
+      stock: String(s.stock),
+      weightGrams: String(s.weightGrams),
+      price: isStatic ? String(s.price) : '',
+      descriptionEn: s.descriptionEn ?? '',
+      descriptionFr: s.descriptionFr ?? '',
+      descriptionEs: s.descriptionEs ?? '',
+    });
+    setMode(s.id);
+  }
+
+  async function submitAdd(reqs: ItemSizeRequest[]) {
+    setBusy(true);
+    setError(null);
+    try {
+      const updated = await api.admin.items.addSizes(item.id, reqs);
+      apply(updated.sizes);
+      setMode('list');
+    } catch {
+      setError(t('admin.products.saveError'));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function submitEdit(sizeId: number) {
+    setBusy(true);
+    setError(null);
+    try {
+      const updated = await api.admin.items.updateSize(item.id, sizeId, toReq(form));
+      apply(updated.sizes);
+      setMode('list');
+    } catch {
+      setError(t('admin.products.saveError'));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function remove(sizeId: number) {
+    if (!window.confirm(t('admin.sizes.confirmDelete'))) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const updated = await api.admin.items.deleteSize(item.id, sizeId);
+      apply(updated.sizes);
+    } catch {
+      setError(t('admin.products.saveError'));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const fieldsValid = (f: SizeForm) => f.size.trim() && f.weightGrams && f.stock !== '' && (!isStatic || f.price);
+
+  const btn = 'text-xs uppercase tracking-widest px-3 py-1.5 border transition-colors disabled:opacity-50';
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <label className="block text-xs uppercase tracking-widest">{t('admin.sizes.title')}</label>
+        {mode === 'list' && (
+          <button type="button" onClick={startAdd} className={`${btn} border-dark bg-dark text-white hover:bg-gold`}>
+            {t('admin.sizes.add')}
+          </button>
+        )}
+      </div>
+
+      {sizes.length > 0 && (
+        <div className="space-y-1 mb-2">
+          {sizes.map(s => (
+            <div key={s.id}>
+              <div className="flex items-center gap-2 text-sm border border-border px-3 py-2">
+                <span className="font-medium">{s.size}</span>
+                <span className="text-muted text-xs">· {s.stock} {t('admin.modal.stock').toLowerCase()} · {s.weightGrams} g · ${s.price.toLocaleString()}</span>
+                <div className="ml-auto flex gap-2">
+                  <button type="button" onClick={() => startEdit(s)} className="text-xs uppercase tracking-widest text-muted hover:text-dark">{t('admin.products.edit')}</button>
+                  <button type="button" onClick={() => remove(s.id)} disabled={busy} className="text-xs uppercase tracking-widest text-red-500 hover:text-red-600 disabled:opacity-50">{t('admin.products.delete')}</button>
+                </div>
+              </div>
+              {mode === s.id && (
+                <div className="mt-1 space-y-2">
+                  <SizeFields value={form} onChange={setForm} isStatic={isStatic} />
+                  <div className="flex gap-2">
+                    <button type="button" disabled={busy || !fieldsValid(form)} onClick={() => submitEdit(s.id)} className={`${btn} border-dark bg-dark text-white hover:bg-gold`}>{t('admin.modal.save')}</button>
+                    <button type="button" onClick={() => setMode('list')} className={`${btn} border-border hover:border-dark`}>{t('admin.modal.cancel')}</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {sizes.length === 0 && mode === 'list' && (
+        <p className="text-xs text-muted mb-2">{t('admin.sizes.none')}</p>
+      )}
+
+      {mode === 'add' && (
+        <div className="space-y-2">
+          <SizeFields value={form} onChange={setForm} isStatic={isStatic} heading={t('admin.sizes.newHeading')} />
+          <div className="flex gap-2">
+            <button type="button" disabled={busy || !fieldsValid(form)} onClick={() => submitAdd([toReq(form)])} className={`${btn} border-dark bg-dark text-white hover:bg-gold`}>{t('admin.modal.save')}</button>
+            <button type="button" onClick={() => setMode('list')} className={`${btn} border-border hover:border-dark`}>{t('admin.modal.cancel')}</button>
+          </div>
+        </div>
+      )}
+
+      {mode === 'first' && (
+        <div className="space-y-2">
+          <p className="text-[11px] text-muted">{t('admin.sizes.firstHint')}</p>
+          <SizeFields value={origForm} onChange={setOrigForm} isStatic={isStatic} heading={t('admin.sizes.originalHeading')} />
+          <SizeFields value={form} onChange={setForm} isStatic={isStatic} heading={t('admin.sizes.newHeading')} />
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={busy || !fieldsValid(origForm) || !fieldsValid(form)}
+              onClick={() => submitAdd([toReq(origForm), toReq(form)])}
+              className={`${btn} border-dark bg-dark text-white hover:bg-gold`}
+            >{t('admin.modal.save')}</button>
+            <button type="button" onClick={() => setMode('list')} className={`${btn} border-border hover:border-dark`}>{t('admin.modal.cancel')}</button>
+          </div>
+        </div>
+      )}
+
+      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+    </div>
+  );
+}
 
 interface ItemModalProps {
   item?: ItemView;
@@ -936,6 +1177,19 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
               </button>
             </div>
           </div>
+
+          {/* Sizes — only on saved items; adding the first size also captures the original */}
+          <div>
+            {item ? (
+              <ItemSizesPanel item={item} pricingFormula={item.pricingFormula ?? 'NONE'} onSizesChanged={() => {}} />
+            ) : (
+              <>
+                <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.sizes.title')}</label>
+                <p className="text-xs text-muted">{t('admin.sizes.saveFirst')}</p>
+              </>
+            )}
+          </div>
+
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <div className="flex gap-3 pt-2">
             <button type="submit" disabled={saving} className="flex-1 bg-dark text-white text-xs uppercase tracking-widest py-3 hover:bg-gold transition-colors disabled:opacity-50">

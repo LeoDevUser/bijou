@@ -59,6 +59,9 @@
   },
   "product": {
     "addToCart": "Ajouter au Panier",
+    "size": "Taille",
+    "chooseSize": "Choisir une taille",
+    "from": "À partir de",
     "added": "Ajouté",
     "inStock": "en stock",
     "outOfStock": "Rupture de Stock",
@@ -261,6 +264,20 @@
       "deleteConfirm": "Supprimer ce produit ? Cette action est irréversible.",
       "deleteHasOrders": "Ce produit a des commandes et ne peut pas être supprimé. Désactivez-le à la place.",
       "saveError": "Échec de l'enregistrement. Veuillez réessayer."
+    },
+    "sizes": {
+      "title": "Tailles",
+      "add": "Ajouter une taille",
+      "saveFirst": "Enregistrez d'abord le produit, puis ajoutez des tailles.",
+      "none": "Aucune taille — vendu en une seule option.",
+      "name": "Taille",
+      "namePlaceholder": "ex. 60 cm",
+      "dynamicPriceNote": "Le prix est calculé automatiquement à partir du poids.",
+      "descOverrides": "Description spécifique (facultatif)",
+      "confirmDelete": "Supprimer cette taille ?",
+      "newHeading": "Nouvelle taille",
+      "originalHeading": "Original — ce produit",
+      "firstHint": "Ajouter une taille transforme aussi les valeurs actuelles du produit en une taille. Nommez-la, puis ajoutez la nouvelle."
     },
     "stats": {
       "overallTitle": "Chiffre d'Affaires Global",
