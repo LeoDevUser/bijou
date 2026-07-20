@@ -561,7 +561,8 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [pendingFiles, setPendingFiles] = useState<{ file: File; name: string }[]>([]);
+  const [pendingFiles, setPendingFiles] = useState<{ file: File; name: string; url: string }[]>([]);
+  const [pendingPicks, setPendingPicks] = useState<{ publicId: string; resourceType: string; secureUrl: string }[]>([]);
   const [currentAssets, setCurrentAssets] = useState(item?.assets ?? []);
   const [browsingMedia, setBrowsingMedia] = useState(false);
   const [metalPrices, setMetalPrices] = useState<{ goldMxnPerGram: number | null; silverMxnPerGram: number | null } | null>(null);
@@ -579,6 +580,35 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
   };
 
   const inputClass = 'w-full border border-border bg-cream px-4 py-3 text-sm outline-none focus:border-dark transition-colors';
+
+  // Revoke any outstanding object URLs when the modal unmounts. A ref mirrors the
+  // latest list so the mount-only cleanup sees whatever is still pending.
+  const pendingFilesRef = useRef(pendingFiles);
+  pendingFilesRef.current = pendingFiles;
+  useEffect(() => () => pendingFilesRef.current.forEach(p => URL.revokeObjectURL(p.url)), []);
+
+  // Queue newly picked files for upload on save. Appends rather than replaces, so
+  // the admin can add media in several passes instead of one giant selection.
+  function addPendingFiles(files: File[]) {
+    const entries = files.map(file => ({
+      file,
+      name: promptMediaName(file, t('admin.site.mediaNamePrompt')),
+      url: URL.createObjectURL(file),
+    }));
+    setPendingFiles(prev => [...prev, ...entries]);
+  }
+
+  function removePendingFile(idx: number) {
+    setPendingFiles(prev => {
+      const removed = prev[idx];
+      if (removed) URL.revokeObjectURL(removed.url);
+      return prev.filter((_, i) => i !== idx);
+    });
+  }
+
+  function removePendingPick(idx: number) {
+    setPendingPicks(prev => prev.filter((_, i) => i !== idx));
+  }
 
   async function handleDeleteAsset(assetId: number) {
     if (!item) return;
@@ -620,6 +650,9 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
       }
       for (const { file, name } of pendingFiles) {
         await api.admin.items.addAsset(itemId, file, name);
+      }
+      for (const pick of pendingPicks) {
+        await api.admin.items.pickAsset(itemId, pick);
       }
       onSaved();
     } catch {
@@ -828,7 +861,7 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
           </div>
           <div>
             <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.media')}</label>
-            {currentAssets.length > 0 && (
+            {(currentAssets.length > 0 || pendingFiles.length > 0 || pendingPicks.length > 0) && (
               <div className="flex flex-wrap gap-2 mb-3">
                 {currentAssets.map(asset => (
                   <div key={asset.id} className="relative group w-20 h-20">
@@ -846,6 +879,36 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
                     )}
                   </div>
                 ))}
+                {pendingFiles.map((pf, idx) => (
+                  <div key={pf.url} className="relative group w-20 h-20 ring-1 ring-gold">
+                    {pf.file.type.startsWith('video') ? (
+                      <div className="w-20 h-20 bg-[#F0EDE8] flex items-center justify-center text-xs text-muted uppercase tracking-widest">video</div>
+                    ) : (
+                      <img src={pf.url} alt={pf.name} className="w-20 h-20 object-cover" />
+                    )}
+                    <span className="absolute bottom-0 inset-x-0 bg-gold/90 text-dark text-[9px] uppercase tracking-widest text-center py-px">{t('admin.modal.pendingBadge')}</span>
+                    <button
+                      type="button"
+                      onClick={() => removePendingFile(idx)}
+                      className="absolute top-0.5 right-0.5 bg-dark text-white text-xs w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                    >×</button>
+                  </div>
+                ))}
+                {pendingPicks.map((pick, idx) => (
+                  <div key={pick.publicId} className="relative group w-20 h-20 ring-1 ring-gold">
+                    {pick.resourceType === 'video' ? (
+                      <div className="w-20 h-20 bg-[#F0EDE8] flex items-center justify-center text-xs text-muted uppercase tracking-widest">video</div>
+                    ) : (
+                      <img src={pick.secureUrl} alt="" className="w-20 h-20 object-cover" />
+                    )}
+                    <span className="absolute bottom-0 inset-x-0 bg-gold/90 text-dark text-[9px] uppercase tracking-widest text-center py-px">{t('admin.modal.pendingBadge')}</span>
+                    <button
+                      type="button"
+                      onClick={() => removePendingPick(idx)}
+                      className="absolute top-0.5 right-0.5 bg-dark text-white text-xs w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                    >×</button>
+                  </div>
+                ))}
               </div>
             )}
             <div className="flex items-center gap-3 flex-wrap">
@@ -854,9 +917,16 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
                 type="file"
                 multiple
                 accept="image/*,video/mp4,video/webm,video/quicktime"
-                onChange={e => setPendingFiles(Array.from(e.target.files ?? []).map(file => ({ file, name: promptMediaName(file, t('admin.site.mediaNamePrompt')) })))}
-                className="text-sm text-muted"
+                className="hidden"
+                onChange={e => { addPendingFiles(Array.from(e.target.files ?? [])); e.target.value = ''; }}
               />
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors"
+              >
+                {t('admin.modal.addMedia')}
+              </button>
               <button
                 type="button"
                 onClick={() => setBrowsingMedia(true)}
@@ -865,9 +935,6 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
                 {t('admin.site.browse')}
               </button>
             </div>
-            {pendingFiles.length > 0 && (
-              <p className="text-xs text-muted mt-1">{pendingFiles.length} {t('admin.modal.filesSelected')}</p>
-            )}
           </div>
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <div className="flex gap-3 pt-2">
@@ -883,24 +950,16 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
       {browsingMedia && (
         <CloudinaryBrowserModal
           onClose={() => setBrowsingMedia(false)}
-          onSelect={async resource => {
+          onSelect={resource => {
             setBrowsingMedia(false);
-            if (item) {
-              try {
-                const updated = await api.admin.items.pickAsset(item.id, {
-                  publicId: resource.publicId,
-                  resourceType: resource.resourceType,
-                  secureUrl: resource.secureUrl,
-                });
-                setCurrentAssets(updated.assets);
-              } catch {
-                setError(t('admin.products.saveError'));
-              }
-            } else {
-              // For new items not yet saved, queue the picked asset as a pseudo-file isn't
-              // possible — show a note that browse only works on existing items.
-              setError('Save the item first, then use Browse to pick media.');
-            }
+            // Queue the pick and apply it on save, the same as uploaded files. This
+            // makes Browse work for brand-new items that don't have an id yet, and
+            // keeps a single "apply on save" flow for both new and existing items.
+            setPendingPicks(prev =>
+              prev.some(p => p.publicId === resource.publicId)
+                ? prev
+                : [...prev, { publicId: resource.publicId, resourceType: resource.resourceType, secureUrl: resource.secureUrl }]
+            );
           }}
         />
       )}

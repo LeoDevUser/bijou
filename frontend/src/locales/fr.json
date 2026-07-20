@@ -301,7 +301,7 @@
       "media": "Médias",
       "addMedia": "Télécharger",
       "noAssets": "Aucun média.",
-      "filesSelected": "fichier(s) sélectionné(s) — seront téléchargés lors de l'enregistrement",
+      "pendingBadge": "nouveau",
       "save": "Enregistrer",
       "cancel": "Annuler",
       "dynamicPricing": "Prix dynamique",

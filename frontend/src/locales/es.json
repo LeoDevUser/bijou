@@ -301,7 +301,7 @@
       "media": "Multimedia",
       "addMedia": "Subir",
       "noAssets": "Sin archivos multimedia.",
-      "filesSelected": "archivo(s) seleccionado(s) — se subirán al guardar",
+      "pendingBadge": "nuevo",
       "save": "Guardar",
       "cancel": "Cancelar",
       "dynamicPricing": "Precio dinámico",

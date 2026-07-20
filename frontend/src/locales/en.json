@@ -301,7 +301,7 @@
       "media": "Media",
       "addMedia": "Upload",
       "noAssets": "No media yet.",
-      "filesSelected": "file(s) selected — will upload on save",
+      "pendingBadge": "new",
       "save": "Save",
       "cancel": "Cancel",
       "dynamicPricing": "Dynamic pricing",
