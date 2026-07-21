@@ -349,7 +349,7 @@ function AdminOrders() {
                     <p className="text-xs uppercase tracking-widest text-muted mb-2">{t('admin.detail.items')}</p>
                     <div className="space-y-2">
                       {o.items.map((item, i) => {
-                        const name = pickLocale(item.nameEn, item.nameFr, item.nameEs, i18n.language) ?? item.nameEn ?? `#${item.itemId}`;
+                        const name = pickLocale(item.nameEn, item.nameFr, item.nameEs, i18n.language) || `#${item.itemId}`;
                         return (
                           <div key={i} className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-2 min-w-0">
@@ -1490,7 +1490,7 @@ function AdminProducts() {
       ) : (
         <div className="space-y-2">
           {sorted.map(item => {
-            const displayName = item.nameEn || item.nameFr || item.nameEs || `#${item.id}`;
+            const displayName = pickLocale(item.nameEn, item.nameFr, item.nameEs, i18n.language) || `#${item.id}`;
             const incomplete = isItemIncomplete(item);
             return (
             <div key={item.id} className={`border px-5 py-4 ${
@@ -2045,7 +2045,7 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, onUpdate }: {
   labels: LabelView[];
   onUpdate: (updated: CollectionSiteAssetView) => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [editing, setEditing] = useState<string | null>(null);
   const [uploading, setUploading] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -2251,7 +2251,7 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, onUpdate }: {
                     >
                       <option value="">{t('admin.site.noneOption')}</option>
                       {labels.map(l => (
-                        <option key={l.id} value={l.id}>{l.nameEn || l.nameFr || l.nameEs}</option>
+                        <option key={l.id} value={l.id}>{pickLocale(l.nameEn, l.nameFr, l.nameEs, i18n.language)}</option>
                       ))}
                     </select>
                   </div>
@@ -3097,7 +3097,7 @@ function AdminSite() {
 // ── Sales Stats ───────────────────────────────────────────────────────────────
 
 function AdminStats() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [stats, setStats] = useState<SalesStats | null>(null);
   const [items, setItems] = useState<ItemViewVerbose[]>([]);
   const [loading, setLoading] = useState(true);
@@ -3189,7 +3189,7 @@ function AdminStats() {
           {sorted.length === 0 ? (
             <p className="text-center text-sm text-muted py-8">{t('admin.stats.noData')}</p>
           ) : sorted.map(item => {
-            const name = item.nameEn || item.nameFr || item.nameEs || `#${item.id}`;
+            const name = pickLocale(item.nameEn, item.nameFr, item.nameEs, i18n.language) || `#${item.id}`;
             return (
               <div key={item.id} className="grid grid-cols-6 px-4 py-3 text-sm items-center">
                 <div className="col-span-2 flex items-center gap-3 min-w-0">

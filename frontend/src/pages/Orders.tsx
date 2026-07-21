@@ -108,7 +108,7 @@ export default function Orders() {
 
               <div className="flex flex-wrap gap-3 mt-4">
                 {order.items.map(item => {
-                  const name = pickLocale(item.nameEn, item.nameFr, item.nameEs, i18n.language) ?? item.nameEn ?? '';
+                  const name = pickLocale(item.nameEn, item.nameFr, item.nameEs, i18n.language);
                   const content = (
                     <div className="flex items-center gap-2">
                       {item.imageUrl
