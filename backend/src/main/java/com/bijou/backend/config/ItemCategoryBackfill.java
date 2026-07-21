@@ -20,8 +20,9 @@ import lombok.extern.slf4j.Slf4j;
  * to hold their category in an {@code items.category_id} column; they now hold it
  * in the {@code item_categories} join table. Under {@code ddl-auto=update} Hibernate
  * creates the join table but leaves the old column (with its data) in place, so we
- * backfill the join table from it. Idempotent and a no-op on fresh databases where
- * the legacy column was never created.
+ * backfill the join table from it and then drop the column — its NOT NULL constraint
+ * would otherwise reject every new item insert. Idempotent and a no-op on fresh
+ * databases where the legacy column was never created.
  */
 @Component
 @Order(4)
@@ -35,6 +36,10 @@ public class ItemCategoryBackfill implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         try (Connection conn = dataSource.getConnection()) {
             if (!legacyColumnExists(conn)) return;
+            // Backfill and drop in one transaction: Postgres DDL is transactional, so we
+            // never end up having dropped the column without the data safely moved over.
+            boolean autoCommit = conn.getAutoCommit();
+            conn.setAutoCommit(false);
             try (Statement st = conn.createStatement()) {
                 int moved = st.executeUpdate(
                     "INSERT INTO item_categories (item_id, category_id) " +
@@ -42,9 +47,14 @@ public class ItemCategoryBackfill implements ApplicationRunner {
                     "WHERE i.category_id IS NOT NULL " +
                     "AND NOT EXISTS (SELECT 1 FROM item_categories ic " +
                     "                WHERE ic.item_id = i.id AND ic.category_id = i.category_id)");
-                if (moved > 0) {
-                    log.info("backfilled {} item→category link(s) into item_categories", moved);
-                }
+                st.executeUpdate("ALTER TABLE items DROP COLUMN category_id");
+                conn.commit();
+                log.info("migrated {} item→category link(s) and dropped legacy items.category_id", moved);
+            } catch (Exception e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(autoCommit);
             }
         } catch (Exception e) {
             // A backfill failure must never block startup — log and move on.

@@ -56,6 +56,9 @@ public class SecurityConfig {
         return http
             .authorizeHttpRequests(auth -> {
                 auth.requestMatchers("/", "/public/**").permitAll();
+                // The ERROR dispatch re-enters this chain without the JWT filter having
+                // run, so a locked-down /error turns every server-side 500 into a 403.
+                auth.requestMatchers("/error").permitAll();
                 auth.requestMatchers("/auth/**").permitAll();
                 auth.requestMatchers("/" + ADMIN_PAGE + "/**").hasRole("ADMIN");
                 auth.anyRequest().authenticated();
