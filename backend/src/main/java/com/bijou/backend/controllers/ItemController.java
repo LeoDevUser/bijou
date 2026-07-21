@@ -25,6 +25,8 @@ import com.bijou.backend.services.ItemService;
 import com.bijou.backend.services.ItemView;
 import com.bijou.backend.services.PickMediaRequest;
 import com.bijou.backend.services.ItemViewVerbose;
+import com.bijou.backend.services.StockAdjustRequest;
+import com.bijou.backend.services.StockSetRequest;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -142,6 +144,28 @@ public class ItemController {
     @DeleteMapping("/${ADMIN_PAGE}/items/{itemId}/sizes/{sizeId}")
     public ResponseEntity<ItemView> deleteSize(@PathVariable Long itemId, @PathVariable Long sizeId) {
         return ResponseEntity.ok(itemService.deleteSize(itemId, sizeId));
+    }
+
+    // ── Stock (managed separately from item/size edits) ──────────────────────
+
+    @PatchMapping("/${ADMIN_PAGE}/items/{id}/stock/adjust")
+    public ResponseEntity<ItemView> adjustStock(@PathVariable Long id, @RequestBody StockAdjustRequest req) {
+        return ResponseEntity.ok(itemService.adjustStock(id, req.delta()));
+    }
+
+    @PatchMapping("/${ADMIN_PAGE}/items/{id}/stock")
+    public ResponseEntity<ItemView> setStock(@PathVariable Long id, @RequestBody StockSetRequest req) {
+        return ResponseEntity.ok(itemService.setStock(id, req.stock(), req.expectedVersion()));
+    }
+
+    @PatchMapping("/${ADMIN_PAGE}/items/{itemId}/sizes/{sizeId}/stock/adjust")
+    public ResponseEntity<ItemView> adjustSizeStock(@PathVariable Long itemId, @PathVariable Long sizeId, @RequestBody StockAdjustRequest req) {
+        return ResponseEntity.ok(itemService.adjustSizeStock(itemId, sizeId, req.delta()));
+    }
+
+    @PatchMapping("/${ADMIN_PAGE}/items/{itemId}/sizes/{sizeId}/stock")
+    public ResponseEntity<ItemView> setSizeStock(@PathVariable Long itemId, @PathVariable Long sizeId, @RequestBody StockSetRequest req) {
+        return ResponseEntity.ok(itemService.setSizeStock(itemId, sizeId, req.stock(), req.expectedVersion()));
     }
 
     @DeleteMapping("/${ADMIN_PAGE}/items/{id}")

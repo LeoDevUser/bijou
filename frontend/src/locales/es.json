@@ -116,7 +116,14 @@
       "badge": "{{n}} meses sin intereses"
     },
     "shippingFee": "Envío",
-    "freeShipping": "Gratis"
+    "freeShipping": "Gratis",
+    "factura": {
+      "request": "Solicitar factura (CFDI)",
+      "notice": "Tu RFC y régimen fiscal se guardarán para futuros pedidos. La factura se enviará a tu correo una vez confirmado tu pedido.",
+      "rfc": "RFC",
+      "regimen": "Régimen fiscal",
+      "uso": "Uso de CFDI"
+    }
   },
   "payment": {
     "title": "Pago",
@@ -226,7 +233,11 @@
       "uploadFactura": "Subir Factura",
       "replaceFactura": "Reemplazar Factura",
       "sendFactura": "Enviar al Cliente",
-      "facturaSent": "¡Enviado!"
+      "facturaSent": "¡Enviado!",
+      "facturaRequested": "Factura solicitada",
+      "rfc": "RFC",
+      "regimen": "Régimen",
+      "uso": "Uso de CFDI"
     },
     "detail": {
       "address": "Dirección",
@@ -491,6 +502,14 @@
       "shippingThreshold": "Gratis a partir de",
       "shippingSave": "Guardar",
       "shippingSaved": "Guardado"
+    },
+    "stock": {
+      "current": "Existencias actuales",
+      "adjust": "Ajustar",
+      "set": "Fijar",
+      "conflict": "Las existencias cambiaron desde que abriste esto (entró una venta). Usa Ajustar o vuelve a abrir para fijar un valor exacto.",
+      "negative": "Las existencias no pueden ser negativas.",
+      "managedPerSize": "Las existencias se gestionan por talla en la sección de Tallas más abajo."
     }
   },
   "account": {
@@ -550,7 +569,7 @@
     },
     "q5": {
       "q": "¿Qué métodos de pago aceptan?",
-      "a": "Para tu seguridad, aceptamos pagos globales a través de Stripe (tarjetas de crédito/débito internacionales). Esta plataforma ofrece protección al comprador y cifrado de datos de nivel bancario."
+      "a": "Aceptamos diversos métodos de pago seguros, todos procesados a través de Stripe con protección al comprador y cifrado de datos de nivel bancario:\n• Tarjetas de crédito y débito (Visa, Mastercard y otras tarjetas principales)\n• Carteras digitales (Apple Pay y Google Pay)\n• Transferencia bancaria (SPEI)\n• Efectivo en cualquier tienda OXXO (para pedidos menores a $10,000 MXN)"
     },
     "q7": {
       "q": "¿Cómo cuido mis joyas?",
@@ -693,10 +712,12 @@
     },
     "s6": {
       "title": "Formas de Pago",
-      "intro": "Se aceptan las siguientes formas de pago:",
-      "i1": "Efectivo (únicamente en persona en nuestra tienda física)",
-      "i2": "Tarjetas de crédito y débito (Visa, Mastercard y otras aceptadas internacionalmente)",
-      "note": "Los pagos internacionales pueden estar sujetos a comisiones bancarias o cargos por tipo de cambio, los cuales serán responsabilidad del cliente."
+      "intro": "Se aceptan las siguientes formas de pago, todas procesadas de forma segura a través de nuestro proveedor de pagos (Stripe) con cifrado de datos de nivel bancario:",
+      "i1": "Tarjetas de crédito y débito (Visa, Mastercard y otras tarjetas principales)",
+      "i2": "Carteras digitales (Apple Pay y Google Pay)",
+      "i3": "Transferencia bancaria mediante SPEI",
+      "i4": "Efectivo en cualquier tienda OXXO (para pedidos menores a $10,000 MXN)",
+      "note": "Todas las transacciones se cobran en pesos mexicanos (MXN). Las tarjetas internacionales pueden estar sujetas a comisiones bancarias o cargos por tipo de cambio, los cuales serán responsabilidad del cliente."
     },
     "s7": {
       "title": "Facturación",

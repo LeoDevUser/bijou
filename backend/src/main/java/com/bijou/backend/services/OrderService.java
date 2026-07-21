@@ -13,15 +13,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.bijou.backend.entities.CfdiUso;
 import com.bijou.backend.entities.Client;
 import com.bijou.backend.exception.AppException;
 import com.bijou.backend.entities.Country;
+import com.bijou.backend.entities.RegimenFiscal;
 import com.bijou.backend.entities.Item;
 import com.bijou.backend.entities.ItemSize;
 import com.bijou.backend.entities.Order;
 import com.bijou.backend.entities.OrderItem;
 import com.bijou.backend.entities.Role;
 import com.bijou.backend.entities.Status;
+import com.bijou.backend.repositories.ClientRepository;
 import com.bijou.backend.repositories.ItemRepository;
 import com.bijou.backend.repositories.OrderRepository;
 
@@ -33,6 +36,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class OrderService {
+    // Mexican RFC: 12 chars (persona moral) or 13 (persona física), homoclave included.
+    private static final java.util.regex.Pattern RFC_PATTERN =
+        java.util.regex.Pattern.compile("^[A-ZÑ&]{3,4}[0-9]{6}[A-Z0-9]{3}$");
+
     private static final Map<Status, Set<Status>> VALID_TRANSITIONS = Map.of(
         Status.AWAITING_PAYMENT, Set.of(Status.PROCESSING),
         Status.PROCESSING,       Set.of(Status.SHIPPED, Status.CANCELLED),
@@ -43,6 +50,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final ItemRepository itemRepository;
+    private final ClientRepository clientRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final TaxService taxService;
     private final ShippingService shippingService;
@@ -145,6 +153,35 @@ public class OrderService {
             throw new AppException(HttpStatus.BAD_REQUEST, "COLONIAL_REQUIRED");
         }
 
+        // Factura (CFDI) request — validate fiscal data and persist it onto the client
+        // so it is reused on future orders. The uso must be valid for the régimen (SAT matrix).
+        // rfc / regimen are also snapshotted onto the order below.
+        CfdiUso cfdiUso = null;
+        String rfc = null;
+        RegimenFiscal regimen = null;
+        if (req.facturaRequested()) {
+            regimen = req.regimenFiscal() != null ? req.regimenFiscal() : client.getRegimenFiscal();
+            rfc = req.rfc() != null && !req.rfc().isBlank()
+                ? req.rfc().trim().toUpperCase()
+                : client.getRfc();
+            cfdiUso = req.cfdiUso();
+            if (rfc == null || rfc.isBlank() || regimen == null || cfdiUso == null) {
+                throw new AppException(HttpStatus.BAD_REQUEST, "FACTURA_FISCAL_DATA_REQUIRED");
+            }
+            if (!RFC_PATTERN.matcher(rfc).matches()) {
+                throw new AppException(HttpStatus.BAD_REQUEST, "RFC_INVALID");
+            }
+            if (!regimen.allows(cfdiUso)) {
+                throw new AppException(HttpStatus.BAD_REQUEST, "CFDI_USO_INVALID_FOR_REGIMEN");
+            }
+            // Persist / update the client's fiscal identity. The client comes from the
+            // security principal (loaded in JwtAuthFilter, outside this transaction), so it
+            // is detached — the mutations below won't flush unless we explicitly save it.
+            client.setRfc(rfc);
+            client.setRegimenFiscal(regimen);
+            clientRepository.save(client);
+        }
+
         //update order and link OrderItems
         Order order = Order.builder()
             .addressLine1(req.addressLine1())
@@ -161,6 +198,10 @@ public class OrderService {
             .taxAmount(taxAmount)
             .handlingFee(handlingFee)
             .shippingFee(shippingFee)
+            .facturaRequested(req.facturaRequested())
+            .cfdiUso(cfdiUso)
+            .rfc(rfc)
+            .regimenFiscal(regimen)
             .client(client)
             .build();
         order.getOrderItems().forEach(oi -> oi.setOrder(order));
@@ -327,7 +368,11 @@ public class OrderService {
                 order.getTaxAmount(),
                 order.getHandlingFee(),
                 order.getShippingFee(),
-                order.getFacturaUrl());
+                order.getFacturaUrl(),
+                order.isFacturaRequested(),
+                order.getCfdiUso(),
+                order.getRfc(),
+                order.getRegimenFiscal());
     }
 
     @Transactional

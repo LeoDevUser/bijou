@@ -4,7 +4,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.bijou.backend.entities.CfdiUso;
 import com.bijou.backend.entities.Country;
+import com.bijou.backend.entities.RegimenFiscal;
 import com.bijou.backend.entities.Status;
 
 public record OrderView(
@@ -31,5 +33,9 @@ public record OrderView(
     BigDecimal taxAmount,
     BigDecimal handlingFee,
     BigDecimal shippingFee,
-    String facturaUrl
+    String facturaUrl,
+    boolean facturaRequested,
+    CfdiUso cfdiUso,
+    String rfc,
+    RegimenFiscal regimenFiscal
 ){}

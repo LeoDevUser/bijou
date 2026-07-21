@@ -80,6 +80,22 @@ public class Order {
     private String facturaUrl;
     @Column
     private String facturaId;
+    // Whether the client requested a factura (CFDI) for this order at checkout.
+    @Column(nullable = false)
+    private boolean facturaRequested;
+    // Uso de CFDI chosen for this order — only set when facturaRequested is true.
+    @Column
+    @Enumerated(EnumType.STRING)
+    private CfdiUso cfdiUso;
+    // Fiscal identity snapshotted onto the order at checkout, so the factura reflects
+    // the RFC / régimen as they were when the order was placed even if the client later
+    // changes them. Only set when facturaRequested is true. The live values also live on
+    // the Client (reused to prefill future orders).
+    @Column
+    private String rfc;
+    @Column
+    @Enumerated(EnumType.STRING)
+    private RegimenFiscal regimenFiscal;
 
     @PrePersist
     protected void onCreate(){

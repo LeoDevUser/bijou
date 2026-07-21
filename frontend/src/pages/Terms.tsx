@@ -51,6 +51,8 @@ export default function Terms() {
           <ul className="list-disc list-inside space-y-1 mb-3">
             <li>{p('s6.i1')}</li>
             <li>{p('s6.i2')}</li>
+            <li>{p('s6.i3')}</li>
+            <li>{p('s6.i4')}</li>
           </ul>
           <p>{p('s6.note')}</p>
         </section>

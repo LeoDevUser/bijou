@@ -54,7 +54,7 @@ export default function Shop() {
   const items = useMemo(() => {
     let result = allItems;
     if (activeCategory) {
-      result = result.filter(item => String(item.category.id) === activeCategory);
+      result = result.filter(item => item.categories.some(c => String(c.id) === activeCategory));
     }
     if (resolvedLabelId !== null) {
       result = result.filter(item => item.labels.some(l => l.id === resolvedLabelId));

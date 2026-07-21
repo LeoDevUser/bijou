@@ -116,7 +116,14 @@
       "badge": "{{n}}-month installments"
     },
     "shippingFee": "Shipping",
-    "freeShipping": "Free"
+    "freeShipping": "Free",
+    "factura": {
+      "request": "Request a factura (CFDI)",
+      "notice": "Your RFC and tax regime will be saved for future orders. The factura will be emailed to you once your order is confirmed.",
+      "rfc": "RFC",
+      "regimen": "Tax Regime",
+      "uso": "CFDI Use"
+    }
   },
   "payment": {
     "title": "Payment",
@@ -226,7 +233,11 @@
       "uploadFactura": "Upload Factura",
       "replaceFactura": "Replace Factura",
       "sendFactura": "Send to Client",
-      "facturaSent": "Sent!"
+      "facturaSent": "Sent!",
+      "facturaRequested": "Factura Requested",
+      "rfc": "RFC",
+      "regimen": "Regime",
+      "uso": "CFDI Use"
     },
     "detail": {
       "address": "Address",
@@ -491,6 +502,14 @@
       "shippingThreshold": "Free over",
       "shippingSave": "Save",
       "shippingSaved": "Saved"
+    },
+    "stock": {
+      "current": "Current stock",
+      "adjust": "Adjust",
+      "set": "Set",
+      "conflict": "Stock changed since you opened this (a sale came in). Use Adjust, or reopen to set an exact value.",
+      "negative": "Stock can't go below zero.",
+      "managedPerSize": "Stock is managed per size in the Sizes section below."
     }
   },
   "account": {
@@ -550,7 +569,7 @@
     },
     "q5": {
       "q": "What payment methods do you accept?",
-      "a": "For your security, we accept global payments through Stripe (international credit/debit cards). This platform offers buyer protection and bank-level data encryption."
+      "a": "We accept a range of secure payment methods, all processed through Stripe with buyer protection and bank-level data encryption:\n• Credit and debit cards (Visa, Mastercard, and other major cards)\n• Digital wallets (Apple Pay and Google Pay)\n• Bank transfer (SPEI)\n• Cash at any OXXO store (for orders under $10,000 MXN)"
     },
     "q7": {
       "q": "How do I care for my jewelry?",
@@ -693,10 +712,12 @@
     },
     "s6": {
       "title": "Payment Methods",
-      "intro": "The following payment methods are accepted:",
-      "i1": "Cash (in person at our physical location only)",
-      "i2": "Credit and debit cards (Visa, Mastercard, and other internationally accepted cards)",
-      "note": "International payments may be subject to bank fees or foreign exchange charges, which are the customer's responsibility."
+      "intro": "The following payment methods are accepted, all processed securely through our payment provider (Stripe) with bank-level data encryption:",
+      "i1": "Credit and debit cards (Visa, Mastercard, and other major cards)",
+      "i2": "Digital wallets (Apple Pay and Google Pay)",
+      "i3": "Bank transfer via SPEI",
+      "i4": "Cash at any OXXO store (for orders under $10,000 MXN)",
+      "note": "All transactions are charged in Mexican Pesos (MXN). International cards may be subject to bank fees or foreign exchange charges, which are the customer's responsibility."
     },
     "s7": {
       "title": "Billing",

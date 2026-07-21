@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import type { ItemView, ItemViewVerbose, ItemRequest, ItemSizeView, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ThemeConfig, AppSettings, BrevoQuota, CloudinaryResource, CloudinaryResourcesPage, JewelryMaterial, PricingFormula } from '../types';
-import { pickLocale, isItemIncomplete, isLabelIncomplete } from '../types';
+import { pickLocale, isItemIncomplete, isLabelIncomplete, formatMoney } from '../types';
 import { useTheme, THEME_DEFAULTS, mergeCollectionTheme } from '../context/ThemeContext';
 
 // ── Media naming ──────────────────────────────────────────────────────────────
@@ -305,7 +305,7 @@ function AdminOrders() {
                 <span className={`text-xs uppercase tracking-wider flex-shrink-0 ${STATUS_COLOR[o.status]}`}>
                   {o.status.replace('_', ' ')}
                 </span>
-                <span className="text-sm flex-shrink-0">${o.total.toFixed(2)}</span>
+                <span className="text-sm flex-shrink-0">${formatMoney(o.total)}</span>
                 <span className="text-xs text-muted hidden sm:block flex-shrink-0">{new Date(o.createdAt).toLocaleDateString()}</span>
               </button>
 
@@ -364,7 +364,7 @@ function AdminOrders() {
                                 <p className="text-xs text-muted">×{item.quantity}</p>
                               </div>
                             </div>
-                            <span className="text-sm flex-shrink-0">${(item.unitPrice * item.quantity).toFixed(2)}</span>
+                            <span className="text-sm flex-shrink-0">${formatMoney(item.unitPrice * item.quantity)}</span>
                           </div>
                         );
                       })}
@@ -427,6 +427,14 @@ function AdminOrders() {
                         ))}
                       </select>
                       {changingStatus === o.id && <span className="text-xs text-muted">...</span>}
+                    </div>
+                  )}
+                  {o.country === 'MEXICO' && o.facturaRequested && (
+                    <div className="mt-4 border border-border bg-[#F7F5F0] px-3 py-2 text-xs space-y-0.5">
+                      <p className="uppercase tracking-widest text-muted">{t('admin.orders.facturaRequested')}</p>
+                      <p><span className="text-muted">{t('admin.orders.rfc')}:</span> {o.rfc ?? '—'}</p>
+                      <p><span className="text-muted">{t('admin.orders.regimen')}:</span> {o.regimenFiscal?.replace(/^R/, '') ?? '—'}</p>
+                      <p><span className="text-muted">{t('admin.orders.uso')}:</span> {o.cfdiUso ?? '—'}</p>
                     </div>
                   )}
                   {o.country === 'MEXICO' && (
@@ -501,7 +509,7 @@ interface ItemFormData {
   price: string;
   stock: string;
   discountPercent: string;
-  categoryId: number;
+  categoryIds: number[];
   labelIds: number[];
   material: string;
   usmcaQualified: boolean;
@@ -514,13 +522,13 @@ interface ItemFormData {
 const emptyForm: ItemFormData = {
   nameEn: '', nameFr: '', nameEs: '',
   descriptionEn: '', descriptionFr: '', descriptionEs: '',
-  price: '', stock: '', discountPercent: '', categoryId: 0, labelIds: [],
+  price: '', stock: '', discountPercent: '', categoryIds: [], labelIds: [],
   material: 'SILVER', usmcaQualified: false, weightGrams: '',
   pricingFormula: 'NONE', pricingWork: '', pricingMargin: '',
 };
 
 /** Default markup applied over wholesale cost when dynamic pricing is first enabled. */
-const DEFAULT_MARGIN_PERCENT = 47;
+const DEFAULT_MARGIN_PERCENT = 83;
 
 /**
  * Mirror of the backend formula:
@@ -541,8 +549,8 @@ const emptySizeForm: SizeForm = { size: '', stock: '', weightGrams: '', price: '
 
 // Module-scope so it isn't recreated each render (which would remount the inputs
 // and drop focus on every keystroke).
-function SizeFields({ value, onChange, isStatic, heading }: {
-  value: SizeForm; onChange: (f: SizeForm) => void; isStatic: boolean; heading?: string;
+function SizeFields({ value, onChange, isStatic, heading, hideStock }: {
+  value: SizeForm; onChange: (f: SizeForm) => void; isStatic: boolean; heading?: string; hideStock?: boolean;
 }) {
   const { t } = useTranslation();
   const inputClass = 'w-full border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors';
@@ -554,10 +562,12 @@ function SizeFields({ value, onChange, isStatic, heading }: {
           <label className="text-[11px] uppercase tracking-widest text-muted">{t('admin.sizes.name')}</label>
           <input value={value.size} onChange={e => onChange({ ...value, size: e.target.value })} placeholder={t('admin.sizes.namePlaceholder')} className={inputClass} />
         </div>
-        <div>
-          <label className="text-[11px] uppercase tracking-widest text-muted">{t('admin.modal.stock')}</label>
-          <input type="number" min="0" value={value.stock} onChange={e => onChange({ ...value, stock: e.target.value })} className={inputClass} />
-        </div>
+        {!hideStock && (
+          <div>
+            <label className="text-[11px] uppercase tracking-widest text-muted">{t('admin.modal.stock')}</label>
+            <input type="number" min="0" value={value.stock} onChange={e => onChange({ ...value, stock: e.target.value })} className={inputClass} />
+          </div>
+        )}
         <div>
           <label className="text-[11px] uppercase tracking-widest text-muted">{t('admin.modal.weight')} (g)</label>
           <input type="number" min="0" step="0.001" value={value.weightGrams} onChange={e => onChange({ ...value, weightGrams: e.target.value })} className={inputClass} />
@@ -579,6 +589,56 @@ function SizeFields({ value, onChange, isStatic, heading }: {
           <textarea placeholder="ES" rows={2} value={value.descriptionEs} onChange={e => onChange({ ...value, descriptionEs: e.target.value })} className={inputClass} />
         </div>
       </details>
+    </div>
+  );
+}
+
+/**
+ * Stock editor, separate from the item/size edit form so an unrelated edit can
+ * never clobber stock. "Adjust" applies a relative change atomically (always
+ * safe under concurrent sales); "Set" writes an absolute value guarded by the
+ * entity version, so it's rejected if a sale changed stock since load.
+ */
+function StockControls({ stock, version, onAdjust, onSet }: {
+  stock: number;
+  version: number;
+  onAdjust: (delta: number) => Promise<void>;
+  onSet: (value: number, version: number) => Promise<void>;
+}) {
+  const { t } = useTranslation();
+  const [delta, setDelta] = useState('');
+  const [setVal, setSetVal] = useState(String(stock));
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  // Keep the "set to" box in sync when stock changes underneath us (e.g. after an adjust).
+  useEffect(() => { setSetVal(String(stock)); }, [stock]);
+
+  const inp = 'w-24 border border-border bg-cream px-2 py-1.5 text-sm outline-none focus:border-dark';
+  const btn = 'text-xs uppercase tracking-widest px-3 py-1.5 border border-dark hover:bg-dark hover:text-white transition-colors disabled:opacity-50 cursor-pointer';
+
+  async function run(fn: () => Promise<void>) {
+    setBusy(true); setMsg(null);
+    try { await fn(); setDelta(''); }
+    catch (e) {
+      const code = (e as { code?: string }).code;
+      setMsg(code === 'STOCK_VERSION_CONFLICT' ? t('admin.stock.conflict')
+           : code === 'STOCK_NEGATIVE' ? t('admin.stock.negative')
+           : t('admin.products.saveError'));
+    } finally { setBusy(false); }
+  }
+
+  return (
+    <div className="border border-border p-3 space-y-2">
+      <p className="text-xs uppercase tracking-widest">{t('admin.stock.current')}: <span className="font-medium">{stock}</span></p>
+      <div className="flex items-center gap-2 flex-wrap">
+        <input type="number" value={delta} onChange={e => setDelta(e.target.value)} placeholder="±0" className={inp} />
+        <button type="button" disabled={busy || delta === '' || parseInt(delta) === 0} onClick={() => run(() => onAdjust(parseInt(delta)))} className={btn}>{t('admin.stock.adjust')}</button>
+        <span className="text-muted text-xs px-1">|</span>
+        <input type="number" min="0" value={setVal} onChange={e => setSetVal(e.target.value)} className={inp} />
+        <button type="button" disabled={busy || setVal === ''} onClick={() => run(() => onSet(parseInt(setVal), version))} className={btn}>{t('admin.stock.set')}</button>
+      </div>
+      {msg && <p className="text-xs text-red-500">{msg}</p>}
     </div>
   );
 }
@@ -683,6 +743,16 @@ function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
     }
   }
 
+  async function adjustSizeStock(sizeId: number, delta: number) {
+    const u = await api.admin.items.adjustSizeStock(item.id, sizeId, delta);
+    apply(u.sizes);
+  }
+
+  async function setSizeStock(sizeId: number, value: number, version: number) {
+    const u = await api.admin.items.setSizeStock(item.id, sizeId, value, version);
+    apply(u.sizes);
+  }
+
   async function remove(sizeId: number) {
     if (!window.confirm(t('admin.sizes.confirmDelete'))) return;
     setBusy(true);
@@ -718,7 +788,7 @@ function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
             <div key={s.id}>
               <div className="flex items-center gap-2 text-sm border border-border px-3 py-2">
                 <span className="font-medium">{s.size}</span>
-                <span className="text-muted text-xs">· {s.stock} {t('admin.modal.stock').toLowerCase()} · {s.weightGrams} g · ${s.price.toLocaleString()}</span>
+                <span className="text-muted text-xs">· {s.stock} {t('admin.modal.stock').toLowerCase()} · {s.weightGrams} g · ${formatMoney(s.price)}</span>
                 <div className="ml-auto flex gap-2">
                   <button type="button" onClick={() => startEdit(s)} className="text-xs uppercase tracking-widest text-muted hover:text-dark">{t('admin.products.edit')}</button>
                   <button type="button" onClick={() => remove(s.id)} disabled={busy} className="text-xs uppercase tracking-widest text-red-500 hover:text-red-600 disabled:opacity-50">{t('admin.products.delete')}</button>
@@ -726,7 +796,13 @@ function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
               </div>
               {mode === s.id && (
                 <div className="mt-1 space-y-2">
-                  <SizeFields value={form} onChange={setForm} isStatic={isStatic} />
+                  <SizeFields value={form} onChange={setForm} isStatic={isStatic} hideStock />
+                  <StockControls
+                    stock={s.stock}
+                    version={s.version}
+                    onAdjust={(d) => adjustSizeStock(s.id, d)}
+                    onSet={(v, ver) => setSizeStock(s.id, v, ver)}
+                  />
                   <div className="flex gap-2">
                     <button type="button" disabled={busy || !fieldsValid(form)} onClick={() => submitEdit(s.id)} className={`${btn} border-dark bg-dark text-white hover:bg-gold`}>{t('admin.modal.save')}</button>
                     <button type="button" onClick={() => setMode('list')} className={`${btn} border-border hover:border-dark`}>{t('admin.modal.cancel')}</button>
@@ -791,17 +867,20 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
           descriptionEn: item.descriptionEn ?? '', descriptionFr: item.descriptionFr ?? '', descriptionEs: item.descriptionEs ?? '',
           price: String(item.price), stock: String(item.stock),
           discountPercent: item.discountPercent != null ? String(item.discountPercent) : '',
-          categoryId: item.category.id, labelIds: item.labels.map(l => l.id),
+          categoryIds: item.categories.map(c => c.id), labelIds: item.labels.map(l => l.id),
           material: item.material ?? '', usmcaQualified: item.usmcaQualified ?? false,
           weightGrams: item.weightGrams ? String(item.weightGrams) : '',
           pricingFormula: item.pricingFormula ?? 'NONE',
           pricingWork: item.pricingWork != null ? String(item.pricingWork) : '',
           pricingMargin: item.pricingMargin != null ? String(item.pricingMargin) : '',
         }
-      : { ...emptyForm, categoryId: allCategories[0]?.id ?? 0 }
+      : { ...emptyForm }
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Item-level stock is managed through its own endpoints (not the general save),
+  // so it can't be clobbered by an unrelated edit. Tracked here for live display.
+  const [stockView, setStockView] = useState({ stock: item?.stock ?? 0, version: item?.version ?? 0 });
   const [pendingFiles, setPendingFiles] = useState<{ file: File; name: string; url: string }[]>([]);
   const [pendingPicks, setPendingPicks] = useState<{ publicId: string; resourceType: string; secureUrl: string }[]>([]);
   const [currentAssets, setCurrentAssets] = useState(item?.assets ?? []);
@@ -872,7 +951,7 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
         price: form.price ? parseFloat(form.price) : 0,
         stock: parseInt(form.stock),
         discountPercent: form.discountPercent ? parseInt(form.discountPercent) : null,
-        categoryId: form.categoryId,
+        categoryIds: form.categoryIds,
         labelIds: form.labelIds,
         material: form.material as JewelryMaterial,
         usmcaQualified: form.usmcaQualified,
@@ -936,10 +1015,13 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
                 className={`${inputClass} ${form.pricingFormula !== 'NONE' ? 'opacity-50' : ''}`}
               />
             </div>
-            <div>
-              <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.stock')}</label>
-              <input type="number" min="0" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} required className={inputClass} />
-            </div>
+            {/* Initial stock only when creating; existing items manage stock via the control below. */}
+            {!item && (
+              <div>
+                <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.stock')}</label>
+                <input type="number" min="0" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} required className={inputClass} />
+              </div>
+            )}
             <div>
               <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.discount')}</label>
               <input type="number" min="0" max="100" placeholder="0" value={form.discountPercent} onChange={e => setForm(f => ({ ...f, discountPercent: e.target.value }))} className={inputClass} />
@@ -954,6 +1036,22 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
               </select>
             </div>
           </div>
+          {/* Existing item: dedicated stock management (single-option items only;
+              sized items manage stock per size in the Sizes panel below). */}
+          {item && (item.sizes?.length ?? 0) === 0 && (
+            <div>
+              <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.stock')}</label>
+              <StockControls
+                stock={stockView.stock}
+                version={stockView.version}
+                onAdjust={async (d) => { const u = await api.admin.items.adjustStock(item.id, d); setStockView({ stock: u.stock, version: u.version }); }}
+                onSet={async (v, ver) => { const u = await api.admin.items.setStock(item.id, v, ver); setStockView({ stock: u.stock, version: u.version }); }}
+              />
+            </div>
+          )}
+          {item && (item.sizes?.length ?? 0) > 0 && (
+            <p className="text-xs text-muted">{t('admin.stock.managedPerSize')}</p>
+          )}
           <div>
             <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.weight')}</label>
             <div className="flex gap-2">
@@ -1046,11 +1144,11 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
               return (
                 <div className="text-xs text-muted mt-1 space-y-0.5">
                   <p>
-                    {t('admin.modal.dynamicWholesalePreview')}: <span className="font-medium text-dark">${wholesale.toLocaleString(undefined, { maximumFractionDigits: 2 })} MXN</span>
+                    {t('admin.modal.dynamicWholesalePreview')}: <span className="font-medium text-dark">${formatMoney(wholesale)} MXN</span>
                     {' '}({perGram.toFixed(2)} MXN/g × {cfg.factor} + {w}) × {grams} g
                   </p>
                   <p>
-                    {t('admin.modal.dynamicPricePreview')}: <span className="font-medium text-dark">${computed.toLocaleString()} MXN</span>
+                    {t('admin.modal.dynamicPricePreview')}: <span className="font-medium text-dark">${formatMoney(computed)} MXN</span>
                     {' '}(+{m}%)
                   </p>
                 </div>
@@ -1067,14 +1165,28 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
             <span className="text-xs uppercase tracking-widest">{t('admin.modal.usmcaQualified')}</span>
           </label>
           <div>
-            <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.category')}</label>
-            <select value={form.categoryId} onChange={e => setForm(f => ({ ...f, categoryId: Number(e.target.value) }))} className={inputClass}>
-              {allCategories.map(c => (
-                <option key={c.id} value={c.id}>
-                  {pickLocale(c.nameEn, c.nameFr, c.nameEs, i18n.language)}
-                </option>
-              ))}
-            </select>
+            <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.categories')}</label>
+            {allCategories.length === 0 ? (
+              <p className="text-xs text-muted">{t('admin.categories.empty')}</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {allCategories.map(c => (
+                  <label key={c.id} className="flex items-center gap-1.5 text-sm cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={form.categoryIds.includes(c.id)}
+                      onChange={e => setForm(f => ({
+                        ...f,
+                        categoryIds: e.target.checked
+                          ? [...f.categoryIds, c.id]
+                          : f.categoryIds.filter(id => id !== c.id),
+                      }))}
+                    />
+                    {pickLocale(c.nameEn, c.nameFr, c.nameEs, i18n.language)}
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.labels')}</label>
@@ -1381,9 +1493,9 @@ function AdminProducts() {
                     {item.material && <span className="text-[10px] uppercase tracking-widest border border-border text-muted px-1.5 py-0.5">{item.material}</span>}
                     {item.usmcaQualified && <span className="text-[10px] uppercase tracking-widest border border-green-600 text-green-700 px-1.5 py-0.5">USMCA</span>}
                   </div>
-                  <p className="text-xs text-muted">{pickLocale(item.category.nameEn, item.category.nameFr, item.category.nameEs, i18n.language)} · {item.discountPercent ? `$${(Number(item.price) * (1 - item.discountPercent / 100)).toFixed(2)} ` : ''}<span className={item.discountPercent ? 'line-through' : ''}>${Number(item.price).toFixed(2)}</span> · {item.stock} {t('admin.products.inStock')}</p>
+                  <p className="text-xs text-muted">{item.categories.map(c => pickLocale(c.nameEn, c.nameFr, c.nameEs, i18n.language)).join(', ')} · {item.discountPercent ? `$${formatMoney(Number(item.price) * (1 - item.discountPercent / 100))} ` : ''}<span className={item.discountPercent ? 'line-through' : ''}>${formatMoney(item.price)}</span> · {item.stock} {t('admin.products.inStock')}</p>
                   <p className="text-xs text-muted">
-                    {item.nbSold} {t('admin.products.sold')} ({item.nbSoldMonth} {t('admin.products.thisMonth')}) · ${Number(item.totalSalesMonth).toFixed(2)} {t('admin.products.thisMonth')}
+                    {item.nbSold} {t('admin.products.sold')} ({item.nbSoldMonth} {t('admin.products.thisMonth')}) · ${formatMoney(item.totalSalesMonth)} {t('admin.products.thisMonth')}
                   </p>
                 </div>
               </div>
@@ -2499,7 +2611,7 @@ function VerboseRow({
           <span className="text-sm text-muted hidden md:block truncate max-w-[180px]" title={u.email}>{u.email}</span>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0 text-sm text-muted">
-          <span className="hidden sm:block">${Number(u.moneySpent).toFixed(2)}</span>
+          <span className="hidden sm:block">${formatMoney(u.moneySpent)}</span>
           <span>{u.nbSuccessfulOrders} {t('admin.users.ordersCount')}</span>
           <span className="text-xs">{expanded ? '▲' : '▼'}</span>
         </div>
@@ -2548,7 +2660,7 @@ function VerboseRow({
             </div>
             <div>
               <p className="text-xs uppercase tracking-widest text-muted mb-1">{t('admin.detail.moneySpent')}</p>
-              <p>${Number(u.moneySpent).toFixed(2)}</p>
+              <p>${formatMoney(u.moneySpent)}</p>
             </div>
             {u.stripeCustomerId && (
               <div>
@@ -3023,12 +3135,12 @@ function AdminStats() {
           {statCards.map(card => (
             <div key={card.label} className="border border-border px-5 py-4">
               <p className="text-xs uppercase tracking-widest text-muted mb-1">{card.label}</p>
-              <p className="font-serif text-2xl font-light">${Number(card.value).toFixed(2)}</p>
-              <p className="text-xs text-muted mt-1">{t('admin.stats.stripeFee', { amount: stripeFee(Number(card.value), card.orders).toFixed(2) })}</p>
+              <p className="font-serif text-2xl font-light">${formatMoney(card.value)}</p>
+              <p className="text-xs text-muted mt-1">{t('admin.stats.stripeFee', { amount: formatMoney(stripeFee(Number(card.value), card.orders)) })}</p>
               {Number(card.tax) > 0 && (
-                <p className="text-xs text-muted mt-0.5">{t('admin.stats.taxes', { amount: Number(card.tax).toFixed(2) })}</p>
+                <p className="text-xs text-muted mt-0.5">{t('admin.stats.taxes', { amount: formatMoney(card.tax) })}</p>
               )}
-              <p className="text-xs font-medium mt-0.5">{t('admin.stats.stripeNet', { amount: (Number(card.value) - stripeFee(Number(card.value), card.orders)).toFixed(2) })}</p>
+              <p className="text-xs font-medium mt-0.5">{t('admin.stats.stripeNet', { amount: formatMoney(Number(card.value) - stripeFee(Number(card.value), card.orders)) })}</p>
             </div>
           ))}
         </div>
@@ -3073,10 +3185,10 @@ function AdminStats() {
                     <p className="text-xs text-muted">{item.nbSoldMonth} {t('admin.stats.unitsSoldMonth')} · {item.nbSold} {t('admin.stats.unitsSoldTotal')}</p>
                   </div>
                 </div>
-                <span>${Number(item.totalSalesWeek).toFixed(2)}</span>
-                <span>${Number(item.totalSalesMonth).toFixed(2)}</span>
-                <span>${Number(item.totalSalesYear).toFixed(2)}</span>
-                <span>${Number(item.totalSales).toFixed(2)}</span>
+                <span>${formatMoney(item.totalSalesWeek)}</span>
+                <span>${formatMoney(item.totalSalesMonth)}</span>
+                <span>${formatMoney(item.totalSalesYear)}</span>
+                <span>${formatMoney(item.totalSales)}</span>
               </div>
             );
           })}

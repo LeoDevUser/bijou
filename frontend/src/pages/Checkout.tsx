@@ -5,7 +5,8 @@ import { api } from '../api/client';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
-import type { Country, TaxPreview } from '../types';
+import type { Country, TaxPreview, FiscalCatalog } from '../types';
+import { formatMoney } from '../types';
 import { getStateOptions, getPostalCodePattern, getPostalCodePlaceholder, getPhonePlaceholder } from '../data/addressOptions';
 
 // Mexico-only launch — re-add CANADA / UNITED_STATES here when cross-border
@@ -39,6 +40,13 @@ export default function Checkout() {
   const [msiEnabled, setMsiEnabled] = useState(false);
   const previewAbortRef = useRef<AbortController | null>(null);
 
+  // Factura (CFDI) request
+  const [wantsFactura, setWantsFactura] = useState(false);
+  const [fiscal, setFiscal] = useState<FiscalCatalog | null>(null);
+  const [rfc, setRfc] = useState('');
+  const [regimenFiscal, setRegimenFiscal] = useState('');
+  const [cfdiUso, setCfdiUso] = useState('');
+
   const MSI_PLANS = [
     { months: 3, rate: 0.02 },
     { months: 6, rate: 0.04 },
@@ -47,6 +55,12 @@ export default function Checkout() {
   ];
   const stateOptions = getStateOptions(form.country);
   const stateLabel = form.country === 'CANADA' ? 'Province' : 'State';
+
+  // Usos de CFDI valid for the selected régimen fiscal (SAT matrix)
+  const selectedRegimen = fiscal?.regimenes.find(r => r.name === regimenFiscal) ?? null;
+  const usoOptions = selectedRegimen
+    ? (fiscal?.usos ?? []).filter(u => selectedRegimen.usos.includes(u.code))
+    : [];
 
   // Tax-inclusive base total; falls back to cart total while preview loads
   const taxedTotal = taxPreview ? taxPreview.total : total;
@@ -62,6 +76,7 @@ export default function Checkout() {
 
   useEffect(() => {
     api.admin.settings.get().then(s => setMsiEnabled(s.msiEnabled)).catch(() => {});
+    api.fiscal.catalog().then(setFiscal).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -70,8 +85,18 @@ export default function Checkout() {
       .then(profile => {
         // Phone is optional at sign-up; require it here if the profile still lacks one
         setPhoneRequired(!profile.phoneNumber?.trim());
-        // Saved US/CA addresses predate the Mexico-only launch — can't ship there
-        if (profile.addressLine1 && profile.country === 'MEXICO') {
+        // Prefill fiscal identity if the client has requested a factura before
+        if (profile.rfc) setRfc(profile.rfc);
+        if (profile.regimenFiscal) setRegimenFiscal(profile.regimenFiscal);
+        // Only offer the saved address when the profile actually holds every
+        // field an order requires. Address/phone are optional at sign-up, so most
+        // first-time buyers have blanks here — showing "Use Saved Address" then
+        // would prefill an unusable partial address. Colonia is required for Mexico.
+        // Saved US/CA addresses predate the Mexico-only launch — can't ship there.
+        const hasCompleteAddress = profile.country === 'MEXICO'
+          && [profile.addressLine1, profile.colonial, profile.city, profile.state, profile.postalCode]
+            .every(v => v?.trim());
+        if (hasCompleteAddress) {
           const saved: AddrForm = {
             addressLine1: profile.addressLine1,
             addressLine2: profile.addressLine2 ?? '',
@@ -133,6 +158,10 @@ export default function Checkout() {
         country: form.country,
         currency,
         installments: installments ?? null,
+        facturaRequested: wantsFactura,
+        rfc: wantsFactura ? rfc.trim().toUpperCase() : null,
+        regimenFiscal: wantsFactura ? regimenFiscal : null,
+        cfdiUso: wantsFactura ? cfdiUso : null,
       });
       navigate('/payment', { state: { clientSecret, total: order.total, installments: installments ?? null } });
     } catch (err) {
@@ -305,6 +334,74 @@ export default function Checkout() {
             </p>
           )}
 
+          {/* Factura (CFDI) request — Mexico only */}
+          {form.country === 'MEXICO' && fiscal && (
+            <div className="border border-border p-5 space-y-4">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={wantsFactura}
+                  onChange={e => setWantsFactura(e.target.checked)}
+                  className="w-4 h-4 accent-dark cursor-pointer"
+                />
+                <span className="text-xs uppercase tracking-widest">{t('checkout.factura.request')}</span>
+              </label>
+
+              {wantsFactura && (
+                <div className="space-y-4 pt-1">
+                  <p className="text-xs text-muted leading-relaxed">{t('checkout.factura.notice')}</p>
+
+                  {/* RFC */}
+                  <div>
+                    <label className={labelClass}>{t('checkout.factura.rfc')}</label>
+                    <input
+                      type="text"
+                      value={rfc}
+                      onChange={e => setRfc(e.target.value.toUpperCase())}
+                      required={wantsFactura}
+                      maxLength={13}
+                      placeholder="XAXX010101000"
+                      className={`${inputClass} uppercase`}
+                    />
+                  </div>
+
+                  {/* Régimen Fiscal */}
+                  <div>
+                    <label className={labelClass}>{t('checkout.factura.regimen')}</label>
+                    <select
+                      value={regimenFiscal}
+                      onChange={e => { setRegimenFiscal(e.target.value); setCfdiUso(''); }}
+                      required={wantsFactura}
+                      className={`${inputClass} appearance-none cursor-pointer`}
+                    >
+                      <option value="" disabled>— {t('checkout.factura.regimen')} —</option>
+                      {fiscal.regimenes.map(r => (
+                        <option key={r.name} value={r.name}>{r.code} — {r.description}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Uso de CFDI — filtered by régimen */}
+                  <div>
+                    <label className={labelClass}>{t('checkout.factura.uso')}</label>
+                    <select
+                      value={cfdiUso}
+                      onChange={e => setCfdiUso(e.target.value)}
+                      required={wantsFactura}
+                      disabled={!selectedRegimen}
+                      className={`${inputClass} appearance-none cursor-pointer ${!selectedRegimen ? 'opacity-60 cursor-default' : ''}`}
+                    >
+                      <option value="" disabled>— {t('checkout.factura.uso')} —</option>
+                      {usoOptions.map(u => (
+                        <option key={u.code} value={u.code}>{u.code} — {u.description}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {showMsi && (
             <div className="border border-border p-5">
               <p className="text-xs uppercase tracking-widest mb-4">{t('checkout.msi.title')}</p>
@@ -322,16 +419,16 @@ export default function Checkout() {
                   <tbody className="divide-y divide-border">
                     <tr>
                       <td className="py-2 text-xs text-muted">{t('checkout.msi.totalRow')}</td>
-                      <td className="py-2">${taxedTotal.toFixed(2)}</td>
+                      <td className="py-2">${formatMoney(taxedTotal)}</td>
                       {MSI_PLANS.map(p => (
-                        <td key={p.months} className="py-2">${(taxedTotal * (1 + p.rate)).toFixed(2)}</td>
+                        <td key={p.months} className="py-2">${formatMoney(taxedTotal * (1 + p.rate))}</td>
                       ))}
                     </tr>
                     <tr>
                       <td className="py-2 text-xs text-muted">{t('checkout.msi.monthlyRow')}</td>
                       <td className="py-2 text-muted">—</td>
                       {MSI_PLANS.map(p => (
-                        <td key={p.months} className="py-2">${(taxedTotal * (1 + p.rate) / p.months).toFixed(2)}</td>
+                        <td key={p.months} className="py-2">${formatMoney(taxedTotal * (1 + p.rate) / p.months)}</td>
                       ))}
                     </tr>
                     <tr>
@@ -365,7 +462,7 @@ export default function Checkout() {
               </div>
               {installments && (
                 <p className="text-xs text-muted mt-3">
-                  {t('checkout.msi.summary', { total: (taxedTotal * (1 + (selectedPlan?.rate ?? 0))).toFixed(2), n: installments, monthly: (taxedTotal * (1 + (selectedPlan?.rate ?? 0)) / installments).toFixed(2) })}
+                  {t('checkout.msi.summary', { total: formatMoney(taxedTotal * (1 + (selectedPlan?.rate ?? 0))), n: installments, monthly: formatMoney(taxedTotal * (1 + (selectedPlan?.rate ?? 0)) / installments) })}
                 </p>
               )}
             </div>

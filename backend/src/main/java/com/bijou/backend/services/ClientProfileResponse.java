@@ -12,5 +12,7 @@ public record ClientProfileResponse(
     String postalCode,
     String country,
     String phoneNumber,
-    String language
+    String language,
+    String rfc,
+    String regimenFiscal
 ) {}

@@ -5,6 +5,7 @@ import { Elements, ExpressCheckoutElement, PaymentElement, useStripe, useElement
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { formatMoney } from '../types';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ?? '');
 
@@ -115,12 +116,12 @@ export default function Payment() {
       <h1 className="font-serif text-4xl font-light mb-2">{t('payment.title')}</h1>
       {state.total != null && (
         <p className="text-muted text-sm mb-2">
-          {t('payment.orderTotal')}: <span className="text-dark font-medium">${Number(state.total).toFixed(2)} MXN</span>
+          {t('payment.orderTotal')}: <span className="text-dark font-medium">${formatMoney(state.total)} MXN</span>
         </p>
       )}
       {state.installments && (
         <p className="text-muted text-sm mb-10">
-          {t('payment.msiPlan', { n: state.installments, monthly: (Number(state.total) / state.installments).toFixed(2) })}
+          {t('payment.msiPlan', { n: state.installments, monthly: formatMoney(Number(state.total) / state.installments) })}
         </p>
       )}
       {!state.installments && <div className="mb-10" />}

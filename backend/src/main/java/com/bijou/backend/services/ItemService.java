@@ -66,7 +66,7 @@ public class ItemService {
         if (sizes == null) return List.of();
         return sizes.stream()
             .map(s -> new ItemSizeView(
-                s.getId(), s.getSize(), s.getStock(), s.getWeightGrams(), s.getPrice(), s.getPricingWork(),
+                s.getId(), s.getSize(), s.getStock(), s.getVersion(), s.getWeightGrams(), s.getPrice(), s.getPricingWork(),
                 s.getDescriptionEn(), s.getDescriptionFr(), s.getDescriptionEs(), s.getSortOrder(), s.isActive()))
             .toList();
     }
@@ -93,6 +93,20 @@ public class ItemService {
             .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "CATEGORY_NOT_FOUND"));
     }
 
+    private List<Category> resolveCategories(List<Long> categoryIds) {
+        if (categoryIds == null || categoryIds.isEmpty()) return new java.util.ArrayList<>();
+        List<Category> categories = categoryRepository.findAllById(categoryIds);
+        if (categories.size() != categoryIds.stream().distinct().count()) {
+            throw new AppException(HttpStatus.NOT_FOUND, "CATEGORY_NOT_FOUND");
+        }
+        return categories;
+    }
+
+    private List<CategoryView> toCategoryViews(List<Category> categories) {
+        if (categories == null) return List.of();
+        return categories.stream().map(CategoryService::toView).toList();
+    }
+
     private String displayName(Item item) {
         if (item.getNameEn() != null) return item.getNameEn();
         if (item.getNameFr() != null) return item.getNameFr();
@@ -101,9 +115,9 @@ public class ItemService {
 
     private ItemView toItemView(Item item) {
         return new ItemView(
-                item.getId(), item.getStock(),
+                item.getId(), item.getStock(), item.getVersion(),
                 item.getNameEn(), item.getNameFr(), item.getNameEs(),
-                item.getPrice(), toLabelViews(item.getLabels()), CategoryService.toView(item.getCategory()),
+                item.getPrice(), toLabelViews(item.getLabels()), toCategoryViews(item.getCategories()),
                 item.getDescriptionEn(), item.getDescriptionFr(), item.getDescriptionEs(),
                 toAssetViews(item.getAssets()),
                 toSizeViews(item.getSizes()),
@@ -119,9 +133,9 @@ public class ItemService {
 
     private ItemViewVerbose toItemViewVerbose(Item item) {
         return new ItemViewVerbose(
-                item.getId(), item.getStock(),
+                item.getId(), item.getStock(), item.getVersion(),
                 item.getNameEn(), item.getNameFr(), item.getNameEs(),
-                item.getPrice(), toLabelViews(item.getLabels()), CategoryService.toView(item.getCategory()),
+                item.getPrice(), toLabelViews(item.getLabels()), toCategoryViews(item.getCategories()),
                 item.getDescriptionEn(), item.getDescriptionFr(), item.getDescriptionEs(),
                 toAssetViews(item.getAssets()),
                 toSizeViews(item.getSizes()),
@@ -154,7 +168,7 @@ public class ItemService {
             .nameFr(req.nameFr())
             .nameEs(req.nameEs())
             .labels(resolveLabels(req.labelIds()))
-            .category(resolveCategory(req.categoryId()))
+            .categories(resolveCategories(req.categoryIds()))
             .descriptionEn(req.descriptionEn())
             .descriptionFr(req.descriptionFr())
             .descriptionEs(req.descriptionEs())
@@ -173,13 +187,15 @@ public class ItemService {
         item.setNameEn(req.nameEn());
         item.setNameFr(req.nameFr());
         item.setNameEs(req.nameEs());
-        item.setStock(req.stock());
+        // Stock is deliberately NOT written here — it changes concurrently with
+        // checkouts, so an unrelated edit must not clobber it. Stock is managed
+        // only through the dedicated adjustStock / setStock operations below.
         item.setPricingFormula(req.pricingFormula());
         item.setPricingWork(req.pricingWork() == null ? null : BigDecimal.valueOf(req.pricingWork()));
         item.setPricingMargin(req.pricingMargin() == null ? null : BigDecimal.valueOf(req.pricingMargin()));
         item.setPrice(resolvePrice(req));
         item.setLabels(resolveLabels(req.labelIds()));
-        item.setCategory(resolveCategory(req.categoryId()));
+        item.setCategories(resolveCategories(req.categoryIds()));
         item.setDescriptionEn(req.descriptionEn());
         item.setDescriptionFr(req.descriptionFr());
         item.setDescriptionEs(req.descriptionEs());
@@ -281,7 +297,8 @@ public class ItemService {
         Item item = findAnyItemOrThrow(itemId);
         ItemSize size = findSizeOrThrow(item, sizeId);
         size.setSize(req.size());
-        size.setStock(req.stock());
+        // Stock intentionally not written here — see updateItem. Managed via
+        // adjustSizeStock / setSizeStock only.
         size.setWeightGrams(req.weightGrams());
         size.setPricingWork(req.pricingWork() == null ? null : BigDecimal.valueOf(req.pricingWork()));
         size.setPrice(resolveSizePrice(item, req));
@@ -291,6 +308,57 @@ public class ItemService {
         itemRepository.save(item);
         log.info("updated size #{} of item #{}", sizeId, itemId);
         return toItemView(item);
+    }
+
+    // ── Stock ─────────────────────────────────────────────────────────────────
+    // Stock is managed separately from the general item/size edit so that (a) an
+    // unrelated edit can never clobber it and (b) concurrent checkout decrements
+    // are never lost. Delta ops are atomic; absolute sets use an optimistic guard.
+
+    /** Apply a relative change (+restock / −correction) atomically. */
+    @Transactional
+    public ItemView adjustStock(Long id, int delta) {
+        findAnyItemOrThrow(id);
+        if (itemRepository.adjustStock(id, delta) == 0) {
+            throw new AppException(HttpStatus.UNPROCESSABLE_CONTENT, "STOCK_NEGATIVE");
+        }
+        log.info("adjusted stock of item #{} by {}", id, delta);
+        return toItemView(findAnyItemOrThrow(id));
+    }
+
+    /** Set absolute stock, rejecting if a sale changed it since {@code expectedVersion}. */
+    @Transactional
+    public ItemView setStock(Long id, int stock, long expectedVersion) {
+        if (stock < 0) throw new AppException(HttpStatus.BAD_REQUEST, "STOCK_NEGATIVE");
+        findAnyItemOrThrow(id);
+        if (itemRepository.setStockIfVersion(id, stock, expectedVersion) == 0) {
+            throw new AppException(HttpStatus.CONFLICT, "STOCK_VERSION_CONFLICT");
+        }
+        log.info("set stock of item #{} to {}", id, stock);
+        return toItemView(findAnyItemOrThrow(id));
+    }
+
+    @Transactional
+    public ItemView adjustSizeStock(Long itemId, Long sizeId, int delta) {
+        Item item = findAnyItemOrThrow(itemId);
+        findSizeOrThrow(item, sizeId); // 404 if the size isn't on this item
+        if (itemRepository.adjustSizeStock(sizeId, delta) == 0) {
+            throw new AppException(HttpStatus.UNPROCESSABLE_CONTENT, "STOCK_NEGATIVE");
+        }
+        log.info("adjusted stock of size #{} (item #{}) by {}", sizeId, itemId, delta);
+        return toItemView(findAnyItemOrThrow(itemId));
+    }
+
+    @Transactional
+    public ItemView setSizeStock(Long itemId, Long sizeId, int stock, long expectedVersion) {
+        if (stock < 0) throw new AppException(HttpStatus.BAD_REQUEST, "STOCK_NEGATIVE");
+        Item item = findAnyItemOrThrow(itemId);
+        findSizeOrThrow(item, sizeId);
+        if (itemRepository.setSizeStockIfVersion(sizeId, stock, expectedVersion) == 0) {
+            throw new AppException(HttpStatus.CONFLICT, "STOCK_VERSION_CONFLICT");
+        }
+        log.info("set stock of size #{} (item #{}) to {}", sizeId, itemId, stock);
+        return toItemView(findAnyItemOrThrow(itemId));
     }
 
     @Transactional
@@ -356,7 +424,7 @@ public class ItemService {
 
     public List<ItemView> getItemsByCategory(Long categoryId) {
         Category category = resolveCategory(categoryId);
-        return itemRepository.findByCategoryAndActiveTrue(category)
+        return itemRepository.findByCategoriesAndActiveTrue(category)
             .stream()
             .map(this::toItemView)
             .toList();

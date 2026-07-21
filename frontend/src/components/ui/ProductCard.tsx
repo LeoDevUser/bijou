@@ -85,7 +85,7 @@ export default function ProductCard({ item }: { item: ItemView }) {
           )
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted text-xs uppercase tracking-widest">
-            {pickLocale(item.category.nameEn, item.category.nameFr, item.category.nameEs, i18n.language)}
+            {item.categories[0] && pickLocale(item.categories[0].nameEn, item.categories[0].nameFr, item.categories[0].nameEs, i18n.language)}
           </div>
         )}
 

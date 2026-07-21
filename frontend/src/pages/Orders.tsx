@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
-import { pickLocale } from '../types';
+import { pickLocale, formatMoney } from '../types';
 import type { OrderView } from '../types';
 import AutoplayVideo from '../components/ui/AutoplayVideo';
 import { optimizedImageUrl } from '../utils/cloudinary';
@@ -97,7 +97,7 @@ export default function Orders() {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-medium">${Number(order.total).toFixed(2)}</p>
+                  <p className="font-medium">${formatMoney(order.total)}</p>
                   <p className="text-xs text-muted mt-1">{order.items.length} {t('orders.items')}</p>
                 </div>
               </div>

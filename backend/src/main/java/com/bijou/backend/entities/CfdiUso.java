@@ -1,0 +1,50 @@
+package com.bijou.backend.entities;
+
+/**
+ * SAT "Uso de CFDI" catalog (CFDI 4.0). The enum name equals the official SAT
+ * key. {@code description} is the official Spanish label — factura data is
+ * inherently Mexican/Spanish, so it is not translated.
+ *
+ * Which usos are valid for a given fiscal regime is defined by
+ * {@link RegimenFiscal}, per the SAT régimen↔uso matrix.
+ */
+public enum CfdiUso {
+    G01("Adquisición de mercancías"),
+    G02("Devoluciones, descuentos o bonificaciones"),
+    G03("Gastos en general"),
+    I01("Construcciones"),
+    I02("Mobiliario y equipo de oficina por inversiones"),
+    I03("Equipo de transporte"),
+    I04("Equipo de cómputo y accesorios"),
+    I05("Dados, troqueles, moldes, matrices y herramental"),
+    I06("Comunicaciones telefónicas"),
+    I07("Comunicaciones satelitales"),
+    I08("Otra maquinaria y equipo"),
+    D01("Honorarios médicos, dentales y gastos hospitalarios"),
+    D02("Gastos médicos por incapacidad o discapacidad"),
+    D03("Gastos funerales"),
+    D04("Donativos"),
+    D05("Intereses reales efectivamente pagados por créditos hipotecarios (casa habitación)"),
+    D06("Aportaciones voluntarias al SAR"),
+    D07("Primas por seguros de gastos médicos"),
+    D08("Gastos de transportación escolar obligatoria"),
+    D09("Depósitos en cuentas para el ahorro, primas que tengan como base planes de pensiones"),
+    D10("Pagos por servicios educativos (colegiaturas)"),
+    S01("Sin efectos fiscales"),
+    CP01("Pagos"),
+    CN01("Nómina");
+
+    private final String description;
+
+    CfdiUso(String description) {
+        this.description = description;
+    }
+
+    public String getCode() {
+        return name();
+    }
+
+    public String getDescription() {
+        return description;
+    }
+}

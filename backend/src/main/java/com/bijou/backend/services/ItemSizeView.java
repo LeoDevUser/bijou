@@ -6,6 +6,7 @@ public record ItemSizeView(
         Long id,
         String size,
         Integer stock,
+        Long version,
         float weightGrams,
         BigDecimal price,
         BigDecimal pricingWork,

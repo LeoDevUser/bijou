@@ -116,7 +116,14 @@
       "badge": "{{n}} mois sans intérêts"
     },
     "shippingFee": "Livraison",
-    "freeShipping": "Offerte"
+    "freeShipping": "Offerte",
+    "factura": {
+      "request": "Demander une facture (CFDI)",
+      "notice": "Votre RFC et votre régime fiscal seront enregistrés pour vos prochaines commandes. La facture vous sera envoyée par courriel une fois votre commande confirmée.",
+      "rfc": "RFC",
+      "regimen": "Régime fiscal",
+      "uso": "Usage du CFDI"
+    }
   },
   "payment": {
     "title": "Paiement",
@@ -226,7 +233,11 @@
       "uploadFactura": "Téléverser la Facture",
       "replaceFactura": "Remplacer la Facture",
       "sendFactura": "Envoyer au Client",
-      "facturaSent": "Envoyé !"
+      "facturaSent": "Envoyé !",
+      "facturaRequested": "Facture demandée",
+      "rfc": "RFC",
+      "regimen": "Régime",
+      "uso": "Usage du CFDI"
     },
     "detail": {
       "address": "Adresse",
@@ -491,6 +502,14 @@
       "shippingThreshold": "Offerte dès",
       "shippingSave": "Enregistrer",
       "shippingSaved": "Enregistré"
+    },
+    "stock": {
+      "current": "Stock actuel",
+      "adjust": "Ajuster",
+      "set": "Définir",
+      "conflict": "Le stock a changé depuis l'ouverture (une vente est arrivée). Utilisez Ajuster, ou rouvrez pour définir une valeur exacte.",
+      "negative": "Le stock ne peut pas être négatif.",
+      "managedPerSize": "Le stock est géré par taille dans la section Tailles ci-dessous."
     }
   },
   "account": {
@@ -550,7 +569,7 @@
     },
     "q5": {
       "q": "Quels modes de paiement acceptez-vous ?",
-      "a": "Pour votre sécurité, nous acceptons les paiements mondiaux via Stripe (cartes de crédit/débit internationales). Cette plateforme offre une protection des acheteurs et un chiffrement des données de niveau bancaire."
+      "a": "Nous acceptons plusieurs modes de paiement sécurisés, tous traités via Stripe avec protection des acheteurs et chiffrement des données de niveau bancaire :\n• Cartes de crédit et de débit (Visa, Mastercard et autres grandes cartes)\n• Portefeuilles numériques (Apple Pay et Google Pay)\n• Virement bancaire (SPEI)\n• Espèces dans n'importe quel magasin OXXO (pour les commandes de moins de 10 000 MXN)"
     },
     "q7": {
       "q": "Comment entretenir mes bijoux ?",
@@ -693,10 +712,12 @@
     },
     "s6": {
       "title": "Modes de Paiement",
-      "intro": "Les modes de paiement suivants sont acceptés :",
-      "i1": "Espèces (en personne uniquement dans notre magasin physique)",
-      "i2": "Cartes de crédit et de débit (Visa, Mastercard et autres cartes acceptées internationalement)",
-      "note": "Les paiements internationaux peuvent être soumis à des frais bancaires ou des frais de change, qui sont à la charge du client."
+      "intro": "Les modes de paiement suivants sont acceptés, tous traités de manière sécurisée via notre prestataire de paiement (Stripe) avec un chiffrement des données de niveau bancaire :",
+      "i1": "Cartes de crédit et de débit (Visa, Mastercard et autres grandes cartes)",
+      "i2": "Portefeuilles numériques (Apple Pay et Google Pay)",
+      "i3": "Virement bancaire via SPEI",
+      "i4": "Espèces dans n'importe quel magasin OXXO (pour les commandes de moins de 10 000 MXN)",
+      "note": "Toutes les transactions sont facturées en pesos mexicains (MXN). Les cartes internationales peuvent être soumises à des frais bancaires ou des frais de change, qui sont à la charge du client."
     },
     "s7": {
       "title": "Facturation",

@@ -23,5 +23,7 @@ public record VerboseClientProfileResponse(
     Role role,
     String stripeCustomerId,
     int nbSuccessfulOrders,
-    BigDecimal moneySpent
+    BigDecimal moneySpent,
+    String rfc,
+    String regimenFiscal
 ) {}

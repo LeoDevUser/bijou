@@ -1,4 +1,4 @@
-import type { ItemView, ItemViewVerbose, ItemRequest, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ThemeConfig, TaxPreview, AppSettings, BrevoQuota, CloudinaryResourcesPage } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ThemeConfig, TaxPreview, AppSettings, BrevoQuota, CloudinaryResourcesPage, FiscalCatalog } from '../types';
 import { getToken, setToken } from './tokenStore';
 
 interface LabelRequest { nameEn: string; nameFr: string; nameEs: string; }
@@ -105,6 +105,9 @@ export const api = {
   theme: {
     get: () => request<ThemeConfig>('/public/theme'),
   },
+  fiscal: {
+    catalog: () => request<FiscalCatalog>('/public/fiscal/catalog'),
+  },
   orders: {
     list: () => request<OrderView[]>('/api/orders'),
     create: (data: {
@@ -118,6 +121,10 @@ export const api = {
       country: string;
       currency: string;
       installments?: number | null;
+      facturaRequested?: boolean;
+      rfc?: string | null;
+      regimenFiscal?: string | null;
+      cfdiUso?: string | null;
     }) =>
       request<{ order: OrderView; clientSecret: string }>('/api/orders', {
         method: 'POST',
@@ -133,7 +140,7 @@ export const api = {
   },
   account: {
     getProfile: () =>
-      request<{ firstName: string; lastName: string; email: string; addressLine1: string; addressLine2: string | null; colonial: string | null; city: string; state: string; postalCode: string; country: string; phoneNumber: string; language: string }>('/account/profile'),
+      request<{ firstName: string; lastName: string; email: string; addressLine1: string; addressLine2: string | null; colonial: string | null; city: string; state: string; postalCode: string; country: string; phoneNumber: string; language: string; rfc: string | null; regimenFiscal: string | null }>('/account/profile'),
     changePassword: (oldPassword: string, newPassword: string) =>
       request<void>('/account/password', { method: 'PATCH', body: JSON.stringify({ oldPassword, newPassword }) }),
     changeEmail: (password: string, newEmail: string) =>
@@ -180,6 +187,15 @@ export const api = {
         request<ItemView>(`/${ADMIN}/items/${itemId}/sizes/${sizeId}`, { method: 'PATCH', body: JSON.stringify(req) }),
       deleteSize: (itemId: number, sizeId: number) =>
         request<ItemView>(`/${ADMIN}/items/${itemId}/sizes/${sizeId}`, { method: 'DELETE' }),
+      // Stock is managed separately from the item edit so concurrent sales aren't clobbered.
+      adjustStock: (id: number, delta: number) =>
+        request<ItemView>(`/${ADMIN}/items/${id}/stock/adjust`, { method: 'PATCH', body: JSON.stringify({ delta }) }),
+      setStock: (id: number, stock: number, expectedVersion: number) =>
+        request<ItemView>(`/${ADMIN}/items/${id}/stock`, { method: 'PATCH', body: JSON.stringify({ stock, expectedVersion }) }),
+      adjustSizeStock: (itemId: number, sizeId: number, delta: number) =>
+        request<ItemView>(`/${ADMIN}/items/${itemId}/sizes/${sizeId}/stock/adjust`, { method: 'PATCH', body: JSON.stringify({ delta }) }),
+      setSizeStock: (itemId: number, sizeId: number, stock: number, expectedVersion: number) =>
+        request<ItemView>(`/${ADMIN}/items/${itemId}/sizes/${sizeId}/stock`, { method: 'PATCH', body: JSON.stringify({ stock, expectedVersion }) }),
       pickAsset: (itemId: number, data: { publicId: string; resourceType: string; secureUrl: string }) =>
         request<ItemView>(`/${ADMIN}/items/${itemId}/assets/pick`, { method: 'PATCH', body: JSON.stringify(data) }),
       createWithImage: async (data: ItemRequest, file: File, name?: string): Promise<ItemView> => {

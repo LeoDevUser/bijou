@@ -122,7 +122,7 @@ public class CollectionService {
             itemRepository.findByAnyLabelIdInAndActiveTrue(labelIds).forEach(i -> seen.put(i.getId(), i));
         }
         if (!categoryIds.isEmpty()) {
-            itemRepository.findByCategory_IdInAndActiveTrue(categoryIds).forEach(i -> seen.putIfAbsent(i.getId(), i));
+            itemRepository.findByAnyCategoryIdInAndActiveTrue(categoryIds).forEach(i -> seen.putIfAbsent(i.getId(), i));
         }
         return new java.util.ArrayList<>(seen.values());
     }
@@ -378,14 +378,14 @@ public class CollectionService {
                         .toList();
         List<ItemSizeView> sizeViews = item.getSizes() == null ? List.of() :
                 item.getSizes().stream()
-                        .map(s -> new ItemSizeView(s.getId(), s.getSize(), s.getStock(), s.getWeightGrams(), s.getPrice(),
+                        .map(s -> new ItemSizeView(s.getId(), s.getSize(), s.getStock(), s.getVersion(), s.getWeightGrams(), s.getPrice(),
                                 s.getPricingWork(), s.getDescriptionEn(), s.getDescriptionFr(), s.getDescriptionEs(),
                                 s.getSortOrder(), s.isActive()))
                         .toList();
         return new ItemView(
-                item.getId(), item.getStock(),
+                item.getId(), item.getStock(), item.getVersion(),
                 item.getNameEn(), item.getNameFr(), item.getNameEs(),
-                item.getPrice(), labelViews, CategoryService.toView(item.getCategory()),
+                item.getPrice(), labelViews, item.getCategories().stream().map(CategoryService::toView).toList(),
                 item.getDescriptionEn(), item.getDescriptionFr(), item.getDescriptionEs(),
                 assetViews, sizeViews, item.getDiscountPercent(), item.getMaterial(), item.isUsmcaQualified(), item.getWeightGrams(),
                 item.getPricingFormula(), item.getPricingWork(), item.getPricingMargin());

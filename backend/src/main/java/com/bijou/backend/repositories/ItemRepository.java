@@ -19,8 +19,8 @@ import jakarta.persistence.LockModeType;
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Long>{
     Optional<Item> findByNameEnIgnoreCase(String nameEn);
-    List<Item> findByCategory(Category category);
-    List<Item> findByCategoryAndActiveTrue(Category category);
+    List<Item> findByCategories(Category category);
+    List<Item> findByCategoriesAndActiveTrue(Category category);
     List<Item> findByActiveTrue();
     List<Item> findByActiveFalse();
     Optional<Item> findByIdAndActiveTrue(Long id);
@@ -28,13 +28,42 @@ public interface ItemRepository extends JpaRepository<Item, Long>{
     List<Item> findByLabels_Id(Long labelId);
     @Query("SELECT DISTINCT i FROM Item i JOIN i.labels l WHERE l.id IN :labelIds AND i.active = true")
     List<Item> findByAnyLabelIdInAndActiveTrue(@Param("labelIds") Collection<Long> labelIds);
-    List<Item> findByCategory_IdInAndActiveTrue(Collection<Long> categoryIds);
+    @Query("SELECT DISTINCT i FROM Item i JOIN i.categories c WHERE c.id IN :categoryIds AND i.active = true")
+    List<Item> findByAnyCategoryIdInAndActiveTrue(@Param("categoryIds") Collection<Long> categoryIds);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT i FROM Item i WHERE i.id = :id")
     Optional<Item> findByIdWithLock(Long id);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT i FROM Item i WHERE i.id IN :ids")
     List<Item> findAllByIdWithLock(@Param("ids") List<Long> ids);
+    /**
+     * Atomically applies a stock delta (restock / correction). Guarded so stock
+     * can never go negative. Composes with concurrent checkout decrements — no
+     * lost updates. Returns rows updated: 0 means not found or would go negative.
+     */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE Item i SET i.stock = i.stock + :delta WHERE i.id = :id AND i.stock + :delta >= 0")
+    int adjustStock(@Param("id") Long id, @Param("delta") int delta);
+
+    /**
+     * Sets absolute stock, but only if the caller's expected version still matches
+     * (optimistic guard against a sale slipping in since the admin loaded the form).
+     * Returns rows updated: 0 means not found or version conflict.
+     */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE Item i SET i.stock = :stock, i.version = i.version + 1 WHERE i.id = :id AND i.version = :expectedVersion")
+    int setStockIfVersion(@Param("id") Long id, @Param("stock") int stock, @Param("expectedVersion") long expectedVersion);
+
+    /** Atomic size-stock delta, guarded against negative. See {@link #adjustStock}. */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE ItemSize s SET s.stock = s.stock + :delta WHERE s.id = :id AND s.stock + :delta >= 0")
+    int adjustSizeStock(@Param("id") Long id, @Param("delta") int delta);
+
+    /** Absolute size-stock set with optimistic version guard. See {@link #setStockIfVersion}. */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE ItemSize s SET s.stock = :stock, s.version = s.version + 1 WHERE s.id = :id AND s.version = :expectedVersion")
+    int setSizeStockIfVersion(@Param("id") Long id, @Param("stock") int stock, @Param("expectedVersion") long expectedVersion);
+
     /** Atomically increments all sales counters for one item — avoids lost-update under concurrent webhooks. */
     @Modifying
     @Query("UPDATE Item i SET " +

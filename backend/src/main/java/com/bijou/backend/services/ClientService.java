@@ -56,7 +56,9 @@ public class ClientService {
                 client.getPostalCode(),
                 client.getCountry().name(),
                 client.getPhoneNumber(),
-                client.getLanguage().name());
+                client.getLanguage().name(),
+                client.getRfc(),
+                client.getRegimenFiscal() != null ? client.getRegimenFiscal().name() : null);
     }
 
     public VerboseClientProfileResponse getVerboseProfile(Long id) {
@@ -86,7 +88,9 @@ public class ClientService {
                 client.getRole(),
                 client.getStripeCustomerId(),
                 client.getNbSuccessfulOrders(),
-                client.getMoneySpent()
+                client.getMoneySpent(),
+                client.getRfc(),
+                client.getRegimenFiscal() != null ? client.getRegimenFiscal().name() : null
             );
     }
 

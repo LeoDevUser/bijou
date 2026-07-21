@@ -23,6 +23,7 @@ export interface ItemSizeView {
   id: number;
   size: string;
   stock: number;
+  version: number;
   weightGrams: number;
   price: number;
   pricingWork: number | null;
@@ -36,12 +37,13 @@ export interface ItemSizeView {
 export interface ItemView {
   id: number;
   stock: number;
+  version: number;
   nameEn: string | null;
   nameFr: string | null;
   nameEs: string | null;
   price: number;
   labels: LabelView[];
-  category: CategoryView;
+  categories: CategoryView[];
   descriptionEn: string | null;
   descriptionFr: string | null;
   descriptionEs: string | null;
@@ -133,6 +135,29 @@ export interface OrderView {
   handlingFee: number | null;
   shippingFee: number | null;
   facturaUrl: string | null;
+  facturaRequested: boolean;
+  cfdiUso: string | null;
+  rfc: string | null;
+  regimenFiscal: string | null;
+}
+
+export interface CfdiUsoOption {
+  code: string;
+  description: string;
+}
+
+export interface RegimenFiscalOption {
+  name: string;
+  code: string;
+  description: string;
+  fisica: boolean;
+  moral: boolean;
+  usos: string[];
+}
+
+export interface FiscalCatalog {
+  regimenes: RegimenFiscalOption[];
+  usos: CfdiUsoOption[];
 }
 
 export type JewelryMaterial = 'SILVER' | 'GOLD' | 'STEEL' | 'OTHER';
@@ -148,7 +173,7 @@ export interface ItemRequest {
   descriptionEs: string;
   price: number;
   stock: number;
-  categoryId: number;
+  categoryIds: number[];
   labelIds: number[];
   discountPercent: number | null;
   material: JewelryMaterial;
@@ -189,6 +214,8 @@ export interface VerboseClient {
   stripeCustomerId: string | null;
   nbSuccessfulOrders: number;
   moneySpent: number;
+  rfc: string | null;
+  regimenFiscal: string | null;
 }
 
 export interface TaxPreview {
@@ -332,6 +359,14 @@ export interface BrevoQuota {
   dailyLimit: number;
 }
 
+
+/** Format a monetary amount with thousands separators and a fixed number of decimals (default 2). */
+export function formatMoney(amount: number | string, digits = 2): string {
+  return Number(amount).toLocaleString('en-US', {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
+}
 
 /** Pick the best available translation for the current locale, falling back to any non-null value. */
 export function pickLocale(

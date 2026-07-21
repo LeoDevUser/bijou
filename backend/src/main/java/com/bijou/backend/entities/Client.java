@@ -79,6 +79,13 @@ public class Client implements UserDetails {
     private BigDecimal moneySpent;
     @Column(nullable = false)
     private Language language;
+    // Fiscal identity for CFDI (factura) issuance — optional, captured the first
+    // time the client requests a factura at checkout and reused thereafter.
+    @Column
+    private String rfc;
+    @Column
+    @Enumerated(EnumType.STRING)
+    private RegimenFiscal regimenFiscal;
 
     @PrePersist
     protected void onCreate() {

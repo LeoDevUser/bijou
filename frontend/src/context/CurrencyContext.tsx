@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { Currency } from '../types';
+import { formatMoney } from '../types';
 
 interface CurrencyContextValue {
   currency: Currency;
@@ -50,7 +51,7 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
 
   function format(mxnAmount: number): string {
     const converted = mxnAmount * (rates[currency] ?? 1);
-    return `$${converted.toFixed(2)} ${currency}`;
+    return `$${formatMoney(converted)} ${currency}`;
   }
 
   return (

@@ -12,7 +12,7 @@ public record ItemRequest(
     String nameFr,
     String nameEs,
     List<Long> labelIds,
-    Long categoryId,
+    List<Long> categoryIds,
     String descriptionEn,
     String descriptionFr,
     String descriptionEs,
