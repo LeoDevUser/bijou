@@ -130,6 +130,44 @@ export default function Orders() {
                 })}
               </div>
 
+              {(() => {
+                const subtotal = order.items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
+                return (
+                  <div className="space-y-1 border-t border-border mt-4 pt-3">
+                    <div className="flex justify-between text-sm text-muted">
+                      <span>{t('cart.subtotal')}</span>
+                      <span>${formatMoney(subtotal)}</span>
+                    </div>
+                    {!!order.dutyAmount && (
+                      <div className="flex justify-between text-sm text-muted">
+                        <span>{t('checkout.duty')}</span>
+                        <span>+${formatMoney(order.dutyAmount)}</span>
+                      </div>
+                    )}
+                    {!!order.taxAmount && (
+                      <div className="flex justify-between text-sm text-muted">
+                        <span>{t('checkout.tax')}</span>
+                        <span>+${formatMoney(order.taxAmount)}</span>
+                      </div>
+                    )}
+                    {!!order.handlingFee && (
+                      <div className="flex justify-between text-sm text-muted">
+                        <span>{t('checkout.handling')}</span>
+                        <span>+${formatMoney(order.handlingFee)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-sm text-muted">
+                      <span>{t('checkout.shippingFee')}</span>
+                      <span>{order.shippingFee ? `+$${formatMoney(order.shippingFee)}` : t('checkout.freeShipping')}</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-medium border-t border-border pt-2 mt-2">
+                      <span>{t('cart.total')}</span>
+                      <span>${formatMoney(order.total)}</span>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {order.tracking && (
                 <p className="text-xs text-muted mt-4">
                   {t('orders.tracking')}: {order.tracking}
