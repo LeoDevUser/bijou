@@ -2,6 +2,7 @@ package com.bijou.backend.services;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -371,6 +372,27 @@ public class ItemService {
         }
         itemRepository.save(item);
         log.info("deleted size #{} from item #{}", sizeId, itemId);
+        return toItemView(item);
+    }
+
+    /**
+     * Move a size one slot towards the front ({@code delta} −1) or the back (+1)
+     * of the item's size list. A move past either end is a no-op.
+     */
+    @Transactional
+    public ItemView moveSize(Long itemId, Long sizeId, int delta) {
+        Item item = findAnyItemOrThrow(itemId);
+        List<ItemSize> sizes = item.getSizes();
+        int idx = sizes.indexOf(findSizeOrThrow(item, sizeId));
+        int target = idx + delta;
+        if (target >= 0 && target < sizes.size()) {
+            Collections.swap(sizes, idx, target);
+            for (int i = 0; i < sizes.size(); i++) {
+                sizes.get(i).setSortOrder(i);
+            }
+            itemRepository.save(item);
+            log.info("moved size #{} of item #{} from position {} to {}", sizeId, itemId, idx, target);
+        }
         return toItemView(item);
     }
 

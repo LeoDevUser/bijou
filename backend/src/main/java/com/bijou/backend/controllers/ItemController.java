@@ -141,6 +141,16 @@ public class ItemController {
         return ResponseEntity.ok(itemService.updateSize(itemId, sizeId, req));
     }
 
+    @PatchMapping("/${ADMIN_PAGE}/items/{itemId}/sizes/{sizeId}/up")
+    public ResponseEntity<ItemView> moveSizeUp(@PathVariable Long itemId, @PathVariable Long sizeId) {
+        return ResponseEntity.ok(itemService.moveSize(itemId, sizeId, -1));
+    }
+
+    @PatchMapping("/${ADMIN_PAGE}/items/{itemId}/sizes/{sizeId}/down")
+    public ResponseEntity<ItemView> moveSizeDown(@PathVariable Long itemId, @PathVariable Long sizeId) {
+        return ResponseEntity.ok(itemService.moveSize(itemId, sizeId, 1));
+    }
+
     @DeleteMapping("/${ADMIN_PAGE}/items/{itemId}/sizes/{sizeId}")
     public ResponseEntity<ItemView> deleteSize(@PathVariable Long itemId, @PathVariable Long sizeId) {
         return ResponseEntity.ok(itemService.deleteSize(itemId, sizeId));

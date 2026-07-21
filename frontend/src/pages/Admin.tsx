@@ -753,6 +753,21 @@ function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
     apply(u.sizes);
   }
 
+  async function move(sizeId: number, dir: 'up' | 'down') {
+    setBusy(true);
+    setError(null);
+    try {
+      const updated = dir === 'up'
+        ? await api.admin.items.moveSizeUp(item.id, sizeId)
+        : await api.admin.items.moveSizeDown(item.id, sizeId);
+      apply(updated.sizes);
+    } catch {
+      setError(t('admin.products.saveError'));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function remove(sizeId: number) {
     if (!window.confirm(t('admin.sizes.confirmDelete'))) return;
     setBusy(true);
@@ -784,9 +799,13 @@ function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
 
       {sizes.length > 0 && (
         <div className="space-y-1 mb-2">
-          {sizes.map(s => (
+          {sizes.map((s, idx) => (
             <div key={s.id}>
               <div className="flex items-center gap-2 text-sm border border-border px-3 py-2">
+                <div className="flex gap-1">
+                  <button type="button" onClick={() => move(s.id, 'up')} disabled={busy || idx === 0} className="text-xs border border-border px-1.5 py-0.5 hover:border-dark transition-colors disabled:opacity-30">↑</button>
+                  <button type="button" onClick={() => move(s.id, 'down')} disabled={busy || idx === sizes.length - 1} className="text-xs border border-border px-1.5 py-0.5 hover:border-dark transition-colors disabled:opacity-30">↓</button>
+                </div>
                 <span className="font-medium">{s.size}</span>
                 <span className="text-muted text-xs">· {s.stock} {t('admin.modal.stock').toLowerCase()} · {s.weightGrams} g · ${formatMoney(s.price)}</span>
                 <div className="ml-auto flex gap-2">

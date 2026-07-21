@@ -187,6 +187,10 @@ export const api = {
         request<ItemView>(`/${ADMIN}/items/${itemId}/sizes/${sizeId}`, { method: 'PATCH', body: JSON.stringify(req) }),
       deleteSize: (itemId: number, sizeId: number) =>
         request<ItemView>(`/${ADMIN}/items/${itemId}/sizes/${sizeId}`, { method: 'DELETE' }),
+      moveSizeUp: (itemId: number, sizeId: number) =>
+        request<ItemView>(`/${ADMIN}/items/${itemId}/sizes/${sizeId}/up`, { method: 'PATCH' }),
+      moveSizeDown: (itemId: number, sizeId: number) =>
+        request<ItemView>(`/${ADMIN}/items/${itemId}/sizes/${sizeId}/down`, { method: 'PATCH' }),
       // Stock is managed separately from the item edit so concurrent sales aren't clobbered.
       adjustStock: (id: number, delta: number) =>
         request<ItemView>(`/${ADMIN}/items/${id}/stock/adjust`, { method: 'PATCH', body: JSON.stringify({ delta }) }),

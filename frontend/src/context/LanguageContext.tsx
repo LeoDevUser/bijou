@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import i18n from '../i18n';
 
 export type Language = 'en' | 'fr' | 'es';
@@ -15,8 +15,13 @@ const LanguageContext = createContext<LanguageContextValue | null>(null);
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
     const stored = localStorage.getItem(STORAGE_KEY) as Language | null;
-    return stored ?? 'en';
+    return stored ?? 'es';
   });
+
+  // Keep <html lang> in sync so the browser doesn't offer to translate the page.
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
 
   function setLanguage(lang: Language) {
     setLanguageState(lang);
