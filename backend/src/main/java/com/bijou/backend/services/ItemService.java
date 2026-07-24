@@ -15,11 +15,15 @@ import com.bijou.backend.entities.Category;
 import com.bijou.backend.entities.Item;
 import com.bijou.backend.entities.ItemAsset;
 import com.bijou.backend.entities.ItemSize;
+import com.bijou.backend.entities.JewelryMaterial;
 import com.bijou.backend.entities.Label;
+import com.bijou.backend.entities.PricingFormula;
 import com.bijou.backend.exception.AppException;
 import com.bijou.backend.repositories.CategoryRepository;
 import com.bijou.backend.repositories.ItemRepository;
 import com.bijou.backend.repositories.LabelRepository;
+import com.bijou.backend.repositories.MaterialSalesStats;
+import com.bijou.backend.repositories.MaterialSalesStats.MaterialBucket;
 import com.bijou.backend.repositories.OrderRepository;
 import com.bijou.backend.repositories.RevenueStats;
 import com.bijou.backend.repositories.SalesStats;
@@ -492,6 +496,36 @@ public class ItemService {
             orderRepository.sumTaxSince(now.minusMonths(3)),
             orderRepository.sumTaxSince(now.minusYears(1))
         );
+    }
+
+    public MaterialSalesStats getMaterialSalesStats() {
+        MaterialBucket gold10k = MaterialBucket.zero();
+        MaterialBucket gold14k = MaterialBucket.zero();
+        MaterialBucket silver  = MaterialBucket.zero();
+        MaterialBucket steel   = MaterialBucket.zero();
+        MaterialBucket other   = MaterialBucket.zero();
+
+        for (Object[] row : orderRepository.materialSalesTotals()) {
+            JewelryMaterial material = (JewelryMaterial) row[0];
+            PricingFormula formula   = (PricingFormula) row[1];
+            // SUM over a float column comes back as Double; money is BigDecimal.
+            BigDecimal grams = BigDecimal.valueOf(((Number) row[2]).doubleValue());
+            BigDecimal money = (BigDecimal) row[3];
+            long units       = ((Number) row[4]).longValue();
+
+            if (formula == PricingFormula.GOLD_10K) {
+                gold10k = gold10k.plus(grams, money, units);
+            } else if (formula == PricingFormula.GOLD_14K) {
+                gold14k = gold14k.plus(grams, money, units);
+            } else if (material == JewelryMaterial.SILVER) {
+                silver = silver.plus(grams, money, units);
+            } else if (material == JewelryMaterial.STEEL) {
+                steel = steel.plus(grams, money, units);
+            } else {
+                other = other.plus(grams, money, units);
+            }
+        }
+        return new MaterialSalesStats(gold10k, gold14k, silver, steel, other);
     }
 
     public List<ItemView> getMonthTrendingItems() {

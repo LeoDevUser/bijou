@@ -87,6 +87,20 @@ export interface SalesStats {
   taxYear: number;
 }
 
+export interface MaterialBucket {
+  grams: number;
+  money: number;
+  units: number;
+}
+
+export interface MaterialSalesStats {
+  gold10k: MaterialBucket;
+  gold14k: MaterialBucket;
+  silver: MaterialBucket;
+  steel: MaterialBucket;
+  other: MaterialBucket;
+}
+
 export interface OrderItemView {
   itemId: number;
   sizeLabel: string | null;

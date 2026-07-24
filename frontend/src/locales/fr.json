@@ -305,7 +305,16 @@
       "stripeFee": "Stripe ~${{amount}}",
       "taxes": "Taxes & frais ${{amount}}",
       "stripeNet": "Net ~${{amount}}",
-      "stripeNote": "* Frais Stripe estimés à 3,6 % + $3,00 MXN/transaction."
+      "stripeNote": "* Frais Stripe estimés à 3,6 % + $3,00 MXN/transaction.",
+      "materialTitle": "Ventes par Métal",
+      "materialNote": "Historique, sur les commandes payées. Or réparti par carat ; les grammes sont le poids total vendu.",
+      "metalGold10k": "Or 10k",
+      "metalGold14k": "Or 14k",
+      "metalSilver": "Argent",
+      "metalSteel": "Acier",
+      "metalOther": "Autre",
+      "gramsSold": "{{grams}} g vendus",
+      "piecesSold": "{{count}} pcs vendues"
     },
     "modal": {
       "editTitle": "Modifier le Produit",

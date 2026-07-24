@@ -305,7 +305,16 @@
       "stripeFee": "Stripe ~${{amount}}",
       "taxes": "Impuestos y cargos ${{amount}}",
       "stripeNet": "Neto ~${{amount}}",
-      "stripeNote": "* Comisiones Stripe estimadas al 3.6% + $3.00 MXN/transacción."
+      "stripeNote": "* Comisiones Stripe estimadas al 3.6% + $3.00 MXN/transacción.",
+      "materialTitle": "Ventas por Metal",
+      "materialNote": "Histórico, sobre pedidos pagados. Oro dividido por quilataje; los gramos son el peso total vendido.",
+      "metalGold10k": "Oro 10k",
+      "metalGold14k": "Oro 14k",
+      "metalSilver": "Plata",
+      "metalSteel": "Acero",
+      "metalOther": "Otro",
+      "gramsSold": "{{grams}} g vendidos",
+      "piecesSold": "{{count}} pzs vendidas"
     },
     "modal": {
       "editTitle": "Editar Producto",

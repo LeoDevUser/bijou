@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
-import type { ItemView, ItemViewVerbose, ItemRequest, ItemSizeView, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ThemeConfig, AppSettings, BrevoQuota, CloudinaryResource, CloudinaryResourcesPage, JewelryMaterial, PricingFormula } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, ItemSizeView, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, MaterialSalesStats, ThemeConfig, AppSettings, BrevoQuota, CloudinaryResource, CloudinaryResourcesPage, JewelryMaterial, PricingFormula } from '../types';
 import { pickLocale, isItemIncomplete, isLabelIncomplete, formatMoney } from '../types';
 import { useTheme, THEME_DEFAULTS, mergeCollectionTheme } from '../context/ThemeContext';
 
@@ -3099,13 +3099,14 @@ function AdminSite() {
 function AdminStats() {
   const { t, i18n } = useTranslation();
   const [stats, setStats] = useState<SalesStats | null>(null);
+  const [materials, setMaterials] = useState<MaterialSalesStats | null>(null);
   const [items, setItems] = useState<ItemViewVerbose[]>([]);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState<'month' | 'quarter' | 'year' | 'total'>('month');
 
   useEffect(() => {
-    Promise.all([api.admin.items.salesStats(), api.admin.items.listVerbose()])
-      .then(([s, i]) => { setStats(s); setItems(i); })
+    Promise.all([api.admin.items.salesStats(), api.admin.items.materialSalesStats(), api.admin.items.listVerbose()])
+      .then(([s, m, i]) => { setStats(s); setMaterials(m); setItems(i); })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -3131,6 +3132,14 @@ function AdminStats() {
     { label: t('admin.stats.year'),    value: stats.year,    orders: stats.ordersYear,    tax: stats.taxYear },
     { label: t('admin.stats.allTime'), value: stats.total,   orders: stats.ordersTotal,   tax: stats.taxTotal },
   ] : [];
+
+  const metalCards = materials ? [
+    { label: t('admin.stats.metalGold10k'), bucket: materials.gold10k, showGrams: true },
+    { label: t('admin.stats.metalGold14k'), bucket: materials.gold14k, showGrams: true },
+    { label: t('admin.stats.metalSilver'),  bucket: materials.silver,  showGrams: true },
+    { label: t('admin.stats.metalSteel'),   bucket: materials.steel,   showGrams: false },
+    { label: t('admin.stats.metalOther'),   bucket: materials.other,   showGrams: true },
+  ].filter(c => c.label !== t('admin.stats.metalOther') || c.bucket.units > 0) : [];
 
   const sortBtn = (label: string, value: typeof sort) => (
     <button
@@ -3165,6 +3174,26 @@ function AdminStats() {
         </div>
         <p className="text-xs text-muted mt-2">{t('admin.stats.stripeNote')}</p>
       </div>
+
+      {/* Sales by metal */}
+      {metalCards.length > 0 && (
+        <div>
+          <p className="text-xs uppercase tracking-widest text-muted mb-4">{t('admin.stats.materialTitle')}</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {metalCards.map(card => (
+              <div key={card.label} className="border border-border px-5 py-4">
+                <p className="text-xs uppercase tracking-widest text-muted mb-1">{card.label}</p>
+                <p className="font-serif text-2xl font-light">${formatMoney(card.bucket.money)}</p>
+                {card.showGrams && (
+                  <p className="text-xs text-muted mt-1">{t('admin.stats.gramsSold', { grams: formatMoney(card.bucket.grams, 1) })}</p>
+                )}
+                <p className="text-xs text-muted mt-0.5">{t('admin.stats.piecesSold', { count: card.bucket.units })}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-muted mt-2">{t('admin.stats.materialNote')}</p>
+        </div>
+      )}
 
       {/* Per-item breakdown */}
       <div>

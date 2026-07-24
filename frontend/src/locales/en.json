@@ -305,7 +305,16 @@
       "stripeFee": "Stripe ~${{amount}}",
       "taxes": "Taxes & fees ${{amount}}",
       "stripeNet": "Net ~${{amount}}",
-      "stripeNote": "* Stripe fees estimated at 3.6% + $3.00 MXN/transaction."
+      "stripeNote": "* Stripe fees estimated at 3.6% + $3.00 MXN/transaction.",
+      "materialTitle": "Sales by Metal",
+      "materialNote": "All-time, across paid orders. Gold split by karat; grams are total weight sold.",
+      "metalGold10k": "10k Gold",
+      "metalGold14k": "14k Gold",
+      "metalSilver": "Silver",
+      "metalSteel": "Steel",
+      "metalOther": "Other",
+      "gramsSold": "{{grams}} g sold",
+      "piecesSold": "{{count}} pcs sold"
     },
     "modal": {
       "editTitle": "Edit Product",

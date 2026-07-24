@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.bijou.backend.repositories.MaterialSalesStats;
 import com.bijou.backend.repositories.SalesStats;
 import com.bijou.backend.services.CloudinaryResponse;
 import com.bijou.backend.services.CloudinaryService;
@@ -204,5 +205,10 @@ public class ItemController {
     @GetMapping("/${ADMIN_PAGE}/items/salesstats")
     public ResponseEntity<SalesStats> getSalesStats() {
         return ResponseEntity.ok(itemService.getSalesStats());
+    }
+
+    @GetMapping("/${ADMIN_PAGE}/items/materialsalesstats")
+    public ResponseEntity<MaterialSalesStats> getMaterialSalesStats() {
+        return ResponseEntity.ok(itemService.getMaterialSalesStats());
     }
 }

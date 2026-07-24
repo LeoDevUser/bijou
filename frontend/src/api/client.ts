@@ -1,4 +1,4 @@
-import type { ItemView, ItemViewVerbose, ItemRequest, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, ThemeConfig, TaxPreview, AppSettings, BrevoQuota, CloudinaryResourcesPage, FiscalCatalog } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, MaterialSalesStats, ThemeConfig, TaxPreview, AppSettings, BrevoQuota, CloudinaryResourcesPage, FiscalCatalog } from '../types';
 import { getToken, setToken } from './tokenStore';
 
 interface LabelRequest { nameEn: string; nameFr: string; nameEs: string; }
@@ -156,6 +156,7 @@ export const api = {
     items: {
       listVerbose: () => request<ItemViewVerbose[]>(`/${ADMIN}/items`),
       salesStats: () => request<SalesStats>(`/${ADMIN}/items/salesstats`),
+      materialSalesStats: () => request<MaterialSalesStats>(`/${ADMIN}/items/materialsalesstats`),
       create: (data: ItemRequest) =>
         request<ItemView>(`/${ADMIN}/items`, { method: 'POST', body: JSON.stringify(data) }),
       update: (id: number, data: ItemRequest) =>
