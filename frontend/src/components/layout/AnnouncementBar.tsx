@@ -40,18 +40,35 @@ export default function AnnouncementBar() {
 
   if (messages.length === 0) return null;
 
-  const msg = messages[index % messages.length];
-  const text = pickLocale(msg.textEn, msg.textFr, msg.textEs, i18n.language);
-  const href = announcementHref(msg);
+  const current = index % messages.length;
 
+  // All messages are stacked in the same grid cell so the bar's height is that of
+  // the tallest one. Without this the bar resizes as messages rotate and pushes
+  // the page around, which is especially bad on mobile where long text wraps.
   return (
-    <div className="text-xs tracking-widest uppercase text-center py-2 px-4 select-none" style={{ backgroundColor: 'var(--bijou-announcement-bg)', color: 'var(--bijou-announcement-text)' }}>
-      <span style={{ transition: 'opacity 0.4s', opacity: visible ? 1 : 0 }}>
-        {href
-          ? <Link to={href} className="hover:underline">{text}</Link>
-          : text
-        }
-      </span>
+    <div className="text-xs tracking-widest uppercase text-center py-2 px-4 select-none grid place-items-center" style={{ backgroundColor: 'var(--bijou-announcement-bg)', color: 'var(--bijou-announcement-text)' }}>
+      {messages.map((m, i) => {
+        const text = pickLocale(m.textEn, m.textFr, m.textEs, i18n.language);
+        const href = announcementHref(m);
+        const shown = i === current && visible;
+        return (
+          <span
+            key={m.id}
+            aria-hidden={i !== current}
+            style={{
+              gridArea: '1 / 1',
+              transition: 'opacity 0.4s',
+              opacity: shown ? 1 : 0,
+              visibility: i === current ? 'visible' : 'hidden',
+            }}
+          >
+            {href
+              ? <Link to={href} className="hover:underline" tabIndex={i === current ? undefined : -1}>{text}</Link>
+              : text
+            }
+          </span>
+        );
+      })}
     </div>
   );
 }
