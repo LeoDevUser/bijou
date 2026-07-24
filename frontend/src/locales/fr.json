@@ -55,7 +55,8 @@
     "sortDefault": "Aucun",
     "sortBestselling": "Meilleures Ventes",
     "sortPriceAsc": "Prix ↑",
-    "sortPriceDesc": "Prix ↓"
+    "sortPriceDesc": "Prix ↓",
+    "filter": "Filtrer"
   },
   "product": {
     "addToCart": "Ajouter au Panier",
@@ -461,7 +462,8 @@
       "ctaNone": "Aucun lien",
       "ctaCollection": "Lien vers une collection",
       "mediaNamePrompt": "Nommez ce fichier (visible dans la bibliothèque de médias)",
-      "browseRename": "Renommer"
+      "browseRename": "Renommer",
+      "ctaFilter": "Lien vers un filtre boutique"
     },
     "theme": {
       "title": "Thème de Couleur",

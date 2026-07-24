@@ -1,4 +1,6 @@
 package com.bijou.backend.services;
 
+import java.util.List;
+
 public record AnnouncementRequest(String textEn, String textFr, String textEs, boolean active,
-        String ctaCategory, Long ctaLabelId, Long ctaCollectionId) {}
+        List<Long> ctaCategoryIds, List<Long> ctaLabelIds, Long ctaCollectionId) {}

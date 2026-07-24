@@ -246,9 +246,9 @@ export const api = {
     },
     announcements: {
       list: () => request<AnnouncementView[]>(`/${ADMIN}/announcements`),
-      create: (data: { textEn: string; textFr: string; textEs: string; active: boolean }) =>
+      create: (data: { textEn: string; textFr: string; textEs: string; active: boolean; ctaCategoryIds: number[]; ctaLabelIds: number[]; ctaCollectionId: number | null }) =>
         request<AnnouncementView>(`/${ADMIN}/announcements`, { method: 'POST', body: JSON.stringify(data) }),
-      update: (id: number, data: { textEn: string; textFr: string; textEs: string; active: boolean }) =>
+      update: (id: number, data: { textEn: string; textFr: string; textEs: string; active: boolean; ctaCategoryIds: number[]; ctaLabelIds: number[]; ctaCollectionId: number | null }) =>
         request<AnnouncementView>(`/${ADMIN}/announcements/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: number) =>
         request<void>(`/${ADMIN}/announcements/${id}`, { method: 'DELETE' }),
@@ -283,7 +283,7 @@ export const api = {
         request<CollectionView>(`/${ADMIN}/collections/${id}/image`, { method: 'DELETE' }),
       delete: (id: number) =>
         request<void>(`/${ADMIN}/collections/${id}`, { method: 'DELETE' }),
-      updateAsset: (id: number, slot: string, data: { headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; taglineEn: string | null; taglineFr: string | null; taglineEs: string | null; color: string; headerColor: string | null; subheaderColor: string | null; taglineColor: string | null; ctaCategory: string | null; ctaLabelId: number | null }) =>
+      updateAsset: (id: number, slot: string, data: { headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; taglineEn: string | null; taglineFr: string | null; taglineEs: string | null; color: string; headerColor: string | null; subheaderColor: string | null; taglineColor: string | null; ctaCategoryIds: number[]; ctaLabelIds: number[] }) =>
         request<CollectionSiteAssetView>(`/${ADMIN}/collections/${id}/assets/${slot}`, { method: 'PATCH', body: JSON.stringify(data) }),
       uploadAssetImage: async (id: number, slot: string, file: File, name?: string): Promise<CollectionSiteAssetView> => {
         const form = new FormData();

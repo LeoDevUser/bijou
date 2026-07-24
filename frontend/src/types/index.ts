@@ -259,8 +259,8 @@ export interface AnnouncementView {
   textEs: string | null;
   active: boolean;
   sortOrder: number;
-  ctaCategory: string | null;
-  ctaLabelId: number | null;
+  ctaCategoryIds: number[];
+  ctaLabelIds: number[];
   ctaCollectionId: number | null;
 }
 
@@ -283,8 +283,8 @@ export interface CollectionSiteAssetView {
   headerColor: string | null;
   subheaderColor: string | null;
   taglineColor: string | null;
-  ctaCategory: string | null;
-  ctaLabelId: number | null;
+  ctaCategoryIds: number[];
+  ctaLabelIds: number[];
 }
 
 export interface CollectionThemeView {

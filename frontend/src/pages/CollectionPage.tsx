@@ -17,7 +17,7 @@ type AssetEntry = {
   taglineEn: string | null; taglineFr: string | null; taglineEs: string | null;
   color: string | null;
   headerColor: string | null; subheaderColor: string | null; taglineColor: string | null;
-  ctaCategory: string | null; ctaLabelId: number | null;
+  ctaCategoryIds: number[]; ctaLabelIds: number[];
 };
 
 function fromSiteAsset(a: CollectionSiteAssetView | undefined): AssetEntry | undefined {
@@ -29,15 +29,19 @@ function fromSiteAsset(a: CollectionSiteAssetView | undefined): AssetEntry | und
     taglineEn: a.taglineEn, taglineFr: a.taglineFr, taglineEs: a.taglineEs,
     color: a.color,
     headerColor: a.headerColor, subheaderColor: a.subheaderColor, taglineColor: a.taglineColor,
-    ctaCategory: a.ctaCategory, ctaLabelId: a.ctaLabelId,
+    ctaCategoryIds: a.ctaCategoryIds, ctaLabelIds: a.ctaLabelIds,
   };
+}
+
+function assetHasCta(entry: AssetEntry | undefined): boolean {
+  return !!entry && (entry.ctaCategoryIds.length > 0 || entry.ctaLabelIds.length > 0);
 }
 
 function ctaHref(entry: AssetEntry | undefined): string {
   if (!entry) return '/shop';
   const params = new URLSearchParams();
-  if (entry.ctaCategory) params.set('category', entry.ctaCategory);
-  if (entry.ctaLabelId != null) params.set('label', String(entry.ctaLabelId));
+  entry.ctaCategoryIds.forEach(id => params.append('category', String(id)));
+  entry.ctaLabelIds.forEach(id => params.append('label', String(id)));
   const qs = params.toString();
   return qs ? `/shop?${qs}` : '/shop';
 }
@@ -161,7 +165,7 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
               {pickLocale(hero?.taglineEn, hero?.taglineFr, hero?.taglineEs, i18n.language)}
             </p>
           )}
-          {(hero?.ctaCategory || hero?.ctaLabelId != null) && (
+          {assetHasCta(hero) && (
             <Link
               to={ctaHref(hero)}
               className="inline-block border px-10 py-3 text-xs uppercase tracking-widest hover:opacity-75 transition-opacity"
@@ -194,7 +198,7 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
           const header    = pickLocale(ed?.headerEn,    ed?.headerFr,    ed?.headerEs,    i18n.language);
           const subheader = pickLocale(ed?.subheaderEn, ed?.subheaderFr, ed?.subheaderEs, i18n.language);
           const tagline   = pickLocale(ed?.taglineEn,   ed?.taglineFr,   ed?.taglineEs,   i18n.language);
-          const hasCta    = !!(ed?.ctaCategory || ed?.ctaLabelId);
+          const hasCta    = assetHasCta(ed);
           const hasText   = header || subheader || (tagline && hasCta);
           const fallbackColor = ed?.url ? '#FFFFFF' : '#1C1C1C';
           const ctaColor  = ed?.taglineColor ?? ed?.color ?? fallbackColor;

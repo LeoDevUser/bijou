@@ -7,10 +7,10 @@ import type { AnnouncementView } from '../../types';
 
 function announcementHref(msg: AnnouncementView): string | null {
   if (msg.ctaCollectionId != null) return `/collections/${msg.ctaCollectionId}`;
-  if (msg.ctaCategory || msg.ctaLabelId != null) {
+  if (msg.ctaCategoryIds.length > 0 || msg.ctaLabelIds.length > 0) {
     const params = new URLSearchParams();
-    if (msg.ctaCategory) params.set('category', msg.ctaCategory);
-    if (msg.ctaLabelId != null) params.set('label', String(msg.ctaLabelId));
+    msg.ctaCategoryIds.forEach(id => params.append('category', String(id)));
+    msg.ctaLabelIds.forEach(id => params.append('label', String(id)));
     return `/shop?${params.toString()}`;
   }
   return null;

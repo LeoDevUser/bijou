@@ -1,5 +1,6 @@
 package com.bijou.backend.services;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,7 @@ public class AnnouncementService {
 
     private AnnouncementView toView(Announcement a) {
         return new AnnouncementView(a.getId(), a.getTextEn(), a.getTextFr(), a.getTextEs(), a.isActive(), a.getSortOrder(),
-                a.getCtaCategory(), a.getCtaLabelId(), a.getCtaCollectionId());
+                List.copyOf(a.getCtaCategoryIds()), List.copyOf(a.getCtaLabelIds()), a.getCtaCollectionId());
     }
 
     public List<AnnouncementView> getActive() {
@@ -44,8 +45,8 @@ public class AnnouncementService {
             .textEs(req.textEs())
             .active(req.active())
             .sortOrder(nextOrder)
-            .ctaCategory(req.ctaCategory())
-            .ctaLabelId(req.ctaLabelId())
+            .ctaCategoryIds(req.ctaCategoryIds() != null ? new ArrayList<>(req.ctaCategoryIds()) : new ArrayList<>())
+            .ctaLabelIds(req.ctaLabelIds() != null ? new ArrayList<>(req.ctaLabelIds()) : new ArrayList<>())
             .ctaCollectionId(req.ctaCollectionId())
             .build());
         log.info("created announcement #{}", a.getId());
@@ -59,8 +60,10 @@ public class AnnouncementService {
         a.setTextFr(req.textFr());
         a.setTextEs(req.textEs());
         a.setActive(req.active());
-        a.setCtaCategory(req.ctaCategory());
-        a.setCtaLabelId(req.ctaLabelId());
+        a.getCtaCategoryIds().clear();
+        if (req.ctaCategoryIds() != null) a.getCtaCategoryIds().addAll(req.ctaCategoryIds());
+        a.getCtaLabelIds().clear();
+        if (req.ctaLabelIds() != null) a.getCtaLabelIds().addAll(req.ctaLabelIds());
         a.setCtaCollectionId(req.ctaCollectionId());
         log.info("updated announcement #{}", id);
         return toView(announcementRepository.save(a));

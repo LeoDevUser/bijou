@@ -21,14 +21,14 @@ type AssetEntry = {
   headerEn: string | null; headerFr: string | null; headerEs: string | null;
   subheaderEn: string | null; subheaderFr: string | null; subheaderEs: string | null;
   color: string | null;
-  ctaCategory: string | null; ctaLabelId: number | null;
+  ctaCategoryIds: number[]; ctaLabelIds: number[];
 };
 
 function ctaHref(entry: AssetEntry | undefined): string {
   if (!entry) return '/shop';
   const params = new URLSearchParams();
-  if (entry.ctaCategory) params.set('category', entry.ctaCategory);
-  if (entry.ctaLabelId != null) params.set('label', String(entry.ctaLabelId));
+  entry.ctaCategoryIds.forEach(id => params.append('category', String(id)));
+  entry.ctaLabelIds.forEach(id => params.append('label', String(id)));
   const qs = params.toString();
   return qs ? `/shop?${qs}` : '/shop';
 }
@@ -109,7 +109,8 @@ export default function Home() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {CATEGORIES.map(cat => {
             const entry = assetMap[cat.slot];
-            const href = entry?.ctaCategory || entry?.ctaLabelId != null ? ctaHref(entry) : `/shop?category=${cat.value}`;
+            const hasCta = !!(entry && (entry.ctaCategoryIds.length > 0 || entry.ctaLabelIds.length > 0));
+            const href = hasCta ? ctaHref(entry) : `/shop?category=${cat.value}`;
             return (
               <Link key={cat.key} to={href} className="group block">
                 <div className="bg-[#F0EDE8] aspect-square mb-3 overflow-hidden group-hover:bg-[#E8E4DC] transition-colors">

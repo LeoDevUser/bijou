@@ -2039,10 +2039,11 @@ function CloudinaryBrowserModal({ onSelect, onClose }: {
   );
 }
 
-function CollectionAssetsPanel({ collectionId, siteAssets, labels, onUpdate }: {
+function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, onUpdate }: {
   collectionId: number;
   siteAssets: CollectionSiteAssetView[];
   labels: LabelView[];
+  categories: CategoryView[];
   onUpdate: (updated: CollectionSiteAssetView) => void;
 }) {
   const { t, i18n } = useTranslation();
@@ -2050,7 +2051,7 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, onUpdate }: {
   const [uploading, setUploading] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [browsingSlot, setBrowsingSlot] = useState<string | null>(null);
-  const [textForm, setTextForm] = useState({ headerEn: '', headerFr: '', headerEs: '', subheaderEn: '', subheaderFr: '', subheaderEs: '', taglineEn: '', taglineFr: '', taglineEs: '', color: '', headerColor: '', subheaderColor: '', taglineColor: '', ctaCategory: '', ctaLabelId: '' });
+  const [textForm, setTextForm] = useState<{ headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; taglineEn: string; taglineFr: string; taglineEs: string; color: string; headerColor: string; subheaderColor: string; taglineColor: string; ctaCategoryIds: number[]; ctaLabelIds: number[] }>({ headerEn: '', headerFr: '', headerEs: '', subheaderEn: '', subheaderFr: '', subheaderEs: '', taglineEn: '', taglineFr: '', taglineEs: '', color: '', headerColor: '', subheaderColor: '', taglineColor: '', ctaCategoryIds: [], ctaLabelIds: [] });
 
   function openEdit(asset: CollectionSiteAssetView) {
     setEditing(asset.slot);
@@ -2068,8 +2069,8 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, onUpdate }: {
       headerColor: asset.headerColor ?? '',
       subheaderColor: asset.subheaderColor ?? '',
       taglineColor: asset.taglineColor ?? '',
-      ctaCategory: asset.ctaCategory ?? '',
-      ctaLabelId: asset.ctaLabelId != null ? String(asset.ctaLabelId) : '',
+      ctaCategoryIds: asset.ctaCategoryIds ?? [],
+      ctaLabelIds: asset.ctaLabelIds ?? [],
     });
   }
 
@@ -2090,8 +2091,8 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, onUpdate }: {
         headerColor: textForm.headerColor || null,
         subheaderColor: textForm.subheaderColor || null,
         taglineColor: textForm.taglineColor || null,
-        ctaCategory: textForm.ctaCategory || null,
-        ctaLabelId: textForm.ctaLabelId ? Number(textForm.ctaLabelId) : null,
+        ctaCategoryIds: textForm.ctaCategoryIds,
+        ctaLabelIds: textForm.ctaLabelIds,
       });
       onUpdate(updated);
       setEditing(null);
@@ -2231,29 +2232,51 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, onUpdate }: {
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.ctaCategory')}</p>
-                    <select
-                      value={textForm.ctaCategory}
-                      onChange={e => setTextForm(f => ({ ...f, ctaCategory: e.target.value }))}
-                      className={`${selectClass} w-full`}
-                    >
-                      <option value="">{t('admin.site.noneOption')}</option>
-                      {ASSET_CATEGORIES.map(c => (
-                        <option key={c.value} value={c.value}>{t(c.labelKey)}</option>
-                      ))}
-                    </select>
+                    {categories.length === 0 ? (
+                      <p className="text-xs text-muted">{t('admin.categories.empty')}</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-x-3 gap-y-1.5">
+                        {categories.map(c => (
+                          <label key={c.id} className="flex items-center gap-1.5 text-sm cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={textForm.ctaCategoryIds.includes(c.id)}
+                              onChange={e => setTextForm(f => ({
+                                ...f,
+                                ctaCategoryIds: e.target.checked
+                                  ? [...f.ctaCategoryIds, c.id]
+                                  : f.ctaCategoryIds.filter(id => id !== c.id),
+                              }))}
+                            />
+                            {pickLocale(c.nameEn, c.nameFr, c.nameEs, i18n.language)}
+                          </label>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.ctaLabel')}</p>
-                    <select
-                      value={textForm.ctaLabelId}
-                      onChange={e => setTextForm(f => ({ ...f, ctaLabelId: e.target.value }))}
-                      className={`${selectClass} w-full`}
-                    >
-                      <option value="">{t('admin.site.noneOption')}</option>
-                      {labels.map(l => (
-                        <option key={l.id} value={l.id}>{pickLocale(l.nameEn, l.nameFr, l.nameEs, i18n.language)}</option>
-                      ))}
-                    </select>
+                    {labels.length === 0 ? (
+                      <p className="text-xs text-muted">{t('admin.site.noneOption')}</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-x-3 gap-y-1.5">
+                        {labels.map(l => (
+                          <label key={l.id} className="flex items-center gap-1.5 text-sm cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={textForm.ctaLabelIds.includes(l.id)}
+                              onChange={e => setTextForm(f => ({
+                                ...f,
+                                ctaLabelIds: e.target.checked
+                                  ? [...f.ctaLabelIds, l.id]
+                                  : f.ctaLabelIds.filter(id => id !== l.id),
+                              }))}
+                            />
+                            {pickLocale(l.nameEn, l.nameFr, l.nameEs, i18n.language)}
+                          </label>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex gap-2 pt-1">
@@ -2573,6 +2596,7 @@ function AdminCollections() {
                     collectionId={c.id}
                     siteAssets={c.siteAssets}
                     labels={labels}
+                    categories={categories}
                     onUpdate={updated => handleAssetUpdate(c.id, updated)}
                   />
                 )}
@@ -2892,50 +2916,41 @@ function AdminAdmins() {
 // ── Site Assets ───────────────────────────────────────────────────────────────
 
 
-const ASSET_CATEGORIES: { value: string; labelKey: string }[] = [
-  { value: 'RING', labelKey: 'home.categories.rings' },
-  { value: 'NECKLACE', labelKey: 'home.categories.necklaces' },
-  { value: 'EARRING', labelKey: 'home.categories.earrings' },
-  { value: 'MISC', labelKey: 'shop.misc' },
-];
-
 // ── Site ──────────────────────────────────────────────────────────────────────
-
-const ANNOUNCEMENT_CATEGORIES = ['NECKLACE', 'RING', 'EARRING', 'MISC'] as const;
 
 type AnnouncementForm = {
   textEn: string; textFr: string; textEs: string; active: boolean;
-  ctaType: 'none' | 'category' | 'label' | 'collection';
-  ctaCategory: string; ctaLabelId: number | null; ctaCollectionId: number | null;
+  ctaType: 'none' | 'filter' | 'collection';
+  ctaCategoryIds: number[]; ctaLabelIds: number[]; ctaCollectionId: number | null;
 };
 
 function emptyAnnouncementForm(): AnnouncementForm {
-  return { textEn: '', textFr: '', textEs: '', active: true, ctaType: 'none', ctaCategory: '', ctaLabelId: null, ctaCollectionId: null };
+  return { textEn: '', textFr: '', textEs: '', active: true, ctaType: 'none', ctaCategoryIds: [], ctaLabelIds: [], ctaCollectionId: null };
 }
 
 function formFromAnnouncement(a: AnnouncementView): AnnouncementForm {
   let ctaType: AnnouncementForm['ctaType'] = 'none';
   if (a.ctaCollectionId != null) ctaType = 'collection';
-  else if (a.ctaLabelId != null) ctaType = 'label';
-  else if (a.ctaCategory) ctaType = 'category';
+  else if (a.ctaCategoryIds.length > 0 || a.ctaLabelIds.length > 0) ctaType = 'filter';
   return {
     textEn: a.textEn ?? '', textFr: a.textFr ?? '', textEs: a.textEs ?? '', active: a.active,
-    ctaType, ctaCategory: a.ctaCategory ?? '', ctaLabelId: a.ctaLabelId, ctaCollectionId: a.ctaCollectionId,
+    ctaType, ctaCategoryIds: a.ctaCategoryIds ?? [], ctaLabelIds: a.ctaLabelIds ?? [], ctaCollectionId: a.ctaCollectionId,
   };
 }
 
 function formToRequest(f: AnnouncementForm) {
   return {
     textEn: f.textEn, textFr: f.textFr, textEs: f.textEs, active: f.active,
-    ctaCategory: f.ctaType === 'category' ? f.ctaCategory || null : null,
-    ctaLabelId: f.ctaType === 'label' ? f.ctaLabelId : null,
+    ctaCategoryIds: f.ctaType === 'filter' ? f.ctaCategoryIds : [],
+    ctaLabelIds: f.ctaType === 'filter' ? f.ctaLabelIds : [],
     ctaCollectionId: f.ctaType === 'collection' ? f.ctaCollectionId : null,
   };
 }
 
-function AnnouncementCtaFields({ form, setForm, labels, collections }: {
+function AnnouncementCtaFields({ form, setForm, categories, labels, collections }: {
   form: AnnouncementForm;
   setForm: React.Dispatch<React.SetStateAction<AnnouncementForm>>;
+  categories: CategoryView[];
   labels: LabelView[];
   collections: CollectionView[];
 }) {
@@ -2945,23 +2960,60 @@ function AnnouncementCtaFields({ form, setForm, labels, collections }: {
       <select value={form.ctaType} onChange={e => setForm(f => ({ ...f, ctaType: e.target.value as AnnouncementForm['ctaType'] }))}
         className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full">
         <option value="none">{t('admin.site.ctaNone')}</option>
-        <option value="category">{t('admin.site.ctaCategory')}</option>
-        <option value="label">{t('admin.site.ctaLabel')}</option>
+        <option value="filter">{t('admin.site.ctaFilter')}</option>
         <option value="collection">{t('admin.site.ctaCollection')}</option>
       </select>
-      {form.ctaType === 'category' && (
-        <select value={form.ctaCategory} onChange={e => setForm(f => ({ ...f, ctaCategory: e.target.value }))}
-          className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full">
-          <option value="">— {t('admin.site.ctaCategory')} —</option>
-          {ANNOUNCEMENT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-      )}
-      {form.ctaType === 'label' && (
-        <select value={form.ctaLabelId ?? ''} onChange={e => setForm(f => ({ ...f, ctaLabelId: Number(e.target.value) || null }))}
-          className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full">
-          <option value="">— {t('admin.site.ctaLabel')} —</option>
-          {labels.map(l => <option key={l.id} value={l.id}>{pickLocale(l.nameEn, l.nameFr, l.nameEs, i18n.language)}</option>)}
-        </select>
+      {form.ctaType === 'filter' && (
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.ctaCategory')}</p>
+            {categories.length === 0 ? (
+              <p className="text-xs text-muted">{t('admin.categories.empty')}</p>
+            ) : (
+              <div className="flex flex-wrap gap-x-3 gap-y-1.5">
+                {categories.map(c => (
+                  <label key={c.id} className="flex items-center gap-1.5 text-sm cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={form.ctaCategoryIds.includes(c.id)}
+                      onChange={e => setForm(f => ({
+                        ...f,
+                        ctaCategoryIds: e.target.checked
+                          ? [...f.ctaCategoryIds, c.id]
+                          : f.ctaCategoryIds.filter(id => id !== c.id),
+                      }))}
+                    />
+                    {pickLocale(c.nameEn, c.nameFr, c.nameEs, i18n.language)}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+          <div>
+            <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.ctaLabel')}</p>
+            {labels.length === 0 ? (
+              <p className="text-xs text-muted">{t('admin.site.noneOption')}</p>
+            ) : (
+              <div className="flex flex-wrap gap-x-3 gap-y-1.5">
+                {labels.map(l => (
+                  <label key={l.id} className="flex items-center gap-1.5 text-sm cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={form.ctaLabelIds.includes(l.id)}
+                      onChange={e => setForm(f => ({
+                        ...f,
+                        ctaLabelIds: e.target.checked
+                          ? [...f.ctaLabelIds, l.id]
+                          : f.ctaLabelIds.filter(id => id !== l.id),
+                      }))}
+                    />
+                    {pickLocale(l.nameEn, l.nameFr, l.nameEs, i18n.language)}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       )}
       {form.ctaType === 'collection' && (
         <select value={form.ctaCollectionId ?? ''} onChange={e => setForm(f => ({ ...f, ctaCollectionId: Number(e.target.value) || null }))}
@@ -2977,6 +3029,7 @@ function AnnouncementCtaFields({ form, setForm, labels, collections }: {
 function AdminSite() {
   const { t } = useTranslation();
   const [announcements, setAnnouncements] = useState<AnnouncementView[]>([]);
+  const [categories, setCategories] = useState<CategoryView[]>([]);
   const [labels, setLabels] = useState<LabelView[]>([]);
   const [collections, setCollections] = useState<CollectionView[]>([]);
   const [loading, setLoading] = useState(true);
@@ -2990,8 +3043,9 @@ function AdminSite() {
   async function load() {
     setLoading(true);
     try {
-      const [a, l, c] = await Promise.all([api.admin.announcements.list(), api.labels.list(), api.collections.list()]);
+      const [a, cat, l, c] = await Promise.all([api.admin.announcements.list(), api.categories.list(), api.labels.list(), api.collections.list()]);
       setAnnouncements(a);
+      setCategories(cat);
       setLabels(l);
       setCollections(c);
     } finally { setLoading(false); }
@@ -3049,7 +3103,7 @@ function AdminSite() {
                   <input value={editForm.textEn} onChange={e => setEditForm(f => ({ ...f, textEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                   <input value={editForm.textFr} onChange={e => setEditForm(f => ({ ...f, textFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                   <input value={editForm.textEs} onChange={e => setEditForm(f => ({ ...f, textEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
-                  <AnnouncementCtaFields form={editForm} setForm={setEditForm} labels={labels} collections={collections} />
+                  <AnnouncementCtaFields form={editForm} setForm={setEditForm} categories={categories} labels={labels} collections={collections} />
                   <div className="flex items-center gap-4 pt-1">
                     <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
                       <input type="checkbox" checked={editForm.active} onChange={e => setEditForm(f => ({ ...f, active: e.target.checked }))} />
@@ -3087,7 +3141,7 @@ function AdminSite() {
         <input value={newForm.textEn} onChange={e => setNewForm(f => ({ ...f, textEn: e.target.value }))} placeholder={`${t('admin.site.textPlaceholder')} (EN)`} className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
         <input value={newForm.textFr} onChange={e => setNewForm(f => ({ ...f, textFr: e.target.value }))} placeholder={`${t('admin.site.textPlaceholder')} (FR)`} className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
         <input value={newForm.textEs} onChange={e => setNewForm(f => ({ ...f, textEs: e.target.value }))} placeholder={`${t('admin.site.textPlaceholder')} (ES)`} className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
-        <AnnouncementCtaFields form={newForm} setForm={setNewForm} labels={labels} collections={collections} />
+        <AnnouncementCtaFields form={newForm} setForm={setNewForm} categories={categories} labels={labels} collections={collections} />
         <button type="submit" className="text-xs uppercase tracking-widest border border-dark bg-dark text-white px-4 py-2 hover:bg-gold transition-colors">{t('admin.site.add')}</button>
       </form>
     </div>

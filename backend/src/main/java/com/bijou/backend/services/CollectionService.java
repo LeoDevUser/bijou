@@ -51,7 +51,7 @@ public class CollectionService {
                 a.getSubheaderEn(), a.getSubheaderFr(), a.getSubheaderEs(),
                 a.getTaglineEn(), a.getTaglineFr(), a.getTaglineEs(),
                 a.getColor(), a.getHeaderColor(), a.getSubheaderColor(), a.getTaglineColor(),
-                a.getCtaCategory(), a.getCtaLabelId());
+                List.copyOf(a.getCtaCategoryIds()), List.copyOf(a.getCtaLabelIds()));
     }
 
     private CollectionThemeView toThemeView(com.bijou.backend.entities.CollectionTheme t) {
@@ -237,8 +237,10 @@ public class CollectionService {
         asset.setHeaderColor(req.headerColor());
         asset.setSubheaderColor(req.subheaderColor());
         asset.setTaglineColor(req.taglineColor());
-        asset.setCtaCategory(req.ctaCategory());
-        asset.setCtaLabelId(req.ctaLabelId());
+        asset.getCtaCategoryIds().clear();
+        if (req.ctaCategoryIds() != null) asset.getCtaCategoryIds().addAll(req.ctaCategoryIds());
+        asset.getCtaLabelIds().clear();
+        if (req.ctaLabelIds() != null) asset.getCtaLabelIds().addAll(req.ctaLabelIds());
         log.info("updated text for collection #{} slot {}", collectionId, slot);
         return toAssetView(collectionSiteAssetRepository.save(asset));
     }

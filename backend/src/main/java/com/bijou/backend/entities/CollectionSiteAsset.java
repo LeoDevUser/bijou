@@ -1,6 +1,11 @@
 package com.bijou.backend.entities;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -59,6 +64,18 @@ public class CollectionSiteAsset {
     private String headerColor;
     private String subheaderColor;
     private String taglineColor;
-    private String ctaCategory;
-    private Long ctaLabelId;
+
+    /** Categories the CTA links to (item category ids). Empty = no category filter. */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "collection_asset_cta_categories", joinColumns = @JoinColumn(name = "asset_id"))
+    @Column(name = "category_id")
+    @Builder.Default
+    private List<Long> ctaCategoryIds = new ArrayList<>();
+
+    /** Labels the CTA links to (label ids). Empty = no label filter. */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "collection_asset_cta_labels", joinColumns = @JoinColumn(name = "asset_id"))
+    @Column(name = "label_id")
+    @Builder.Default
+    private List<Long> ctaLabelIds = new ArrayList<>();
 }

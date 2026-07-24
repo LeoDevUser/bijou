@@ -1,5 +1,7 @@
 package com.bijou.backend.services;
 
+import java.util.List;
+
 public record CollectionAssetRequest(
         String headerEn,
         String headerFr,
@@ -14,6 +16,6 @@ public record CollectionAssetRequest(
         String headerColor,
         String subheaderColor,
         String taglineColor,
-        String ctaCategory,
-        Long ctaLabelId) {
+        List<Long> ctaCategoryIds,
+        List<Long> ctaLabelIds) {
 }

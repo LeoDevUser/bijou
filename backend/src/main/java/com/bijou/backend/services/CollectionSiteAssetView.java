@@ -1,5 +1,7 @@
 package com.bijou.backend.services;
 
+import java.util.List;
+
 public record CollectionSiteAssetView(
         Long id,
         String slot,
@@ -19,6 +21,6 @@ public record CollectionSiteAssetView(
         String headerColor,
         String subheaderColor,
         String taglineColor,
-        String ctaCategory,
-        Long ctaLabelId) {
+        List<Long> ctaCategoryIds,
+        List<Long> ctaLabelIds) {
 }

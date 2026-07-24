@@ -55,7 +55,8 @@
     "sortDefault": "None",
     "sortBestselling": "Best Selling",
     "sortPriceAsc": "Price ↑",
-    "sortPriceDesc": "Price ↓"
+    "sortPriceDesc": "Price ↓",
+    "filter": "Filter"
   },
   "product": {
     "addToCart": "Add to Cart",
@@ -461,7 +462,8 @@
       "ctaNone": "No link",
       "ctaCollection": "Link to collection",
       "mediaNamePrompt": "Name this file (shown in the media library)",
-      "browseRename": "Rename"
+      "browseRename": "Rename",
+      "ctaFilter": "Link to shop filter"
     },
     "theme": {
       "title": "Color Theme",
