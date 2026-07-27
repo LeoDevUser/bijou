@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AppSettingsService {
 
     private final AppSettingsRepository repository;
+    private final StripeModeService stripeModeService;
 
     private AppSettings load() {
         return repository.findById(1L)
@@ -26,6 +27,7 @@ public class AppSettingsService {
     private AppSettingsView toView(AppSettings s) {
         return new AppSettingsView(
             s.isSmtpRelayEnabled(), s.getDisabledReason(), s.isMsiEnabled(),
+            s.isStripeLiveMode(), stripeModeService.liveConfigured(),
             s.getStandardShippingFee(), s.getExtendedShippingFee(), s.getFreeShippingThreshold());
     }
 
@@ -63,6 +65,20 @@ public class AppSettingsService {
     @Transactional(readOnly = true)
     public boolean isMsiEnabled() {
         return load().isMsiEnabled();
+    }
+
+    @Transactional
+    public AppSettingsView setStripeLiveMode(boolean live) {
+        if (live && !stripeModeService.liveConfigured()) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "STRIPE_LIVE_NOT_CONFIGURED");
+        }
+        AppSettings s = load();
+        s.setStripeLiveMode(live);
+        AppSettingsView view = toView(repository.save(s));
+        // Re-point the global Stripe SDK key now that the persisted flag has flipped.
+        stripeModeService.applyApiKey();
+        log.warn("Stripe mode switched to {}", live ? "LIVE (real charges)" : "TEST");
+        return view;
     }
 
     @Transactional(readOnly = true)

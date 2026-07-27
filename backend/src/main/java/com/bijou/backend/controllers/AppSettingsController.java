@@ -41,6 +41,12 @@ public class AppSettingsController {
         return ResponseEntity.ok(appSettingsService.setMsiEnabled(req.enabled()));
     }
 
+    @PatchMapping("/${ADMIN_PAGE}/settings/stripe-mode")
+    public ResponseEntity<AppSettingsView> toggleStripeMode(@RequestBody AppSettingsToggleRequest req) {
+        // enabled == live mode
+        return ResponseEntity.ok(appSettingsService.setStripeLiveMode(req.enabled()));
+    }
+
     @PatchMapping("/${ADMIN_PAGE}/settings/shipping")
     public ResponseEntity<AppSettingsView> updateShipping(@RequestBody ShippingConfigRequest req) {
         return ResponseEntity.ok(appSettingsService.updateShippingConfig(req));

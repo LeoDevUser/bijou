@@ -362,9 +362,16 @@ export interface AppSettings {
   smtpRelayEnabled: boolean;
   disabledReason: string | null;
   msiEnabled: boolean;
+  stripeLiveMode: boolean;
+  stripeLiveConfigured: boolean;
   standardShippingFee: number;
   extendedShippingFee: number;
   freeShippingThreshold: number;
+}
+
+export interface StripeConfig {
+  publishableKey: string;
+  liveMode: boolean;
 }
 
 export interface BrevoQuota {

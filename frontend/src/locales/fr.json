@@ -512,7 +512,14 @@
       "shippingExtended": "Zone étendue",
       "shippingThreshold": "Offerte dès",
       "shippingSave": "Enregistrer",
-      "shippingSaved": "Enregistré"
+      "shippingSaved": "Enregistré",
+      "stripeTest": "Stripe : mode TEST",
+      "stripeLive": "Stripe : mode RÉEL — paiements réels",
+      "stripeSwitchLive": "Passer en réel",
+      "stripeSwitchTest": "Revenir au test",
+      "stripeTestHint": "Mode test — aucun argent réel. Cartes de test Stripe.",
+      "stripeLiveWarning": "Le mode réel est actif. De vraies cartes sont débitées.",
+      "stripeLiveNotConfigured": "Mode réel indisponible : aucune clé Stripe réelle configurée sur le serveur."
     },
     "stock": {
       "current": "Stock actuel",

@@ -512,7 +512,14 @@
       "shippingExtended": "Extended zone",
       "shippingThreshold": "Free over",
       "shippingSave": "Save",
-      "shippingSaved": "Saved"
+      "shippingSaved": "Saved",
+      "stripeTest": "Stripe: TEST mode",
+      "stripeLive": "Stripe: LIVE mode — real charges",
+      "stripeSwitchLive": "Go live",
+      "stripeSwitchTest": "Back to test",
+      "stripeTestHint": "Test mode — no real money moves. Cards are Stripe test cards.",
+      "stripeLiveWarning": "Live mode is active. Real cards are charged real money.",
+      "stripeLiveNotConfigured": "Live mode unavailable: no live Stripe key is configured on the server."
     },
     "stock": {
       "current": "Current stock",

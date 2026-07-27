@@ -31,6 +31,9 @@ public class AppSettings {
     /** Whether MSI (Meses Sin Intereses) installment plans are offered at checkout. */
     private boolean msiEnabled;
 
+    /** When true, Stripe runs against live credentials (real charges); false = test mode. */
+    private boolean stripeLiveMode;
+
     /** Flat shipping fee (MXN) for standard-zone Mexican states. */
     private BigDecimal standardShippingFee;
 

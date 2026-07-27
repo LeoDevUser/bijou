@@ -1,4 +1,4 @@
-import type { ItemView, ItemViewVerbose, ItemRequest, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, MaterialSalesStats, ThemeConfig, TaxPreview, AppSettings, BrevoQuota, CloudinaryResourcesPage, FiscalCatalog } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, MaterialSalesStats, ThemeConfig, TaxPreview, AppSettings, StripeConfig, BrevoQuota, CloudinaryResourcesPage, FiscalCatalog } from '../types';
 import { getToken, setToken } from './tokenStore';
 
 interface LabelRequest { nameEn: string; nameFr: string; nameEs: string; }
@@ -104,6 +104,9 @@ export const api = {
   },
   theme: {
     get: () => request<ThemeConfig>('/public/theme'),
+  },
+  stripe: {
+    config: () => request<StripeConfig>('/public/stripe-config'),
   },
   fiscal: {
     catalog: () => request<FiscalCatalog>('/public/fiscal/catalog'),
@@ -358,6 +361,8 @@ export const api = {
         request<AppSettings>(`/${ADMIN}/settings/relay`, { method: 'PATCH', body: JSON.stringify({ enabled }) }),
       setMsi: (enabled: boolean) =>
         request<AppSettings>(`/${ADMIN}/settings/msi`, { method: 'PATCH', body: JSON.stringify({ enabled }) }),
+      setStripeMode: (live: boolean) =>
+        request<AppSettings>(`/${ADMIN}/settings/stripe-mode`, { method: 'PATCH', body: JSON.stringify({ enabled: live }) }),
       setShipping: (config: { standardShippingFee: number; extendedShippingFee: number; freeShippingThreshold: number }) =>
         request<AppSettings>(`/${ADMIN}/settings/shipping`, { method: 'PATCH', body: JSON.stringify(config) }),
       brevoQuota: () => request<BrevoQuota>(`/${ADMIN}/settings/brevo-quota`),

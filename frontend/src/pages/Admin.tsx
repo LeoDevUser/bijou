@@ -3484,6 +3484,14 @@ function AdminSettings() {
     finally { setToggling(false); }
   }
 
+  async function handleStripeModeToggle() {
+    if (!settings) return;
+    setToggling(true);
+    try { setSettings(await api.admin.settings.setStripeMode(!settings.stripeLiveMode)); }
+    catch { alert(t('admin.settings.stripeLiveNotConfigured')); }
+    finally { setToggling(false); }
+  }
+
   const [shipForm, setShipForm] = useState<{ standard: string; extended: string; threshold: string } | null>(null);
   const [shipSaving, setShipSaving] = useState(false);
   const [shipSaved, setShipSaved] = useState(false);
@@ -3590,6 +3598,36 @@ function AdminSettings() {
             >
               {toggling ? '...' : settings.msiEnabled ? t('admin.settings.disable') : t('admin.settings.enable')}
             </button>
+          </div>
+
+          {/* Stripe mode toggle (test / live) */}
+          <div className={`border p-4 ${settings.stripeLiveMode ? 'border-red-400 bg-red-50' : 'border-border'}`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${settings.stripeLiveMode ? 'bg-red-500' : 'bg-amber-400'}`} />
+                <span className="text-sm">
+                  {settings.stripeLiveMode ? t('admin.settings.stripeLive') : t('admin.settings.stripeTest')}
+                </span>
+              </div>
+              <button
+                onClick={handleStripeModeToggle}
+                disabled={toggling || (!settings.stripeLiveMode && !settings.stripeLiveConfigured)}
+                className={`text-xs uppercase tracking-widest border px-4 py-2 transition-colors disabled:opacity-50 cursor-pointer ${
+                  settings.stripeLiveMode
+                    ? 'border-dark bg-dark text-white hover:bg-gold hover:border-gold'
+                    : 'border-red-400 text-red-600 hover:bg-red-500 hover:text-white hover:border-red-500'
+                }`}
+              >
+                {toggling ? '...' : settings.stripeLiveMode ? t('admin.settings.stripeSwitchTest') : t('admin.settings.stripeSwitchLive')}
+              </button>
+            </div>
+            <p className="text-xs text-muted mt-2">
+              {settings.stripeLiveMode
+                ? t('admin.settings.stripeLiveWarning')
+                : settings.stripeLiveConfigured
+                  ? t('admin.settings.stripeTestHint')
+                  : t('admin.settings.stripeLiveNotConfigured')}
+            </p>
           </div>
 
           {/* Shipping fees (MXN) */}

@@ -3,7 +3,6 @@ package com.bijou.backend.services;
 import java.math.BigDecimal;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -36,8 +35,7 @@ public class PaymentService {
     private final OrderRepository orderRepository;
     private final ClientRepository clientRepository;
     private final ApplicationEventPublisher eventPublisher;
-    @Value("${stripe.webhook.secret}")
-    private String webSecret;
+    private final StripeModeService stripeModeService;
 
     /**
      * JVM-level lock that serialises Stripe customer creation per-process.
@@ -145,10 +143,18 @@ public class PaymentService {
 
     @Transactional
     public void handleWebhook(String payload, String sigHeader) {
-        Event event;
-        try {
-            event = Webhook.constructEvent(payload, sigHeader, webSecret);
-        } catch (SignatureVerificationException e) {
+        Event event = null;
+        // Verify against the active mode's secret first, then the other, so an event
+        // that arrives around a test/live switch still validates.
+        for (String secret : stripeModeService.webhookSecrets()) {
+            try {
+                event = Webhook.constructEvent(payload, sigHeader, secret);
+                break;
+            } catch (SignatureVerificationException e) {
+                // try the next configured secret
+            }
+        }
+        if (event == null) {
             log.warn("invalid stripe webhook signature");
             throw new AppException(HttpStatus.BAD_REQUEST, "WEBHOOK_SIGNATURE_INVALID");
         }

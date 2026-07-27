@@ -1,13 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe, type Stripe } from '@stripe/stripe-js';
 import { Elements, ExpressCheckoutElement, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useTranslation } from 'react-i18next';
+import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { formatMoney } from '../types';
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ?? '');
+// The publishable key must match whichever Stripe mode (test/live) the backend is
+// in, so we fetch it at runtime rather than baking it in at build time. loadStripe
+// is cached per key so a given key is only initialised once.
+const stripePromiseCache = new Map<string, Promise<Stripe | null>>();
+function getStripe(publishableKey: string): Promise<Stripe | null> {
+  let promise = stripePromiseCache.get(publishableKey);
+  if (!promise) {
+    promise = loadStripe(publishableKey);
+    stripePromiseCache.set(publishableKey, promise);
+  }
+  return promise;
+}
 
 function PaymentForm() {
   const stripe = useStripe();
@@ -102,12 +114,25 @@ export default function Payment() {
   const { t, i18n } = useTranslation();
   const { isAuthenticated, isLoading } = useAuth();
   const state = location.state as { clientSecret?: string; total?: number; installments?: number | null } | null;
+  const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
 
   useEffect(() => {
     if (isLoading) return;
     if (!isAuthenticated) navigate('/login');
     else if (!state?.clientSecret) navigate('/orders');
   }, [isLoading, isAuthenticated, state, navigate]);
+
+  useEffect(() => {
+    let cancelled = false;
+    api.stripe.config()
+      .then(cfg => { if (!cancelled && cfg.publishableKey) setStripePromise(getStripe(cfg.publishableKey)); })
+      .catch(() => {
+        // Fall back to the build-time key so checkout still works if the endpoint fails.
+        const fallback = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+        if (!cancelled && fallback) setStripePromise(getStripe(fallback));
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   if (!state?.clientSecret) return null;
 
@@ -125,12 +150,16 @@ export default function Payment() {
         </p>
       )}
       {!state.installments && <div className="mb-10" />}
-      <Elements
-        stripe={stripePromise}
-        options={{ clientSecret: state.clientSecret, appearance: { theme: 'stripe' }, locale: i18n.language as 'en' | 'es' | 'fr' }}
-      >
-        <PaymentForm />
-      </Elements>
+      {stripePromise ? (
+        <Elements
+          stripe={stripePromise}
+          options={{ clientSecret: state.clientSecret, appearance: { theme: 'stripe' }, locale: i18n.language as 'en' | 'es' | 'fr' }}
+        >
+          <PaymentForm />
+        </Elements>
+      ) : (
+        <div className="h-40 bg-[#F0EDE8] animate-pulse" />
+      )}
     </div>
   );
 }
