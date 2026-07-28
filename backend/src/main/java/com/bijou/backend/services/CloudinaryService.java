@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,13 +32,23 @@ public class CloudinaryService {
 
     private final Cloudinary cloudinary;
     private final MediaAssetNameRepository mediaAssetNameRepository;
+    private final VideoTranscodeService videoTranscodeService;
     private static final Set<String> ALLOWED_IMAGE_TYPES = new HashSet<>(List.of("image/png", "image/jpeg", "image/webp"));
     private static final Set<String> ALLOWED_VIDEO_TYPES = new HashSet<>(List.of("video/mp4", "video/webm", "video/quicktime"));
     // Well above any real product photo, and above Cloudinary's own per-image cap.
     private static final long MAX_IMAGE_BYTES = 25L * 1024 * 1024;
-    // Cloudinary's single-request upload endpoint tops out at 100MB.
-    private static final long MAX_VIDEO_BYTES = 100L * 1024 * 1024;
+    private static final long MAX_VIDEO_BYTES = 250L * 1024 * 1024;
     private static final long MAX_PDF_BYTES = 10L * 1024 * 1024;
+
+    /**
+     * Size past which a video is re-encoded before upload. Defaults to the accepted
+     * maximum, i.e. off: Cloudinary compresses hard on delivery anyway (a 102MB
+     * source comes back through q_auto,vc_h264 at ~8MB), so re-encoding first only
+     * degrades the master. Lower it if Cloudinary starts rejecting large uploads —
+     * the transcode is a way past its ceiling, not a bandwidth optimisation.
+     */
+    @Value("${video.transcode.above-mb:250}")
+    private long transcodeAboveMb;
 
     /**
      * Admin-provided display name → Cloudinary public_id. Slugified so it is
@@ -82,6 +93,26 @@ public class CloudinaryService {
         return options;
     }
 
+    /**
+     * Upload, turning a Cloudinary refusal into an error the admin can act on.
+     *
+     * The uploader signals a rejected upload with a bare RuntimeException carrying
+     * the server's explanation ("File size too large. Got 157286400. Maximum is
+     * 104857600."). Uncaught it surfaces as a blank 500, so the message is passed
+     * through as the error detail — it names the real limit, which is the one thing
+     * we cannot infer from here.
+     */
+    private Map<?, ?> uploadOrExplain(Object payload, Map<?, ?> options, String code) throws IOException {
+        try {
+            return cloudinary.uploader().upload(payload, options);
+        } catch (AppException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            log.error("cloudinary rejected the upload: {}", e.getMessage());
+            throw new AppException(HttpStatus.UNPROCESSABLE_CONTENT, code, e.getMessage());
+        }
+    }
+
     /** Upsert the display name stored in our DB for a Cloudinary asset. */
     public void setDisplayName(String publicId, String resourceType, String name) {
         if (name == null || name.isBlank()) return;
@@ -117,7 +148,7 @@ public class CloudinaryService {
         }
 
         try {
-            Map<?,?> res = cloudinary.uploader().upload(file.getBytes(), uploadOptions(name, null));
+            Map<?,?> res = uploadOrExplain(file.getBytes(), uploadOptions(name, null), "IMAGE_UPLOAD_FAILED");
             log.info("uploaded new image");
             setDisplayName((String) res.get("public_id"), "image", name);
             return new CloudinaryResponse(
@@ -149,19 +180,21 @@ public class CloudinaryService {
         }
 
         if (file.getSize() > MAX_VIDEO_BYTES) {
-            log.warn("video exceeds 100MB limit");
+            log.warn("video exceeds 250MB limit");
             throw new AppException(HttpStatus.BAD_REQUEST, "VIDEO_TOO_LARGE");
         }
 
-        // Spooled to disk rather than read through file.getBytes(): a 100MB video
-        // as a single byte[] is a heap spike the container can't always absorb.
-        Path temp = null;
+        // Spooled to disk rather than read through file.getBytes(): a 250MB video
+        // as a single byte[] is a heap spike the container can't absorb.
+        Path source = null;
+        Path upload = null;
         try {
-            temp = Files.createTempFile("bijou-video-", ".tmp");
+            source = Files.createTempFile("bijou-video-", ".tmp");
             try (InputStream in = file.getInputStream()) {
-                Files.copy(in, temp, StandardCopyOption.REPLACE_EXISTING);
+                Files.copy(in, source, StandardCopyOption.REPLACE_EXISTING);
             }
-            Map<?,?> res = cloudinary.uploader().upload(temp.toFile(), uploadOptions(name, "video"));
+            upload = videoTranscodeService.compressToUnder(source, transcodeAboveMb * 1024 * 1024);
+            Map<?,?> res = uploadOrExplain(upload.toFile(), uploadOptions(name, "video"), "VIDEO_UPLOAD_FAILED");
             log.info("uploaded new video");
             setDisplayName((String) res.get("public_id"), "video", name);
             return new CloudinaryResponse(
@@ -174,13 +207,18 @@ public class CloudinaryService {
             log.error("error uploading video: {}", e.getMessage());
             throw new AppException(HttpStatus.UNPROCESSABLE_CONTENT, "VIDEO_UPLOAD_FAILED");
         } finally {
-            if (temp != null) {
-                try {
-                    Files.deleteIfExists(temp);
-                } catch (IOException e) {
-                    log.warn("could not delete temp video file {}: {}", temp, e.getMessage());
-                }
-            }
+            // compressToUnder hands back the source untouched when nothing was needed.
+            if (upload != null && !upload.equals(source)) deleteQuietly(upload);
+            deleteQuietly(source);
+        }
+    }
+
+    private void deleteQuietly(Path path) {
+        if (path == null) return;
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException e) {
+            log.warn("could not delete temp file {}: {}", path, e.getMessage());
         }
     }
 
@@ -201,8 +239,8 @@ public class CloudinaryService {
         }
 
         try {
-            Map<?,?> res = cloudinary.uploader().upload(file.getBytes(),
-                ObjectUtils.asMap("resource_type", "raw", "format", "pdf"));
+            Map<?,?> res = uploadOrExplain(file.getBytes(),
+                ObjectUtils.asMap("resource_type", "raw", "format", "pdf"), "PDF_UPLOAD_FAILED");
             log.info("uploaded factura PDF");
             return new CloudinaryResponse(
                 (String) res.get("public_id"),
@@ -241,15 +279,7 @@ public class CloudinaryService {
             List<CloudinaryResourceView> resources = new ArrayList<>();
             for (Object raw : rawResources) {
                 Map<?, ?> r = (Map<?, ?>) raw;
-                String publicId = (String) r.get("public_id");
-                resources.add(new CloudinaryResourceView(
-                        publicId,
-                        (String) r.get("resource_type"),
-                        (String) r.get("format"),
-                        r.get("bytes") instanceof Number n ? n.longValue() : 0L,
-                        (String) r.get("created_at"),
-                        (String) r.get("secure_url"),
-                        displayNames.get(publicId)));
+                resources.add(toResourceView(r, displayNames.get((String) r.get("public_id"))));
             }
             String cursor = (String) result.get("next_cursor");
             log.info("listed {} {} resources", resources.size(), resourceType);
@@ -258,6 +288,17 @@ public class CloudinaryService {
             log.error("error listing cloudinary resources: {}", e.getMessage());
             throw new AppException(org.springframework.http.HttpStatus.UNPROCESSABLE_CONTENT, "CLOUDINARY_LIST_FAILED");
         }
+    }
+
+    private CloudinaryResourceView toResourceView(Map<?, ?> r, String displayName) {
+        return new CloudinaryResourceView(
+                (String) r.get("public_id"),
+                (String) r.get("resource_type"),
+                (String) r.get("format"),
+                r.get("bytes") instanceof Number n ? n.longValue() : 0L,
+                (String) r.get("created_at"),
+                (String) r.get("secure_url"),
+                displayName);
     }
 
     public void delete(String imageId, String resourceType) {

@@ -22,12 +22,18 @@ function promptMediaName(file: File, promptText: string): string {
 // server's multipart limit is cut off mid-flight — the browser reports a protocol
 // error and never receives the 413 explaining why.
 const MAX_IMAGE_MB = 25;
-const MAX_VIDEO_MB = 100;
+const MAX_VIDEO_MB = 250;
 
 /** MB cap for a file, or 0 when it is within its limit. */
 function overSizeLimitMb(file: File): number {
   const limit = file.type.startsWith('video/') ? MAX_VIDEO_MB : MAX_IMAGE_MB;
   return file.size > limit * 1024 * 1024 ? limit : 0;
+}
+
+function formatSize(bytes: number): string {
+  return bytes >= 1024 * 1024
+    ? `${(bytes / 1024 / 1024).toFixed(1)} MB`
+    : `${(bytes / 1024).toFixed(0)} KB`;
 }
 
 // ── Color utilities ───────────────────────────────────────────────────────────
@@ -2016,7 +2022,7 @@ function CloudinaryBrowserModal({ onSelect, onClose }: {
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-mono truncate">{resource.displayName ?? resource.publicId}</p>
                 <p className="text-xs text-muted mt-0.5">
-                  {resource.format.toUpperCase()} · {(resource.bytes / 1024).toFixed(0)} KB · {resource.createdAt?.slice(0, 10)}
+                  {resource.format.toUpperCase()} · {formatSize(resource.bytes)} · {resource.createdAt?.slice(0, 10)}
                 </p>
               </div>
               <div className="flex gap-2 shrink-0">
@@ -2126,8 +2132,10 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, o
     try {
       const updated = await api.admin.collections.uploadAssetImage(collectionId, slot, file, name);
       onUpdate(updated);
-    } catch {
-      alert(t('admin.site.uploadFailed'));
+    } catch (e) {
+      // Cloudinary's own explanation when it has one — it names the real limit,
+      // which is more use than anything we can say generically.
+      alert((e as { detail?: string })?.detail ?? t('admin.site.uploadFailed'));
     } finally { setUploading(null); }
   }
 

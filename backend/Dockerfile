@@ -16,6 +16,11 @@ RUN ./mvnw package -DskipTests -B -q
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
+# Oversized hero/editorial videos are re-encoded here before they go to Cloudinary
+# (VideoTranscodeService) — Cloudinary refuses to transform a large source, and
+# every video is delivered through a transformation.
+RUN apk add --no-cache ffmpeg
+
 # Non-root user for security
 RUN addgroup -S bijou && adduser -S bijou -G bijou
 
