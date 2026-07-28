@@ -463,7 +463,9 @@
       "ctaCollection": "Lien vers une collection",
       "mediaNamePrompt": "Nommez ce fichier (visible dans la bibliothèque de médias)",
       "browseRename": "Renommer",
-      "ctaFilter": "Lien vers un filtre boutique"
+      "ctaFilter": "Lien vers un filtre boutique",
+      "fileTooLarge": "« {{name}} » est trop volumineux — la limite est de {{max}} Mo.",
+      "uploadFailed": "Échec de l'envoi. Vérifiez la taille et le format du fichier, puis réessayez."
     },
     "theme": {
       "title": "Thème de Couleur",

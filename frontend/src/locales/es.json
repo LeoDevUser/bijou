@@ -463,7 +463,9 @@
       "ctaCollection": "Enlace a colección",
       "mediaNamePrompt": "Nombra este archivo (visible en la biblioteca de medios)",
       "browseRename": "Renombrar",
-      "ctaFilter": "Enlace a filtro de tienda"
+      "ctaFilter": "Enlace a filtro de tienda",
+      "fileTooLarge": "«{{name}}» es demasiado grande — el límite es de {{max}} MB.",
+      "uploadFailed": "Error al subir. Revisa el tamaño y el formato del archivo e inténtalo de nuevo."
     },
     "theme": {
       "title": "Tema de Color",

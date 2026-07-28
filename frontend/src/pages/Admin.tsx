@@ -18,6 +18,18 @@ function promptMediaName(file: File, promptText: string): string {
   return (entered ?? fallback).trim() || fallback;
 }
 
+// Mirrors the caps in CloudinaryService. Checked here too because a body over the
+// server's multipart limit is cut off mid-flight — the browser reports a protocol
+// error and never receives the 413 explaining why.
+const MAX_IMAGE_MB = 25;
+const MAX_VIDEO_MB = 100;
+
+/** MB cap for a file, or 0 when it is within its limit. */
+function overSizeLimitMb(file: File): number {
+  const limit = file.type.startsWith('video/') ? MAX_VIDEO_MB : MAX_IMAGE_MB;
+  return file.size > limit * 1024 * 1024 ? limit : 0;
+}
+
 // ── Color utilities ───────────────────────────────────────────────────────────
 
 function parseColorToRgba(value: string): [number, number, number, number] {
@@ -929,7 +941,12 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
   // Queue newly picked files for upload on save. Appends rather than replaces, so
   // the admin can add media in several passes instead of one giant selection.
   function addPendingFiles(files: File[]) {
-    const entries = files.map(file => ({
+    const accepted = files.filter(file => {
+      const limit = overSizeLimitMb(file);
+      if (limit) alert(t('admin.site.fileTooLarge', { name: file.name, max: limit }));
+      return !limit;
+    });
+    const entries = accepted.map(file => ({
       file,
       name: promptMediaName(file, t('admin.site.mediaNamePrompt')),
       url: URL.createObjectURL(file),
@@ -1842,8 +1859,13 @@ function CollectionFormModal({
             accept="image/png,image/jpeg,image/webp,video/mp4,video/webm,video/quicktime"
             className="hidden"
             onChange={e => {
-              setPickedMedia(null);
               const f = e.target.files?.[0] ?? null;
+              e.target.value = '';
+              if (f) {
+                const limit = overSizeLimitMb(f);
+                if (limit) { alert(t('admin.site.fileTooLarge', { name: f.name, max: limit })); return; }
+              }
+              setPickedMedia(null);
               setFile(f);
               setFileName(f ? promptMediaName(f, t('admin.site.mediaNamePrompt')) : null);
             }}
@@ -2104,6 +2126,8 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, o
     try {
       const updated = await api.admin.collections.uploadAssetImage(collectionId, slot, file, name);
       onUpdate(updated);
+    } catch {
+      alert(t('admin.site.uploadFailed'));
     } finally { setUploading(null); }
   }
 
@@ -2170,7 +2194,14 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, o
                     type="file"
                     accept="image/png,image/jpeg,image/webp,video/mp4,video/webm,video/quicktime"
                     className="hidden"
-                    onChange={e => { const f = e.target.files?.[0]; if (f) handleUpload(slot, f, promptMediaName(f, t('admin.site.mediaNamePrompt'))); e.target.value = ''; }}
+                    onChange={e => {
+                      const f = e.target.files?.[0];
+                      e.target.value = '';
+                      if (!f) return;
+                      const limit = overSizeLimitMb(f);
+                      if (limit) { alert(t('admin.site.fileTooLarge', { name: f.name, max: limit })); return; }
+                      handleUpload(slot, f, promptMediaName(f, t('admin.site.mediaNamePrompt')));
+                    }}
                   />
                 </label>
                 <button

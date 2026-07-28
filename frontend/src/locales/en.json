@@ -463,7 +463,9 @@
       "ctaCollection": "Link to collection",
       "mediaNamePrompt": "Name this file (shown in the media library)",
       "browseRename": "Rename",
-      "ctaFilter": "Link to shop filter"
+      "ctaFilter": "Link to shop filter",
+      "fileTooLarge": "\"{{name}}\" is too large — the limit is {{max}}MB.",
+      "uploadFailed": "Upload failed. Check the file size and format, then try again."
     },
     "theme": {
       "title": "Color Theme",

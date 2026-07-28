@@ -1,6 +1,10 @@
 package com.bijou.backend.services;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -29,7 +33,10 @@ public class CloudinaryService {
     private final MediaAssetNameRepository mediaAssetNameRepository;
     private static final Set<String> ALLOWED_IMAGE_TYPES = new HashSet<>(List.of("image/png", "image/jpeg", "image/webp"));
     private static final Set<String> ALLOWED_VIDEO_TYPES = new HashSet<>(List.of("video/mp4", "video/webm", "video/quicktime"));
-    private static final long MAX_VIDEO_BYTES = 50L * 1024 * 1024;
+    // Well above any real product photo, and above Cloudinary's own per-image cap.
+    private static final long MAX_IMAGE_BYTES = 25L * 1024 * 1024;
+    // Cloudinary's single-request upload endpoint tops out at 100MB.
+    private static final long MAX_VIDEO_BYTES = 100L * 1024 * 1024;
     private static final long MAX_PDF_BYTES = 10L * 1024 * 1024;
 
     /**
@@ -104,6 +111,11 @@ public class CloudinaryService {
             throw new AppException(HttpStatus.BAD_REQUEST, "IMAGE_FORMAT_INVALID");
         }
 
+        if (file.getSize() > MAX_IMAGE_BYTES) {
+            log.warn("image exceeds 25MB limit");
+            throw new AppException(HttpStatus.BAD_REQUEST, "IMAGE_TOO_LARGE");
+        }
+
         try {
             Map<?,?> res = cloudinary.uploader().upload(file.getBytes(), uploadOptions(name, null));
             log.info("uploaded new image");
@@ -137,12 +149,19 @@ public class CloudinaryService {
         }
 
         if (file.getSize() > MAX_VIDEO_BYTES) {
-            log.warn("video exceeds 50MB limit");
+            log.warn("video exceeds 100MB limit");
             throw new AppException(HttpStatus.BAD_REQUEST, "VIDEO_TOO_LARGE");
         }
 
+        // Spooled to disk rather than read through file.getBytes(): a 100MB video
+        // as a single byte[] is a heap spike the container can't always absorb.
+        Path temp = null;
         try {
-            Map<?,?> res = cloudinary.uploader().upload(file.getBytes(), uploadOptions(name, "video"));
+            temp = Files.createTempFile("bijou-video-", ".tmp");
+            try (InputStream in = file.getInputStream()) {
+                Files.copy(in, temp, StandardCopyOption.REPLACE_EXISTING);
+            }
+            Map<?,?> res = cloudinary.uploader().upload(temp.toFile(), uploadOptions(name, "video"));
             log.info("uploaded new video");
             setDisplayName((String) res.get("public_id"), "video", name);
             return new CloudinaryResponse(
@@ -154,6 +173,14 @@ public class CloudinaryService {
         } catch (IOException e) {
             log.error("error uploading video: {}", e.getMessage());
             throw new AppException(HttpStatus.UNPROCESSABLE_CONTENT, "VIDEO_UPLOAD_FAILED");
+        } finally {
+            if (temp != null) {
+                try {
+                    Files.deleteIfExists(temp);
+                } catch (IOException e) {
+                    log.warn("could not delete temp video file {}: {}", temp, e.getMessage());
+                }
+            }
         }
     }
 
