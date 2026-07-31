@@ -45,6 +45,20 @@ public class LabelService {
     }
 
     @Transactional
+    public LabelView update(Long id, LabelRequest req) {
+        Label label = labelRepository.findById(id)
+            .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "LABEL_NOT_FOUND"));
+        // Renaming only — the label keeps its id, so every item and collection
+        // already tagged with it follows the new name.
+        label.setNameEn(req.nameEn());
+        label.setNameFr(req.nameFr());
+        label.setNameEs(req.nameEs());
+        labelRepository.save(label);
+        log.info("updated label #{} ({})", id, label.getNameEn());
+        return toView(label);
+    }
+
+    @Transactional
     public void delete(Long id) {
         Label label = labelRepository.findById(id)
             .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "LABEL_NOT_FOUND"));

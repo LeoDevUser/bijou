@@ -133,7 +133,7 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(data),
       }),
-    taxPreview: (data: { items: { itemId: number; sizeId?: number | null; quantity: number }[]; country: string; currency: string; state?: string | null }) =>
+    taxPreview: (data: { items: { itemId: number; sizeId?: number | null; quantity: number }[]; country: string; currency: string; state?: string | null; facturaRequested: boolean }) =>
       request<TaxPreview>('/api/orders/preview', { method: 'POST', body: JSON.stringify(data) }),
     cancel: (id: number) =>
       request<void>(`/api/orders/${id}/cancel`, { method: 'PATCH' }),
@@ -238,12 +238,16 @@ export const api = {
     labels: {
       create: (req: LabelRequest) =>
         request<LabelView>(`/${ADMIN}/labels`, { method: 'POST', body: JSON.stringify(req) }),
+      update: (id: number, req: LabelRequest) =>
+        request<LabelView>(`/${ADMIN}/labels/${id}`, { method: 'PATCH', body: JSON.stringify(req) }),
       delete: (id: number) =>
         request<void>(`/${ADMIN}/labels/${id}`, { method: 'DELETE' }),
     },
     categories: {
       create: (req: CategoryRequest) =>
         request<CategoryView>(`/${ADMIN}/categories`, { method: 'POST', body: JSON.stringify(req) }),
+      update: (id: number, req: CategoryRequest) =>
+        request<CategoryView>(`/${ADMIN}/categories/${id}`, { method: 'PATCH', body: JSON.stringify(req) }),
       delete: (id: number) =>
         request<void>(`/${ADMIN}/categories/${id}`, { method: 'DELETE' }),
     },

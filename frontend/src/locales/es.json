@@ -100,7 +100,7 @@
     "tooltip": {
       "dutyUs": "Arancel aduanal para envíos a EE.UU.: tasa según material + 15% de recargo Sección 122 en artículos no-TLCAN. Se agrega un margen del 3% para cubrir fluctuaciones cambiarias.",
       "dutyCa": "Arancel NMF del 8.5% en artículos no-TLCAN. Se agrega un margen del 3% para cubrir fluctuaciones cambiarias.",
-      "taxMx": "El IVA del 16% aplica a joyería de plata y acero. La joyería de oro está exenta.",
+      "taxMx": "El IVA del 16% aplica a joyería de plata y acero. La joyería de oro queda exenta únicamente si solicitas factura (CFDI); sin factura se cobra el 16% como cualquier otra pieza.",
       "taxCa": "GST/HST del 13% aplicado sobre el valor de tu pedido incluidos los aranceles.",
       "handling": "Este cargo cubre el prepago garantizado de todos los aranceles e impuestos fronterizos. Al pagarlo ahora, tu paquete pasará la aduana automáticamente, sin cargos adicionales ni retrasos en la entrega."
     },
@@ -123,8 +123,12 @@
       "notice": "Tu RFC y régimen fiscal se guardarán para futuros pedidos. La factura se enviará a tu correo una vez confirmado tu pedido.",
       "rfc": "RFC",
       "regimen": "Régimen fiscal",
-      "uso": "Uso de CFDI"
-    }
+      "uso": "Uso de CFDI",
+      "goldPrompt": "Tu pedido incluye joyería de oro. El oro queda exento de IVA sólo con factura: marca la casilla de arriba y se descuentan {{amount}} de IVA de tu total.",
+      "goldWaived": "La joyería de oro queda exenta de IVA con factura: se descontaron {{amount}} de este pedido."
+    },
+    "goldExemptNote": "No incluye {{amount}} de IVA sobre joyería de oro, exenta por haber solicitado factura.",
+    "goldTaxedNote": "Incluye {{amount}} de IVA sobre joyería de oro. Solicita factura arriba y queda exenta."
   },
   "payment": {
     "title": "Pago",
@@ -289,7 +293,8 @@
       "confirmDelete": "¿Eliminar esta talla?",
       "newHeading": "Nueva talla",
       "originalHeading": "Original — este producto",
-      "firstHint": "Agregar una talla también convierte los valores actuales del producto en una talla. Nómbrala y luego agrega la nueva."
+      "firstHint": "Agregar una talla también convierte los valores actuales del producto en una talla. Nómbrala y luego agrega la nueva.",
+      "withTaxSuffix": "(c/IVA)"
     },
     "stats": {
       "overallTitle": "Ingresos Generales",
@@ -353,7 +358,13 @@
       "dynamicPricePreview": "Precio calculado de hoy",
       "dynamicPriceUnavailable": "Fuente del precio del metal no disponible — se usará el precio fijo hasta que se recupere.",
       "dynamicWork": "Trabajo (w, MXN/g)",
-      "dynamicWholesalePreview": "Precio de mayoreo (sin markup)"
+      "dynamicWholesalePreview": "Precio de mayoreo (sin markup)",
+      "priceWithTax": "Precio (IVA incluido)",
+      "priceIncludesTax": "Precio capturado con IVA del 16%",
+      "priceTaxHint": "Captura el precio que paga el cliente con IVA incluido; se guarda la base gravable.",
+      "priceNet": "Base gravable",
+      "priceIva": "IVA",
+      "priceGoldNote": "Oro: el cliente que solicita factura paga la base de ${{net}} — el IVA sólo se cobra sin factura."
     },
     "users": {
       "sortByMoney": "Por Dinero Gastado",
@@ -585,7 +596,7 @@
     },
     "q4": {
       "q": "¿Los precios incluyen impuestos?",
-      "a": "El IVA aplicable (16%; la joyería de oro está exenta) se calcula y desglosa en el checkout antes de confirmar tu pago. Al ser envíos nacionales, no existen cargos aduanales ni aranceles de importación."
+      "a": "El IVA aplicable (16%) se calcula y desglosa en el checkout antes de confirmar tu pago. La joyería de oro queda exenta de IVA únicamente si solicitas factura (CFDI) en el checkout; sin factura se cobra el 16% estándar. Al ser envíos nacionales, no existen cargos aduanales ni aranceles de importación."
     },
     "q5": {
       "q": "¿Qué métodos de pago aceptan?",

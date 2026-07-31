@@ -54,7 +54,10 @@ import com.bijou.backend.entities.OrderItem;
  *
  * ─── Mexico (domestic) ───────────────────────────────────────────────────────
  * Silver / Steel / Other: 16 % IVA.
- * Gold: 0 % IVA — domestic gold jewelry exemption.
+ * Gold: 0 % IVA — but ONLY when the client requests a factura (CFDI) for the
+ *   order. The domestic gold exemption has to be backed by an invoice; a sale
+ *   with no factura is treated as a regular 16 % IVA sale. So the same gold
+ *   piece costs 16 % less to a client who asks for a factura.
  * Export orders carry 0 % IVA and are handled in a separate flow.
  */
 @Service
@@ -136,7 +139,22 @@ public class TaxService {
 
     // ── Mexico ────────────────────────────────────────────────────────────────
 
-    private static final BigDecimal MX_IVA_STANDARD = new BigDecimal("0.16");
+    public static final BigDecimal MX_IVA_STANDARD = new BigDecimal("0.16");
+
+    /**
+     * Backs the 16 % IVA out of a tax-inclusive MXN amount.
+     *
+     * <p>Used when the admin enters a price the way the client will see it billed
+     * (IVA already applied) — items always store the net price, because IVA is
+     * assessed per order at checkout and can be waived (gold + factura).</p>
+     *
+     * <p>2-decimal rounding means the round trip is not always exact: a $500.00
+     * tax-inclusive entry nets $431.03, which bills back at $499.99. The admin UI
+     * shows the resulting breakdown so the cent is never a surprise.</p>
+     */
+    public static BigDecimal netFromTaxInclusive(BigDecimal grossMxn) {
+        return grossMxn.divide(BigDecimal.ONE.add(MX_IVA_STANDARD), 2, RoundingMode.HALF_UP);
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -155,20 +173,24 @@ public class TaxService {
      *
      * <p>All monetary inputs and outputs are in MXN.</p>
      *
-     * @param orderItems items in the order — each carries {@code material} and
-     *                   {@code usmcaQualified} on the item entity
-     * @param country    destination country
-     * @param subtotal   pre-tax order subtotal in MXN
+     * @param orderItems       items in the order — each carries {@code material}
+     *                         and {@code usmcaQualified} on the item entity
+     * @param country          destination country
+     * @param subtotal         pre-tax order subtotal in MXN
+     * @param facturaRequested whether the client asked for a factura (CFDI).
+     *                         Mexico only: gold is IVA-exempt only when true.
      * @return a {@link TaxResult} with duty, tax, and handling amounts (all MXN)
      */
     public TaxResult calculate(
             List<OrderItem> orderItems,
             Country country,
-            BigDecimal subtotal) {
+            BigDecimal subtotal,
+            boolean facturaRequested) {
 
-        BigDecimal duty     = BigDecimal.ZERO;
-        BigDecimal tax      = BigDecimal.ZERO;
-        BigDecimal handling = BigDecimal.ZERO;
+        BigDecimal duty            = BigDecimal.ZERO;
+        BigDecimal tax             = BigDecimal.ZERO;
+        BigDecimal handling        = BigDecimal.ZERO;
+        BigDecimal goldIvaWaivable = BigDecimal.ZERO;
 
         switch (country) {
             case UNITED_STATES -> {
@@ -180,13 +202,17 @@ public class TaxService {
                 tax      = calcCaGst(subtotal.add(duty));
                 handling = intlHandlingFeeMxn(subtotal);
             }
-            case MEXICO -> tax = calcMxIva(orderItems);
+            case MEXICO -> {
+                tax             = calcMxIva(orderItems, facturaRequested);
+                goldIvaWaivable = calcMxGoldIva(orderItems);
+            }
         }
 
         return new TaxResult(
-                duty    .setScale(2, RoundingMode.HALF_UP),
-                tax     .setScale(2, RoundingMode.HALF_UP),
-                handling.setScale(2, RoundingMode.HALF_UP)
+                duty           .setScale(2, RoundingMode.HALF_UP),
+                tax            .setScale(2, RoundingMode.HALF_UP),
+                handling       .setScale(2, RoundingMode.HALF_UP),
+                goldIvaWaivable.setScale(2, RoundingMode.HALF_UP)
         );
     }
 
@@ -302,21 +328,44 @@ public class TaxService {
 
     // ── Mexico (domestic) ─────────────────────────────────────────────────────
 
-    private BigDecimal calcMxIva(List<OrderItem> orderItems) {
+    private BigDecimal calcMxIva(List<OrderItem> orderItems, boolean facturaRequested) {
         BigDecimal total = BigDecimal.ZERO;
         for (OrderItem oi : orderItems) {
-            BigDecimal ivaRate = mxIvaRate(oi.getItem().getMaterial());
+            BigDecimal ivaRate = mxIvaRate(oi.getItem().getMaterial(), facturaRequested);
             if (ivaRate.compareTo(BigDecimal.ZERO) == 0) continue;
-            BigDecimal itemValueMxn = oi.getUnitPrice()
-                    .multiply(BigDecimal.valueOf(oi.getQuantity()));
-            total = total.add(itemValueMxn.multiply(ivaRate));
+            total = total.add(lineValueMxn(oi).multiply(ivaRate));
         }
         return total;
     }
 
-    private BigDecimal mxIvaRate(JewelryMaterial material) {
+    /**
+     * IVA charged on the gold lines of a domestic order at the standard 16 %.
+     *
+     * <p>This is the amount a factura removes from the order: it is what the
+     * client is currently being charged on gold when no factura is requested,
+     * and what they are saving when one is. Reported alongside the tax so the
+     * checkout can spell the trade-off out instead of silently repricing.</p>
+     */
+    private BigDecimal calcMxGoldIva(List<OrderItem> orderItems) {
+        BigDecimal total = BigDecimal.ZERO;
+        for (OrderItem oi : orderItems) {
+            if (oi.getItem().getMaterial() != JewelryMaterial.GOLD) continue;
+            total = total.add(lineValueMxn(oi).multiply(MX_IVA_STANDARD));
+        }
+        return total;
+    }
+
+    private BigDecimal lineValueMxn(OrderItem oi) {
+        return oi.getUnitPrice().multiply(BigDecimal.valueOf(oi.getQuantity()));
+    }
+
+    /**
+     * Gold is exempt only against a factura — see the class javadoc. Without one
+     * the sale is an ordinary 16 % IVA sale like any other material.
+     */
+    private BigDecimal mxIvaRate(JewelryMaterial material, boolean facturaRequested) {
         return switch (material) {
-            case GOLD              -> BigDecimal.ZERO;  // 0 % — domestic gold jewelry exemption
+            case GOLD                 -> facturaRequested ? BigDecimal.ZERO : MX_IVA_STANDARD;
             case SILVER, STEEL, OTHER -> MX_IVA_STANDARD; // 16 %
         };
     }

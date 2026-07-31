@@ -524,7 +524,9 @@ function AdminOrders() {
 interface ItemFormData {
   nameEn: string; nameFr: string; nameEs: string;
   descriptionEn: string; descriptionFr: string; descriptionEs: string;
+  /** Always the number as shown under the current tax mode — see priceIncludesTax. */
   price: string;
+  priceIncludesTax: boolean;
   stock: string;
   discountPercent: string;
   categoryIds: number[];
@@ -540,10 +542,30 @@ interface ItemFormData {
 const emptyForm: ItemFormData = {
   nameEn: '', nameFr: '', nameEs: '',
   descriptionEn: '', descriptionFr: '', descriptionEs: '',
-  price: '', stock: '', discountPercent: '', categoryIds: [], labelIds: [],
+  price: '', priceIncludesTax: false, stock: '', discountPercent: '', categoryIds: [], labelIds: [],
   material: 'SILVER', usmcaQualified: false, weightGrams: '',
   pricingFormula: 'NONE', pricingWork: '', pricingMargin: '',
 };
+
+/** IVA the storefront assesses on domestic orders. Mirrors TaxService.MX_IVA_STANDARD. */
+const IVA_RATE = 0.16;
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/** Net (stored) price → the figure an admin working in tax-inclusive mode types. */
+const toGross = (net: number) => round2(net * (1 + IVA_RATE));
+
+/**
+ * What checkout will actually bill for a tax-inclusive entry, rounding exactly as
+ * the backend does. Backing IVA out and adding it again at 2 decimals can land a
+ * cent below the entered figure ($500.00 → $431.03 net → $499.99), so the modal
+ * shows the real breakdown rather than echoing what was typed.
+ */
+function taxBreakdown(gross: number) {
+  const net = round2(gross / (1 + IVA_RATE));
+  const iva = round2(net * IVA_RATE);
+  return { net, iva, total: round2(net + iva) };
+}
 
 /** Default markup applied over wholesale cost when dynamic pricing is first enabled. */
 const DEFAULT_MARGIN_PERCENT = 83;
@@ -567,8 +589,9 @@ const emptySizeForm: SizeForm = { size: '', stock: '', weightGrams: '', price: '
 
 // Module-scope so it isn't recreated each render (which would remount the inputs
 // and drop focus on every keystroke).
-function SizeFields({ value, onChange, isStatic, heading, hideStock }: {
-  value: SizeForm; onChange: (f: SizeForm) => void; isStatic: boolean; heading?: string; hideStock?: boolean;
+function SizeFields({ value, onChange, isStatic, priceIncludesTax, heading, hideStock }: {
+  value: SizeForm; onChange: (f: SizeForm) => void; isStatic: boolean; priceIncludesTax?: boolean;
+  heading?: string; hideStock?: boolean;
 }) {
   const { t } = useTranslation();
   const inputClass = 'w-full border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors';
@@ -592,7 +615,9 @@ function SizeFields({ value, onChange, isStatic, heading, hideStock }: {
         </div>
         {isStatic ? (
           <div className="col-span-2">
-            <label className="text-[11px] uppercase tracking-widest text-muted">{t('admin.modal.price')}</label>
+            <label className="text-[11px] uppercase tracking-widest text-muted">
+              {priceIncludesTax ? t('admin.modal.priceWithTax') : t('admin.modal.price')}
+            </label>
             <input type="number" min="0" step="0.01" value={value.price} onChange={e => onChange({ ...value, price: e.target.value })} className={inputClass} />
           </div>
         ) : (
@@ -680,6 +705,10 @@ function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
   const [error, setError] = useState<string | null>(null);
 
   const isStatic = pricingFormula === 'NONE';
+  // Size prices follow the item's tax mode: shown and typed with IVA when the item
+  // is priced that way, stored net either way (the backend strips it).
+  const withTax = isStatic && item.priceIncludesTax;
+  const showPrice = (net: number) => String(withTax ? toGross(net) : net);
 
   function apply(updated: ItemSizeView[]) {
     setSizes(updated);
@@ -708,7 +737,7 @@ function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
         size: '',
         stock: String(item.stock),
         weightGrams: String(item.weightGrams),
-        price: isStatic ? String(item.price) : '',
+        price: isStatic ? showPrice(item.price) : '',
         descriptionEn: item.descriptionEn ?? '',
         descriptionFr: item.descriptionFr ?? '',
         descriptionEs: item.descriptionEs ?? '',
@@ -725,7 +754,7 @@ function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
       size: s.size,
       stock: String(s.stock),
       weightGrams: String(s.weightGrams),
-      price: isStatic ? String(s.price) : '',
+      price: isStatic ? showPrice(s.price) : '',
       descriptionEn: s.descriptionEn ?? '',
       descriptionFr: s.descriptionFr ?? '',
       descriptionEs: s.descriptionEs ?? '',
@@ -825,7 +854,7 @@ function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
                   <button type="button" onClick={() => move(s.id, 'down')} disabled={busy || idx === sizes.length - 1} className="text-xs border border-border px-1.5 py-0.5 hover:border-dark transition-colors disabled:opacity-30">↓</button>
                 </div>
                 <span className="font-medium">{s.size}</span>
-                <span className="text-muted text-xs">· {s.stock} {t('admin.modal.stock').toLowerCase()} · {s.weightGrams} g · ${formatMoney(s.price)}</span>
+                <span className="text-muted text-xs">· {s.stock} {t('admin.modal.stock').toLowerCase()} · {s.weightGrams} g · ${formatMoney(withTax ? toGross(s.price) : s.price)}{withTax ? ` ${t('admin.sizes.withTaxSuffix')}` : ''}</span>
                 <div className="ml-auto flex gap-2">
                   <button type="button" onClick={() => startEdit(s)} className="text-xs uppercase tracking-widest text-muted hover:text-dark">{t('admin.products.edit')}</button>
                   <button type="button" onClick={() => remove(s.id)} disabled={busy} className="text-xs uppercase tracking-widest text-red-500 hover:text-red-600 disabled:opacity-50">{t('admin.products.delete')}</button>
@@ -833,7 +862,7 @@ function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
               </div>
               {mode === s.id && (
                 <div className="mt-1 space-y-2">
-                  <SizeFields value={form} onChange={setForm} isStatic={isStatic} hideStock />
+                  <SizeFields value={form} onChange={setForm} isStatic={isStatic} priceIncludesTax={withTax} hideStock />
                   <StockControls
                     stock={s.stock}
                     version={s.version}
@@ -857,7 +886,7 @@ function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
 
       {mode === 'add' && (
         <div className="space-y-2">
-          <SizeFields value={form} onChange={setForm} isStatic={isStatic} heading={t('admin.sizes.newHeading')} />
+          <SizeFields value={form} onChange={setForm} isStatic={isStatic} priceIncludesTax={withTax} heading={t('admin.sizes.newHeading')} />
           <div className="flex gap-2">
             <button type="button" disabled={busy || !fieldsValid(form)} onClick={() => submitAdd([toReq(form)])} className={`${btn} border-dark bg-dark text-white hover:bg-gold`}>{t('admin.modal.save')}</button>
             <button type="button" onClick={() => setMode('list')} className={`${btn} border-border hover:border-dark`}>{t('admin.modal.cancel')}</button>
@@ -868,8 +897,8 @@ function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
       {mode === 'first' && (
         <div className="space-y-2">
           <p className="text-[11px] text-muted">{t('admin.sizes.firstHint')}</p>
-          <SizeFields value={origForm} onChange={setOrigForm} isStatic={isStatic} heading={t('admin.sizes.originalHeading')} />
-          <SizeFields value={form} onChange={setForm} isStatic={isStatic} heading={t('admin.sizes.newHeading')} />
+          <SizeFields value={origForm} onChange={setOrigForm} isStatic={isStatic} priceIncludesTax={withTax} heading={t('admin.sizes.originalHeading')} />
+          <SizeFields value={form} onChange={setForm} isStatic={isStatic} priceIncludesTax={withTax} heading={t('admin.sizes.newHeading')} />
           <div className="flex gap-2">
             <button
               type="button"
@@ -902,7 +931,10 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
       ? {
           nameEn: item.nameEn ?? '', nameFr: item.nameFr ?? '', nameEs: item.nameEs ?? '',
           descriptionEn: item.descriptionEn ?? '', descriptionFr: item.descriptionFr ?? '', descriptionEs: item.descriptionEs ?? '',
-          price: String(item.price), stock: String(item.stock),
+          // Items store the net price; show it back the way it was entered.
+          price: String(item.priceIncludesTax ? toGross(item.price) : item.price),
+          priceIncludesTax: item.priceIncludesTax,
+          stock: String(item.stock),
           discountPercent: item.discountPercent != null ? String(item.discountPercent) : '',
           categoryIds: item.categories.map(c => c.id), labelIds: item.labels.map(l => l.id),
           material: item.material ?? '', usmcaQualified: item.usmcaQualified ?? false,
@@ -991,6 +1023,9 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
         nameEn: form.nameEn, nameFr: form.nameFr, nameEs: form.nameEs,
         descriptionEn: form.descriptionEn, descriptionFr: form.descriptionFr, descriptionEs: form.descriptionEs,
         price: form.price ? parseFloat(form.price) : 0,
+        // Formula-priced items compute a net price from metal cost — the tax mode
+        // never applies to them, so don't persist a flag the price doesn't honour.
+        priceIncludesTax: form.pricingFormula === 'NONE' && form.priceIncludesTax,
         stock: parseInt(form.stock),
         discountPercent: form.discountPercent ? parseInt(form.discountPercent) : null,
         categoryIds: form.categoryIds,
@@ -1046,8 +1081,10 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.price')}</label>
+            <div className="col-span-2">
+              <label className="block text-xs uppercase tracking-widest mb-2">
+                {form.priceIncludesTax ? t('admin.modal.priceWithTax') : t('admin.modal.price')}
+              </label>
               <input
                 type="number" step="0.01" min="0"
                 value={form.price}
@@ -1056,6 +1093,48 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
                 disabled={form.pricingFormula !== 'NONE'}
                 className={`${inputClass} ${form.pricingFormula !== 'NONE' ? 'opacity-50' : ''}`}
               />
+              {form.pricingFormula === 'NONE' && (
+                <>
+                  <label className="flex items-center gap-3 cursor-pointer select-none mt-2">
+                    <input
+                      type="checkbox"
+                      checked={form.priceIncludesTax}
+                      // Convert what's in the box so the toggle reads as a change of
+                      // units, not a change of price.
+                      onChange={e => setForm(f => {
+                        const on = e.target.checked;
+                        const v = parseFloat(f.price);
+                        return {
+                          ...f,
+                          priceIncludesTax: on,
+                          price: isNaN(v) ? f.price
+                            : String(on ? toGross(v) : taxBreakdown(v).net),
+                        };
+                      })}
+                      className="accent-dark"
+                    />
+                    <span className="text-xs uppercase tracking-widest">{t('admin.modal.priceIncludesTax')}</span>
+                  </label>
+                  {form.priceIncludesTax && (() => {
+                    const gross = parseFloat(form.price);
+                    if (isNaN(gross) || gross <= 0) {
+                      return <p className="text-xs text-muted mt-1">{t('admin.modal.priceTaxHint')}</p>;
+                    }
+                    const { net, iva, total } = taxBreakdown(gross);
+                    return (
+                      <div className="text-xs text-muted mt-1 space-y-0.5">
+                        <p>
+                          {t('admin.modal.priceNet')}: <span className="font-medium text-dark">${formatMoney(net)} MXN</span>
+                          {' '}+ {t('admin.modal.priceIva')} ${formatMoney(iva)} = <span className="font-medium text-dark">${formatMoney(total)} MXN</span>
+                        </p>
+                        {form.material === 'GOLD' && (
+                          <p>{t('admin.modal.priceGoldNote', { net: formatMoney(net) })}</p>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </>
+              )}
             </div>
             {/* Initial stock only when creating; existing items manage stock via the control below. */}
             {!item && (
@@ -1375,6 +1454,154 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
   );
 }
 
+// ── Labels & categories ───────────────────────────────────────────────────────
+
+type NamedEntry = { id: number; nameEn: string | null; nameFr: string | null; nameEs: string | null };
+type NameForm = { nameEn: string; nameFr: string; nameEs: string };
+
+const emptyNameForm: NameForm = { nameEn: '', nameFr: '', nameEs: '' };
+
+const toNameForm = (e: NamedEntry): NameForm => ({
+  nameEn: e.nameEn ?? '', nameFr: e.nameFr ?? '', nameEs: e.nameEs ?? '',
+});
+
+/**
+ * Chip list for labels / categories, with inline rename. Clicking a chip swaps it
+ * for its three locale fields in place; renaming keeps the id, so every item and
+ * collection already tagged with it follows the new name.
+ *
+ * Module-scope so the inputs aren't remounted (and focus dropped) each render.
+ */
+function TaxonomyPanel({ title, entries, emptyText, addText, requireEnglish, isIncomplete, onCreate, onUpdate, onDelete }: {
+  title: string;
+  entries: NamedEntry[];
+  emptyText: string;
+  addText: string;
+  /** Categories store nameEn NOT NULL, so a rename can't blank it. */
+  requireEnglish?: boolean;
+  isIncomplete?: (e: NamedEntry) => boolean;
+  onCreate: (f: NameForm) => Promise<void>;
+  onUpdate: (id: number, f: NameForm) => Promise<void>;
+  onDelete: (id: number) => Promise<void>;
+}) {
+  const { t, i18n } = useTranslation();
+  const [adding, setAdding] = useState<NameForm>(emptyNameForm);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editing, setEditing] = useState<NameForm>(emptyNameForm);
+  const [busy, setBusy] = useState(false);
+
+  const valid = (f: NameForm) => requireEnglish
+    ? !!f.nameEn.trim()
+    : !!(f.nameEn.trim() || f.nameFr.trim() || f.nameEs.trim());
+
+  async function run(fn: () => Promise<void>) {
+    setBusy(true);
+    try { await fn(); }
+    catch { alert(t('admin.products.saveError')); }
+    finally { setBusy(false); }
+  }
+
+  async function submitAdd(e: React.FormEvent) {
+    e.preventDefault();
+    if (!valid(adding)) return;
+    await run(async () => {
+      await onCreate(adding);
+      setAdding(emptyNameForm);
+    });
+  }
+
+  async function submitEdit(e: React.FormEvent) {
+    e.preventDefault();
+    if (editingId === null || !valid(editing)) return;
+    await run(async () => {
+      await onUpdate(editingId, editing);
+      setEditingId(null);
+    });
+  }
+
+  const nameInputs = (value: NameForm, onChange: (f: NameForm) => void) => (
+    <>
+      {(['nameEn', 'nameFr', 'nameEs'] as const).map(field => (
+        <input
+          key={field}
+          value={value[field]}
+          onChange={e => onChange({ ...value, [field]: e.target.value })}
+          placeholder={field.slice(4).toUpperCase()}
+          className={`${searchClass} w-28`}
+        />
+      ))}
+    </>
+  );
+
+  const chipBtn = 'text-muted hover:text-dark transition-colors leading-none disabled:opacity-40';
+
+  return (
+    <>
+      <p className="text-xs uppercase tracking-widest mb-4">{title}</p>
+      <div className="flex flex-wrap gap-2 mb-3 items-center">
+        {entries.length === 0 ? (
+          <p className="text-xs text-muted">{emptyText}</p>
+        ) : entries.map(entry => {
+          if (entry.id === editingId) {
+            return (
+              <form key={entry.id} onSubmit={submitEdit} className="flex flex-wrap gap-2 items-center border border-dark px-3 py-2">
+                {nameInputs(editing, setEditing)}
+                <button
+                  type="submit"
+                  disabled={busy || !valid(editing)}
+                  className="border border-dark bg-dark text-white text-xs uppercase tracking-widest px-3 py-1.5 hover:bg-gold transition-colors disabled:opacity-50"
+                >
+                  {t('admin.modal.save')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingId(null)}
+                  className="border border-border text-xs uppercase tracking-widest px-3 py-1.5 hover:border-dark transition-colors"
+                >
+                  {t('admin.modal.cancel')}
+                </button>
+              </form>
+            );
+          }
+          const incomplete = isIncomplete?.(entry) ?? false;
+          return (
+            <span key={entry.id} className={`flex items-center gap-1.5 border px-3 py-1 text-xs ${incomplete ? 'border-amber-400 text-amber-700' : 'border-border'}`}>
+              <button
+                type="button"
+                onClick={() => { setEditingId(entry.id); setEditing(toNameForm(entry)); }}
+                className="hover:text-dark hover:underline transition-colors cursor-pointer"
+                title={t('admin.products.edit')}
+              >
+                {pickLocale(entry.nameEn, entry.nameFr, entry.nameEs, i18n.language)}
+              </button>
+              {incomplete && <span className="text-amber-500">!</span>}
+              <button
+                type="button"
+                onClick={() => run(() => onDelete(entry.id))}
+                disabled={busy}
+                className={chipBtn}
+                aria-label="delete"
+              >
+                ×
+              </button>
+            </span>
+          );
+        })}
+      </div>
+      <form onSubmit={submitAdd} className="flex flex-wrap gap-2 items-center">
+        {nameInputs(adding, setAdding)}
+        <button
+          type="submit"
+          disabled={busy || !valid(adding)}
+          className="border border-border text-xs uppercase tracking-widest px-4 py-2 hover:border-dark transition-colors disabled:opacity-50"
+        >
+          {addText}
+        </button>
+      </form>
+    </>
+  );
+}
+
 // ── Products ──────────────────────────────────────────────────────────────────
 
 type ProductSort = 'default' | 'sold' | 'soldMonth' | 'sales';
@@ -1388,8 +1615,6 @@ function AdminProducts() {
   const [sort, setSort] = useState<ProductSort>('default');
   const [search, setSearch] = useState('');
   const [modal, setModal] = useState<'new' | ItemViewVerbose | null>(null);
-  const [newLabel, setNewLabel] = useState({ nameEn: '', nameFr: '', nameEs: '' });
-  const [newCategory, setNewCategory] = useState({ nameEn: '', nameFr: '', nameEs: '' });
 
   useEffect(() => { load(); }, []);
 
@@ -1409,26 +1634,10 @@ function AdminProducts() {
     }
   }
 
-  async function handleAddLabel(e: React.FormEvent) {
-    e.preventDefault();
-    if (!newLabel.nameEn && !newLabel.nameFr && !newLabel.nameEs) return;
-    await api.admin.labels.create(newLabel);
-    setNewLabel({ nameEn: '', nameFr: '', nameEs: '' });
-    setLabels(await api.labels.list());
-  }
-
   async function handleDeleteLabel(id: number) {
     if (!confirm(t('admin.labels.deleteConfirm'))) return;
     await api.admin.labels.delete(id);
     setLabels(await api.labels.list());
-  }
-
-  async function handleAddCategory(e: React.FormEvent) {
-    e.preventDefault();
-    if (!newCategory.nameEn && !newCategory.nameFr && !newCategory.nameEs) return;
-    await api.admin.categories.create(newCategory);
-    setNewCategory({ nameEn: '', nameFr: '', nameEs: '' });
-    setCategories(await api.categories.list());
   }
 
   async function handleDeleteCategory(id: number) {
@@ -1565,99 +1774,29 @@ function AdminProducts() {
       )}
 
       <div className="mt-10 pt-6 border-t border-border">
-        <p className="text-xs uppercase tracking-widest mb-4">{t('admin.labels.title')}</p>
-        <div className="flex flex-wrap gap-2 mb-3">
-          {labels.length === 0 ? (
-            <p className="text-xs text-muted">{t('admin.labels.empty')}</p>
-          ) : labels.map(label => {
-            const incomplete = isLabelIncomplete(label);
-            return (
-              <span key={label.id} className={`flex items-center gap-1.5 border px-3 py-1 text-xs ${incomplete ? 'border-amber-400 text-amber-700' : 'border-border'}`}>
-                {pickLocale(label.nameEn, label.nameFr, label.nameEs, i18n.language)}
-                {incomplete && <span className="text-amber-500">!</span>}
-                <button
-                  onClick={() => handleDeleteLabel(label.id)}
-                  className="text-muted hover:text-dark transition-colors leading-none"
-                  aria-label="delete"
-                >
-                  ×
-                </button>
-              </span>
-            );
-          })}
-        </div>
-        <form onSubmit={handleAddLabel} className="flex flex-wrap gap-2 items-center">
-          <input
-            value={newLabel.nameEn}
-            onChange={e => setNewLabel(l => ({ ...l, nameEn: e.target.value }))}
-            placeholder="EN"
-            className={`${searchClass} w-28`}
-          />
-          <input
-            value={newLabel.nameFr}
-            onChange={e => setNewLabel(l => ({ ...l, nameFr: e.target.value }))}
-            placeholder="FR"
-            className={`${searchClass} w-28`}
-          />
-          <input
-            value={newLabel.nameEs}
-            onChange={e => setNewLabel(l => ({ ...l, nameEs: e.target.value }))}
-            placeholder="ES"
-            className={`${searchClass} w-28`}
-          />
-          <button
-            type="submit"
-            className="border border-border text-xs uppercase tracking-widest px-4 py-2 hover:border-dark transition-colors"
-          >
-            {t('admin.labels.add')}
-          </button>
-        </form>
+        <TaxonomyPanel
+          title={t('admin.labels.title')}
+          entries={labels}
+          emptyText={t('admin.labels.empty')}
+          addText={t('admin.labels.add')}
+          isIncomplete={isLabelIncomplete}
+          onCreate={async f => { await api.admin.labels.create(f); setLabels(await api.labels.list()); }}
+          onUpdate={async (id, f) => { await api.admin.labels.update(id, f); setLabels(await api.labels.list()); }}
+          onDelete={handleDeleteLabel}
+        />
       </div>
 
       <div className="mt-6 pt-6 border-t border-border">
-        <p className="text-xs uppercase tracking-widest mb-4">{t('admin.categories.title')}</p>
-        <div className="flex flex-wrap gap-2 mb-3">
-          {categories.length === 0 ? (
-            <p className="text-xs text-muted">{t('admin.categories.empty')}</p>
-          ) : categories.map(cat => (
-            <span key={cat.id} className="flex items-center gap-1.5 border border-border px-3 py-1 text-xs">
-              {pickLocale(cat.nameEn, cat.nameFr, cat.nameEs, i18n.language)}
-              <button
-                onClick={() => handleDeleteCategory(cat.id)}
-                className="text-muted hover:text-dark transition-colors leading-none"
-                aria-label="delete"
-              >
-                ×
-              </button>
-            </span>
-          ))}
-        </div>
-        <form onSubmit={handleAddCategory} className="flex flex-wrap gap-2 items-center">
-          <input
-            value={newCategory.nameEn}
-            onChange={e => setNewCategory(c => ({ ...c, nameEn: e.target.value }))}
-            placeholder="EN"
-            className={`${searchClass} w-28`}
-          />
-          <input
-            value={newCategory.nameFr}
-            onChange={e => setNewCategory(c => ({ ...c, nameFr: e.target.value }))}
-            placeholder="FR"
-            className={`${searchClass} w-28`}
-          />
-          <input
-            value={newCategory.nameEs}
-            onChange={e => setNewCategory(c => ({ ...c, nameEs: e.target.value }))}
-            placeholder="ES"
-            className={`${searchClass} w-28`}
-          />
-          <button
-            type="submit"
-            className="border border-border text-xs uppercase tracking-widest px-4 py-2 hover:border-dark transition-colors"
-          >
-            {t('admin.categories.add')}
-          </button>
-        </form>
+        <TaxonomyPanel
+          title={t('admin.categories.title')}
+          entries={categories}
+          emptyText={t('admin.categories.empty')}
+          addText={t('admin.categories.add')}
+          requireEnglish
+          onCreate={async f => { await api.admin.categories.create(f); setCategories(await api.categories.list()); }}
+          onUpdate={async (id, f) => { await api.admin.categories.update(id, f); setCategories(await api.categories.list()); }}
+          onDelete={handleDeleteCategory}
+        />
       </div>
 
       {modal !== null && (

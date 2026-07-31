@@ -115,8 +115,39 @@ public class OrderService {
         }
 
 
+        // Factura (CFDI) request — validate fiscal data and persist it onto the client
+        // so it is reused on future orders. The uso must be valid for the régimen (SAT matrix).
+        // rfc / regimen are also snapshotted onto the order below.
+        // Validated before the tax calculation because gold is IVA-exempt only against a
+        // factura: an order must never be priced as exempt on fiscal data we then reject.
+        CfdiUso cfdiUso = null;
+        String rfc = null;
+        RegimenFiscal regimen = null;
+        if (req.facturaRequested()) {
+            regimen = req.regimenFiscal() != null ? req.regimenFiscal() : client.getRegimenFiscal();
+            rfc = req.rfc() != null && !req.rfc().isBlank()
+                ? req.rfc().trim().toUpperCase()
+                : client.getRfc();
+            cfdiUso = req.cfdiUso();
+            if (rfc == null || rfc.isBlank() || regimen == null || cfdiUso == null) {
+                throw new AppException(HttpStatus.BAD_REQUEST, "FACTURA_FISCAL_DATA_REQUIRED");
+            }
+            if (!RFC_PATTERN.matcher(rfc).matches()) {
+                throw new AppException(HttpStatus.BAD_REQUEST, "RFC_INVALID");
+            }
+            if (!regimen.allows(cfdiUso)) {
+                throw new AppException(HttpStatus.BAD_REQUEST, "CFDI_USO_INVALID_FOR_REGIMEN");
+            }
+            // Persist / update the client's fiscal identity. The client comes from the
+            // security principal (loaded in JwtAuthFilter, outside this transaction), so it
+            // is detached — the mutations below won't flush unless we explicitly save it.
+            client.setRfc(rfc);
+            client.setRegimenFiscal(regimen);
+            clientRepository.save(client);
+        }
+
         // Apply duties, taxes, and international handling fee
-        TaxResult taxResult = taxService.calculate(orderItems, req.country(), total);
+        TaxResult taxResult = taxService.calculate(orderItems, req.country(), total, req.facturaRequested());
         BigDecimal dutyAmount    = taxResult.dutyAmount();
         BigDecimal taxAmount     = taxResult.taxAmount();
         BigDecimal handlingFee   = taxResult.handlingFee();
@@ -151,35 +182,6 @@ public class OrderService {
         if (req.country() == com.bijou.backend.entities.Country.MEXICO
                 && (req.colonial() == null || req.colonial().isBlank())) {
             throw new AppException(HttpStatus.BAD_REQUEST, "COLONIAL_REQUIRED");
-        }
-
-        // Factura (CFDI) request — validate fiscal data and persist it onto the client
-        // so it is reused on future orders. The uso must be valid for the régimen (SAT matrix).
-        // rfc / regimen are also snapshotted onto the order below.
-        CfdiUso cfdiUso = null;
-        String rfc = null;
-        RegimenFiscal regimen = null;
-        if (req.facturaRequested()) {
-            regimen = req.regimenFiscal() != null ? req.regimenFiscal() : client.getRegimenFiscal();
-            rfc = req.rfc() != null && !req.rfc().isBlank()
-                ? req.rfc().trim().toUpperCase()
-                : client.getRfc();
-            cfdiUso = req.cfdiUso();
-            if (rfc == null || rfc.isBlank() || regimen == null || cfdiUso == null) {
-                throw new AppException(HttpStatus.BAD_REQUEST, "FACTURA_FISCAL_DATA_REQUIRED");
-            }
-            if (!RFC_PATTERN.matcher(rfc).matches()) {
-                throw new AppException(HttpStatus.BAD_REQUEST, "RFC_INVALID");
-            }
-            if (!regimen.allows(cfdiUso)) {
-                throw new AppException(HttpStatus.BAD_REQUEST, "CFDI_USO_INVALID_FOR_REGIMEN");
-            }
-            // Persist / update the client's fiscal identity. The client comes from the
-            // security principal (loaded in JwtAuthFilter, outside this transaction), so it
-            // is detached — the mutations below won't flush unless we explicitly save it.
-            client.setRfc(rfc);
-            client.setRegimenFiscal(regimen);
-            clientRepository.save(client);
         }
 
         //update order and link OrderItems
@@ -315,7 +317,7 @@ public class OrderService {
             subtotal = subtotal.add(unitPrice.multiply(BigDecimal.valueOf(r.quantity())));
         }
 
-        TaxResult taxResult = taxService.calculate(orderItems, req.country(), subtotal);
+        TaxResult taxResult = taxService.calculate(orderItems, req.country(), subtotal, req.facturaRequested());
         BigDecimal shippingFee = shippingService.fee(req.country(), req.state(), subtotal);
         return new TaxPreviewResponse(
             subtotal.setScale(2, RoundingMode.HALF_UP),
@@ -323,7 +325,8 @@ public class OrderService {
             taxResult.taxAmount(),
             taxResult.handlingFee(),
             shippingFee,
-            subtotal.add(taxResult.total()).add(shippingFee).setScale(2, RoundingMode.HALF_UP)
+            subtotal.add(taxResult.total()).add(shippingFee).setScale(2, RoundingMode.HALF_UP),
+            taxResult.goldIvaWaivable()
         );
     }
 

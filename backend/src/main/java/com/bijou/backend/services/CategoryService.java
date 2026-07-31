@@ -42,6 +42,24 @@ public class CategoryService {
     }
 
     @Transactional
+    public CategoryView update(Long id, CategoryRequest req) {
+        Category category = categoryRepository.findById(id)
+            .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "CATEGORY_NOT_FOUND"));
+        // nameEn backs the NOT NULL column — reject a blank rename with a clean
+        // error instead of letting it surface as a constraint violation.
+        if (req.nameEn() == null || req.nameEn().isBlank()) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "CATEGORY_NAME_REQUIRED");
+        }
+        // Renaming only — the id is untouched, so items keep their assignment.
+        category.setNameEn(req.nameEn());
+        category.setNameFr(req.nameFr());
+        category.setNameEs(req.nameEs());
+        categoryRepository.save(category);
+        log.info("updated category #{} ({})", id, category.getNameEn());
+        return toView(category);
+    }
+
+    @Transactional
     public void delete(Long id) {
         Category category = categoryRepository.findById(id)
             .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "CATEGORY_NOT_FOUND"));

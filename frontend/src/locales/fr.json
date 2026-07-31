@@ -100,7 +100,7 @@
     "tooltip": {
       "dutyUs": "Droits de douane américains : taux selon le matériau + surtaxe de 15% (Section 122) sur les articles non-ACEUM. Un tampon de 3% est appliqué pour couvrir les fluctuations de taux de change.",
       "dutyCa": "Droits de douane NPF de 8,5% sur les articles non-ACEUM. Un tampon de 3% est appliqué pour couvrir les fluctuations de taux de change.",
-      "taxMx": "La TVA de 16% s'applique aux bijoux en argent et en acier. Les bijoux en or sont exonérés.",
+      "taxMx": "La TVA de 16% s'applique aux bijoux en argent et en acier. Les bijoux en or ne sont exonérés que si vous demandez une facture (CFDI) ; sans facture, ils sont taxés à 16% comme toute autre pièce.",
       "taxCa": "TPS/TVH de 13% appliquée sur la valeur de votre commande incluant les droits de douane.",
       "handling": "Ces frais couvrent le prépaiement garanti de tous les droits et taxes frontaliers. En payant maintenant, votre colis passera la douane automatiquement, sans frais supplémentaires ni retards à la livraison."
     },
@@ -123,8 +123,12 @@
       "notice": "Votre RFC et votre régime fiscal seront enregistrés pour vos prochaines commandes. La facture vous sera envoyée par courriel une fois votre commande confirmée.",
       "rfc": "RFC",
       "regimen": "Régime fiscal",
-      "uso": "Usage du CFDI"
-    }
+      "uso": "Usage du CFDI",
+      "goldPrompt": "Cette commande contient des bijoux en or. L'or n'est exonéré de TVA qu'avec une facture : cochez la case ci-dessus et les {{amount}} de TVA sur ces pièces sont retirés de votre total.",
+      "goldWaived": "Les bijoux en or sont exonérés de TVA avec une facture : {{amount}} ont été retirés de cette commande."
+    },
+    "goldExemptNote": "Hors {{amount}} de TVA sur les bijoux en or, exonérés car vous avez demandé une facture.",
+    "goldTaxedNote": "Comprend {{amount}} de TVA sur les bijoux en or. Demandez une facture ci-dessus pour en être exonéré."
   },
   "payment": {
     "title": "Paiement",
@@ -289,7 +293,8 @@
       "confirmDelete": "Supprimer cette taille ?",
       "newHeading": "Nouvelle taille",
       "originalHeading": "Original — ce produit",
-      "firstHint": "Ajouter une taille transforme aussi les valeurs actuelles du produit en une taille. Nommez-la, puis ajoutez la nouvelle."
+      "firstHint": "Ajouter une taille transforme aussi les valeurs actuelles du produit en une taille. Nommez-la, puis ajoutez la nouvelle.",
+      "withTaxSuffix": "(TVA incl.)"
     },
     "stats": {
       "overallTitle": "Chiffre d'Affaires Global",
@@ -353,7 +358,13 @@
       "dynamicPricePreview": "Prix calculé du jour",
       "dynamicPriceUnavailable": "Source du cours du métal indisponible — le prix fixe sera utilisé en attendant.",
       "dynamicWork": "Travail (w, MXN/g)",
-      "dynamicWholesalePreview": "Prix de gros (avant majoration)"
+      "dynamicWholesalePreview": "Prix de gros (avant majoration)",
+      "priceWithTax": "Prix (TVA incluse)",
+      "priceIncludesTax": "Prix saisi avec TVA de 16%",
+      "priceTaxHint": "Saisissez le prix payé par le client, TVA incluse ; la base imposable est enregistrée.",
+      "priceNet": "Base imposable",
+      "priceIva": "TVA",
+      "priceGoldNote": "Or : un client qui demande une facture paie la base de {{net}} $ — la TVA n'est facturée que sans facture."
     },
     "users": {
       "sortByMoney": "Par Montant Dépensé",
@@ -585,7 +596,7 @@
     },
     "q4": {
       "q": "Les prix incluent-ils les taxes ?",
-      "a": "La TVA applicable (IVA, 16 % ; la joaillerie en or est exonérée) est calculée et détaillée lors du paiement avant la confirmation. Toutes nos livraisons étant nationales, il n'y a ni frais de douane ni droits d'importation."
+      "a": "La TVA applicable (IVA, 16%) est calculée et détaillée au moment du paiement, avant confirmation. Les bijoux en or sont exonérés de TVA uniquement si vous demandez une facture (CFDI) lors du paiement ; sans facture, ils sont taxés au taux standard de 16%. Les envois étant nationaux, il n'y a ni frais de douane ni droits d'importation."
     },
     "q5": {
       "q": "Quels modes de paiement acceptez-vous ?",

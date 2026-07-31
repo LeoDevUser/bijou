@@ -114,7 +114,9 @@ export default function Checkout() {
       .catch(() => {});
   }, [isAuthenticated]);
 
-  // Fetch tax preview whenever country, currency, or cart items change
+  // Fetch tax preview whenever country, currency, cart items, or the factura
+  // toggle change — gold is IVA-exempt only against a factura, so the toggle
+  // moves the total and the summary has to follow it.
   useEffect(() => {
     if (!isAuthenticated || items.length === 0) return;
     if (previewAbortRef.current) previewAbortRef.current.abort();
@@ -125,11 +127,12 @@ export default function Checkout() {
       country: form.country,
       currency,
       state: form.state || null,
+      facturaRequested: wantsFactura,
     }).then(p => {
       if (!ctrl.signal.aborted) setTaxPreview(p);
     }).catch(() => {});
     return () => ctrl.abort();
-  }, [isAuthenticated, items, form.country, form.state, currency]);
+  }, [isAuthenticated, items, form.country, form.state, currency, wantsFactura]);
 
   function handleUseSavedToggle(use: boolean) {
     setUseSaved(use);
@@ -192,6 +195,11 @@ export default function Checkout() {
   const taxTooltip = form.country === 'MEXICO'
     ? t('checkout.tooltip.taxMx')
     : t('checkout.tooltip.taxCa');
+
+  // IVA on the cart's gold, which only a factura waives. Non-zero = the factura
+  // toggle changes what this client pays, so say so instead of letting the total
+  // move on its own.
+  const goldIva = taxPreview?.goldIvaWaivable ?? 0;
 
   const inputClass = 'w-full border border-border bg-cream px-4 py-3 text-sm outline-none focus:border-dark transition-colors';
   const labelClass = 'block text-xs uppercase tracking-widest mb-2';
@@ -336,7 +344,7 @@ export default function Checkout() {
 
           {/* Factura (CFDI) request — Mexico only */}
           {form.country === 'MEXICO' && fiscal && (
-            <div className="border border-border p-5 space-y-4">
+            <div className={`border p-5 space-y-4 ${goldIva > 0 && !wantsFactura ? 'border-gold' : 'border-border'}`}>
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
@@ -346,6 +354,15 @@ export default function Checkout() {
                 />
                 <span className="text-xs uppercase tracking-widest">{t('checkout.factura.request')}</span>
               </label>
+
+              {/* Gold is IVA-exempt only with a factura — spell out what the box is worth. */}
+              {goldIva > 0 && (
+                <p className={`text-xs leading-relaxed ${wantsFactura ? 'text-muted' : 'text-dark'}`}>
+                  {wantsFactura
+                    ? t('checkout.factura.goldWaived', { amount: format(goldIva) })
+                    : t('checkout.factura.goldPrompt', { amount: format(goldIva) })}
+                </p>
+              )}
 
               {wantsFactura && (
                 <div className="space-y-4 pt-1">
@@ -491,7 +508,7 @@ export default function Checkout() {
                 </div>
               ))}
             </div>
-            {taxPreview && (taxPreview.dutyAmount > 0 || taxPreview.taxAmount > 0 || taxPreview.handlingFee > 0 || taxPreview.shippingFee > 0) && (
+            {taxPreview && (taxPreview.dutyAmount > 0 || taxPreview.taxAmount > 0 || taxPreview.handlingFee > 0 || taxPreview.shippingFee > 0 || goldIva > 0) && (
               <div className="space-y-1 border-t border-border pt-3 mb-3">
                 <div className="flex justify-between text-sm text-muted">
                   <span>{t('cart.subtotal')}</span>
@@ -537,6 +554,15 @@ export default function Checkout() {
               <span>{t('cart.total')}</span>
               <span>{format(finalTotal)}</span>
             </div>
+            {/* Kept out of the running total above: the factura doesn't discount the
+                order, it decides whether the gold lines are taxed at all. */}
+            {goldIva > 0 && (
+              <p className={`text-xs mt-2 leading-relaxed ${wantsFactura ? 'text-muted' : 'text-dark'}`}>
+                {wantsFactura
+                  ? t('checkout.goldExemptNote', { amount: format(goldIva) })
+                  : t('checkout.goldTaxedNote', { amount: format(goldIva) })}
+              </p>
+            )}
             {installments && (
               <p className="text-xs text-muted mt-2">{t('checkout.msi.badge', { n: installments })}</p>
             )}

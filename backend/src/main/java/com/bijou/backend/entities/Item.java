@@ -103,6 +103,19 @@ public class Item {
     /** Weight in grams. */
     @Column(nullable = false)
     private float weightGrams;
+    /**
+     * True when the admin types this item's static price with the 16 % IVA already
+     * applied — the figure the client sees billed, rather than the taxable base.
+     * {@link #price} (and each size's price) always stores the net amount either
+     * way; this only records how it was entered, so the admin form can round-trip
+     * the same number and the sizes panel can stay in the same mode.
+     * Ignored for formula-priced items, whose price is computed net by design.
+     */
+    // columnDefinition carries the default so Postgres can backfill existing rows
+    // when ddl-auto adds the column — a bare NOT NULL add fails on a populated table.
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "boolean not null default false")
+    private boolean priceIncludesTax = false;
     /** Metal-indexed pricing formula; null or NONE = static admin-entered price. */
     @Enumerated(EnumType.STRING)
     private PricingFormula pricingFormula;

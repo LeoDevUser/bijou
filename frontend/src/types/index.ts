@@ -41,7 +41,10 @@ export interface ItemView {
   nameEn: string | null;
   nameFr: string | null;
   nameEs: string | null;
+  /** Net price — the taxable base. IVA is added per order at checkout. */
   price: number;
+  /** The admin typed this item's static prices with IVA already applied. */
+  priceIncludesTax: boolean;
   labels: LabelView[];
   categories: CategoryView[];
   descriptionEn: string | null;
@@ -185,7 +188,9 @@ export interface ItemRequest {
   descriptionEn: string;
   descriptionFr: string;
   descriptionEs: string;
+  /** Sent as typed; the backend strips IVA when priceIncludesTax is set. */
   price: number;
+  priceIncludesTax: boolean;
   stock: number;
   categoryIds: number[];
   labelIds: number[];
@@ -239,6 +244,11 @@ export interface TaxPreview {
   handlingFee: number;
   shippingFee: number;
   total: number;
+  /**
+   * IVA on the cart's gold pieces — what requesting a factura saves, or what it
+   * already saved when one is requested. Zero when the cart holds no gold.
+   */
+  goldIvaWaivable: number;
 }
 
 export interface CartItem {

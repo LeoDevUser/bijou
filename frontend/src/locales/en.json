@@ -100,7 +100,7 @@
     "tooltip": {
       "dutyUs": "Customs duty for U.S. shipments: material-based rate + 15% Section 122 surcharge on non-USMCA items. A 3% buffer is added to cover exchange rate fluctuations.",
       "dutyCa": "8.5% MFN customs duty on non-USMCA items. A 3% buffer is added to cover exchange rate fluctuations.",
-      "taxMx": "16% IVA applies to silver and steel jewelry. Gold jewelry is exempt under the domestic gold exemption.",
+      "taxMx": "16% IVA applies to silver and steel jewelry. Gold jewelry is exempt only when you request a factura (CFDI); without one it is taxed at 16% like any other piece.",
       "taxCa": "13% GST/HST applied on the duty-inclusive value of your order.",
       "handling": "This fee covers the guaranteed pre-payment of all border duties and taxes. By paying this now, your package will clear customs automatically with no additional bills or delays upon delivery."
     },
@@ -123,8 +123,12 @@
       "notice": "Your RFC and tax regime will be saved for future orders. The factura will be emailed to you once your order is confirmed.",
       "rfc": "RFC",
       "regimen": "Tax Regime",
-      "uso": "CFDI Use"
-    }
+      "uso": "CFDI Use",
+      "goldPrompt": "This order includes gold jewelry. Gold is IVA-exempt only against a factura — tick the box above and the {{amount}} of IVA on those pieces comes off your total.",
+      "goldWaived": "Gold jewelry is IVA-exempt against a factura: {{amount}} has been taken off this order."
+    },
+    "goldExemptNote": "Excludes {{amount}} of IVA on gold jewelry, exempt because you requested a factura.",
+    "goldTaxedNote": "Includes {{amount}} of IVA on gold jewelry. Request a factura above and it is exempt."
   },
   "payment": {
     "title": "Payment",
@@ -289,7 +293,8 @@
       "confirmDelete": "Delete this size?",
       "newHeading": "New size",
       "originalHeading": "Original — this product",
-      "firstHint": "Adding a size turns this product's current values into a size too. Name it, then add the new one."
+      "firstHint": "Adding a size turns this product's current values into a size too. Name it, then add the new one.",
+      "withTaxSuffix": "(IVA incl.)"
     },
     "stats": {
       "overallTitle": "Overall Revenue",
@@ -353,7 +358,13 @@
       "dynamicPricePreview": "Today's computed price",
       "dynamicPriceUnavailable": "Metal price feed unavailable — the fixed price will be used until it recovers.",
       "dynamicWork": "Work (w, MXN/g)",
-      "dynamicWholesalePreview": "Wholesale (before markup)"
+      "dynamicWholesalePreview": "Wholesale (before markup)",
+      "priceWithTax": "Price (IVA included)",
+      "priceIncludesTax": "Price entered with 16% IVA",
+      "priceTaxHint": "Enter the price the client pays with IVA included; the taxable base is stored.",
+      "priceNet": "Taxable base",
+      "priceIva": "IVA",
+      "priceGoldNote": "Gold: a client who requests a factura pays the ${{net}} base — IVA is only charged without one."
     },
     "users": {
       "sortByMoney": "By Money Spent",
@@ -585,7 +596,7 @@
     },
     "q4": {
       "q": "Do prices include taxes?",
-      "a": "Applicable VAT (IVA, 16%; gold jewelry is exempt) is calculated and itemized at checkout before you confirm payment. Since all shipments are domestic, there are no customs fees or import duties."
+      "a": "Applicable VAT (IVA, 16%) is calculated and itemized at checkout before you confirm payment. Gold jewelry is exempt from IVA only when you request a factura (CFDI) at checkout; without one it is taxed at the standard 16%. Since all shipments are domestic, there are no customs fees or import duties."
     },
     "q5": {
       "q": "What payment methods do you accept?",

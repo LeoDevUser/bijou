@@ -387,7 +387,8 @@ public class CollectionService {
         return new ItemView(
                 item.getId(), item.getStock(), item.getVersion(),
                 item.getNameEn(), item.getNameFr(), item.getNameEs(),
-                item.getPrice(), labelViews, item.getCategories().stream().map(CategoryService::toView).toList(),
+                item.getPrice(), item.isPriceIncludesTax(),
+                labelViews, item.getCategories().stream().map(CategoryService::toView).toList(),
                 item.getDescriptionEn(), item.getDescriptionFr(), item.getDescriptionEs(),
                 assetViews, sizeViews, item.getDiscountPercent(), item.getMaterial(), item.isUsmcaQualified(), item.getWeightGrams(),
                 item.getPricingFormula(), item.getPricingWork(), item.getPricingMargin());

@@ -14,6 +14,7 @@ public record ItemView(
         String nameFr,
         String nameEs,
         BigDecimal price,
+        boolean priceIncludesTax,
         List<LabelView> labels,
         List<CategoryView> categories,
         String descriptionEn,

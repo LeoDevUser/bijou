@@ -47,12 +47,23 @@ public class ItemService {
      * Static price from the request, unless a pricing formula is set and the
      * metal feed has data — then the computed price wins. Falls back to the
      * admin-entered price so a feed outage never blocks saving an item.
+     *
+     * <p>A static price flagged {@code priceIncludesTax} is entered with 16 % IVA
+     * already applied, so the IVA is backed out before storing: items always hold
+     * the taxable base, since IVA is assessed per order at checkout (and waived on
+     * gold when the client requests a factura). Formula prices are computed net
+     * from the metal cost, so the flag never applies to them.</p>
      */
     private BigDecimal resolvePrice(ItemRequest req) {
         BigDecimal work = req.pricingWork() == null ? null : BigDecimal.valueOf(req.pricingWork());
         BigDecimal margin = req.pricingMargin() == null ? null : BigDecimal.valueOf(req.pricingMargin());
         return dynamicPricingService.computePrice(req.pricingFormula(), req.weightGrams(), work, margin)
-                .orElse(BigDecimal.valueOf(req.price()));
+                .orElseGet(() -> netPrice(BigDecimal.valueOf(req.price()), req.priceIncludesTax()));
+    }
+
+    /** Strips the IVA an admin-entered price was typed with, if any. */
+    private BigDecimal netPrice(BigDecimal entered, boolean includesTax) {
+        return includesTax ? TaxService.netFromTaxInclusive(entered) : entered;
     }
 
     private List<LabelView> toLabelViews(List<Label> labels) {
@@ -79,13 +90,16 @@ public class ItemService {
     /**
      * Effective price of a size: the formula-computed price (weight-driven, using
      * the item's formula/margin and the size's work override) when the item is
-     * formula-priced, otherwise the size's own static price.
+     * formula-priced, otherwise the size's own static price — entered under the
+     * item's tax mode, so IVA is backed out here too.
      */
     private BigDecimal resolveSizePrice(Item item, ItemSizeRequest req) {
         BigDecimal work = req.pricingWork() != null ? BigDecimal.valueOf(req.pricingWork()) : item.getPricingWork();
         return dynamicPricingService
             .computePrice(item.getPricingFormula(), req.weightGrams(), work, item.getPricingMargin())
-            .orElse(req.price() != null ? BigDecimal.valueOf(req.price()) : BigDecimal.ZERO);
+            .orElseGet(() -> req.price() != null
+                ? netPrice(BigDecimal.valueOf(req.price()), item.isPriceIncludesTax())
+                : BigDecimal.ZERO);
     }
 
     private List<Label> resolveLabels(List<Long> labelIds) {
@@ -122,7 +136,8 @@ public class ItemService {
         return new ItemView(
                 item.getId(), item.getStock(), item.getVersion(),
                 item.getNameEn(), item.getNameFr(), item.getNameEs(),
-                item.getPrice(), toLabelViews(item.getLabels()), toCategoryViews(item.getCategories()),
+                item.getPrice(), item.isPriceIncludesTax(),
+                toLabelViews(item.getLabels()), toCategoryViews(item.getCategories()),
                 item.getDescriptionEn(), item.getDescriptionFr(), item.getDescriptionEs(),
                 toAssetViews(item.getAssets()),
                 toSizeViews(item.getSizes()),
@@ -140,7 +155,8 @@ public class ItemService {
         return new ItemViewVerbose(
                 item.getId(), item.getStock(), item.getVersion(),
                 item.getNameEn(), item.getNameFr(), item.getNameEs(),
-                item.getPrice(), toLabelViews(item.getLabels()), toCategoryViews(item.getCategories()),
+                item.getPrice(), item.isPriceIncludesTax(),
+                toLabelViews(item.getLabels()), toCategoryViews(item.getCategories()),
                 item.getDescriptionEn(), item.getDescriptionFr(), item.getDescriptionEs(),
                 toAssetViews(item.getAssets()),
                 toSizeViews(item.getSizes()),
@@ -166,6 +182,7 @@ public class ItemService {
         Item item = Item.builder()
             .stock(req.stock())
             .price(resolvePrice(req))
+            .priceIncludesTax(req.priceIncludesTax())
             .pricingFormula(req.pricingFormula())
             .pricingWork(req.pricingWork() == null ? null : BigDecimal.valueOf(req.pricingWork()))
             .pricingMargin(req.pricingMargin() == null ? null : BigDecimal.valueOf(req.pricingMargin()))
@@ -198,6 +215,9 @@ public class ItemService {
         item.setPricingFormula(req.pricingFormula());
         item.setPricingWork(req.pricingWork() == null ? null : BigDecimal.valueOf(req.pricingWork()));
         item.setPricingMargin(req.pricingMargin() == null ? null : BigDecimal.valueOf(req.pricingMargin()));
+        // Existing size prices are left alone when this flag flips: they were entered
+        // under the old mode and are re-normalised the next time each size is saved.
+        item.setPriceIncludesTax(req.priceIncludesTax());
         item.setPrice(resolvePrice(req));
         item.setLabels(resolveLabels(req.labelIds()));
         item.setCategories(resolveCategories(req.categoryIds()));
