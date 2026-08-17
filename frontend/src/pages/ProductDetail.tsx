@@ -216,8 +216,8 @@ export default function ProductDetail() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-6 py-12 grid md:grid-cols-2 gap-12">
-        <div className="bg-[#F0EDE8] aspect-square animate-pulse" />
+      <div className="max-w-7xl mx-auto px-6 py-12 grid md:grid-cols-2 gap-8 lg:gap-12 items-start">
+        <div className="bg-[#F0EDE8] aspect-square animate-pulse w-full mx-auto max-w-[min(100%,26rem,60vh)] lg:max-w-[min(100%,32rem,68vh)]" />
         <div className="space-y-4 pt-4">
           <div className="h-4 bg-[#F0EDE8] w-1/4 rounded animate-pulse" />
           <div className="h-8 bg-[#F0EDE8] w-2/3 rounded animate-pulse" />
@@ -234,9 +234,9 @@ export default function ProductDetail() {
   return (
     <>
       <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="grid md:grid-cols-2 gap-12">
+        <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start">
           {/* Carousel */}
-          <div className="flex flex-col gap-3 min-w-0">
+          <div className="flex flex-col gap-3 min-w-0 w-full mx-auto max-w-[min(100%,26rem,60vh)] lg:max-w-[min(100%,32rem,68vh)]">
             <div className="relative bg-[#F0EDE8] aspect-square overflow-hidden">
               {currentAsset ? (
                 currentAsset.resourceType === 'video' ? (
