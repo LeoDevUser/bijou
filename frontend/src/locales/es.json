@@ -596,7 +596,7 @@
     },
     "q4": {
       "q": "¿Los precios incluyen impuestos?",
-      "a": "El IVA aplicable (16%) se calcula y desglosa en el checkout antes de confirmar tu pago. La joyería de oro queda exenta de IVA únicamente si solicitas factura (CFDI) en el checkout; sin factura se cobra el 16% estándar. Al ser envíos nacionales, no existen cargos aduanales ni aranceles de importación."
+      "a": "El IVA aplicable (16%) se calcula y desglosa en el checkout antes de confirmar tu pago. La joyería de oro queda exenta de IVA únicamente si solicitas factura (CFDI) en el checkout. Al ser envíos nacionales, no existen cargos aduanales ni aranceles de importación."
     },
     "q5": {
       "q": "¿Qué métodos de pago aceptan?",
@@ -654,8 +654,7 @@
       "intro": "En Bijou Monde cuidamos cada detalle:",
       "i1": "Empaque seguro y discreto",
       "i2": "Protección contra daños",
-      "i3": "Verificación antes de envío",
-      "note": "Trabajamos con paqueterías que operan en más de 220 países, garantizando cobertura global confiable."
+      "i3": "Verificación antes de envío"
     },
     "s8": {
       "title": "Entregas Fallidas",

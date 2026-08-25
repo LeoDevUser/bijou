@@ -159,7 +159,8 @@ public class TaxService {
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * Returns the effective MXN → USD rate including the 3 % slippage buffer.
+     * Returns the effective MXN → USD rate including the slippage buffer
+     * (default 1.5 %).
      * Exposed for use by other services (e.g. landed-cost display).
      */
     public BigDecimal effectiveMxnToUsdRate() {
@@ -238,9 +239,9 @@ public class TaxService {
      * effective August 29, 2025 (EO 14324, continued February 2026).
      * All non-USMCA items are therefore dutiable regardless of order value.</p>
      *
-     * <p>Math: dutyMxn = itemMxn × (baseRate + section122) × 1.03
+     * <p>Math: dutyMxn = itemMxn × (baseRate + section122) × bufferFactor
      * The MXN→USD base rate cancels in the full conversion chain, leaving only
-     * the 3 % slippage buffer on top of the MXN duty amount.</p>
+     * the slippage buffer (default 1.5 %) on top of the MXN duty amount.</p>
      */
     private BigDecimal calcUsDuty(List<OrderItem> orderItems) {
         BigDecimal total = BigDecimal.ZERO;
@@ -276,7 +277,8 @@ public class TaxService {
      *   <li>USMCA-qualified items: 0 % duty regardless of value.</li>
      *   <li>Non-USMCA items at or below CAD $150 per item: 0 % duty
      *       (duty de minimis — converted from MXN at the injected CAD rate).</li>
-     *   <li>Non-USMCA items above CAD $150: 8.5 % MFN + 3 % slippage buffer.</li>
+     *   <li>Non-USMCA items above CAD $150: 8.5 % MFN + the slippage buffer
+     *       (default 1.5 %).</li>
      * </ul>
      * </p>
      */

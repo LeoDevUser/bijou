@@ -75,7 +75,6 @@ export default function Shipping() {
             <li>{p('s7.i2')}</li>
             <li>{p('s7.i3')}</li>
           </ul>
-          <p className="text-muted italic">{p('s7.note')}</p>
         </section>
 
         <section>
