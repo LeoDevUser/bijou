@@ -294,7 +294,14 @@
       "newHeading": "New size",
       "originalHeading": "Original — this product",
       "firstHint": "Adding a size turns this product's current values into a size too. Name it, then add the new one.",
-      "withTaxSuffix": "(IVA incl.)"
+      "withTaxSuffix": "(IVA incl.)",
+      "media": "Size images",
+      "mediaHint": "Optional. Leave empty and this size shows the product's images.",
+      "mediaInherited": "No images of its own — showing the product's:",
+      "mediaFromProduct": "Take one of the product's images",
+      "mediaMoveHint": "Moves the image to this size — it stops showing on the others.",
+      "mediaUse": "Use for this size",
+      "mediaReturn": "Return to the product"
     },
     "stats": {
       "overallTitle": "Overall Revenue",

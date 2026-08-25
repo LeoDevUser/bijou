@@ -32,6 +32,8 @@ export interface ItemSizeView {
   descriptionEs: string | null;
   sortOrder: number;
   active: boolean;
+  /** Media for this size alone. Empty means it shows the item's own gallery. */
+  assets: ItemAssetView[];
 }
 
 export interface ItemView {

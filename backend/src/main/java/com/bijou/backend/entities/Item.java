@@ -17,6 +17,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 
+import org.hibernate.annotations.SQLRestriction;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +62,13 @@ public class Item {
     )
     @Builder.Default
     private List<Category> categories = new ArrayList<>();
+    /**
+     * The item's own gallery. Assets scoped to a single size are excluded by the
+     * restriction below — they live on {@link ItemSize#getAssets()} instead, and a
+     * size with none of its own falls back to this list.
+     */
     @OneToMany(mappedBy = "item", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @SQLRestriction("item_size_id is null")
     @OrderBy("sortOrder ASC")
     @Builder.Default
     private List<ItemAsset> assets = new ArrayList<>();

@@ -372,17 +372,21 @@ public class CollectionService {
 
     // ── Helpers ──────────────────────────────────────────────────────────────────
 
+    private static List<ItemAssetView> toAssetViews(List<com.bijou.backend.entities.ItemAsset> assets) {
+        if (assets == null) return List.of();
+        return assets.stream()
+                .map(a -> new ItemAssetView(a.getId(), a.getImageUrl(), a.getImageId(), a.getResourceType()))
+                .toList();
+    }
+
     private ItemView toItemView(com.bijou.backend.entities.Item item) {
         List<LabelView> labelViews = item.getLabels().stream().map(LabelService::toView).toList();
-        List<ItemAssetView> assetViews = item.getAssets() == null ? List.of() :
-                item.getAssets().stream()
-                        .map(a -> new ItemAssetView(a.getId(), a.getImageUrl(), a.getImageId(), a.getResourceType()))
-                        .toList();
+        List<ItemAssetView> assetViews = toAssetViews(item.getAssets());
         List<ItemSizeView> sizeViews = item.getSizes() == null ? List.of() :
                 item.getSizes().stream()
                         .map(s -> new ItemSizeView(s.getId(), s.getSize(), s.getStock(), s.getVersion(), s.getWeightGrams(), s.getPrice(),
                                 s.getPricingWork(), s.getDescriptionEn(), s.getDescriptionFr(), s.getDescriptionEs(),
-                                s.getSortOrder(), s.isActive()))
+                                s.getSortOrder(), s.isActive(), toAssetViews(s.getAssets())))
                         .toList();
         return new ItemView(
                 item.getId(), item.getStock(), item.getVersion(),

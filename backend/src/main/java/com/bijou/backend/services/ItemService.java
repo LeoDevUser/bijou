@@ -20,6 +20,7 @@ import com.bijou.backend.entities.Label;
 import com.bijou.backend.entities.PricingFormula;
 import com.bijou.backend.exception.AppException;
 import com.bijou.backend.repositories.CategoryRepository;
+import com.bijou.backend.repositories.ItemAssetRepository;
 import com.bijou.backend.repositories.ItemRepository;
 import com.bijou.backend.repositories.LabelRepository;
 import com.bijou.backend.repositories.MaterialSalesStats;
@@ -38,6 +39,7 @@ public class ItemService {
 
     private final CloudinaryService cloudinaryService;
     private final ItemRepository itemRepository;
+    private final ItemAssetRepository itemAssetRepository;
     private final LabelRepository labelRepository;
     private final CategoryRepository categoryRepository;
     private final OrderRepository orderRepository;
@@ -83,7 +85,8 @@ public class ItemService {
         return sizes.stream()
             .map(s -> new ItemSizeView(
                 s.getId(), s.getSize(), s.getStock(), s.getVersion(), s.getWeightGrams(), s.getPrice(), s.getPricingWork(),
-                s.getDescriptionEn(), s.getDescriptionFr(), s.getDescriptionEs(), s.getSortOrder(), s.isActive()))
+                s.getDescriptionEn(), s.getDescriptionFr(), s.getDescriptionEs(), s.getSortOrder(), s.isActive(),
+                toAssetViews(s.getAssets())))
             .toList();
     }
 
@@ -233,57 +236,146 @@ public class ItemService {
         return toItemView(item);
     }
 
+    /**
+     * The gallery an asset lives in: the item's own when {@code sizeId} is null,
+     * otherwise that size's. Both are ordered lists whose {@code sortOrder} is
+     * resequenced by position, so they're interchangeable to every caller below.
+     */
+    private List<ItemAsset> assetScope(Item item, Long sizeId) {
+        return sizeId == null ? item.getAssets() : findSizeOrThrow(item, sizeId).getAssets();
+    }
+
+    /** Finds the gallery holding {@code assetId}, searching the item then its sizes. */
+    private List<ItemAsset> owningScope(Item item, Long assetId) {
+        if (item.getAssets().stream().anyMatch(a -> a.getId().equals(assetId))) return item.getAssets();
+        for (ItemSize size : item.getSizes()) {
+            if (size.getAssets().stream().anyMatch(a -> a.getId().equals(assetId))) return size.getAssets();
+        }
+        throw new AppException(HttpStatus.NOT_FOUND, "ASSET_NOT_FOUND");
+    }
+
+    private static void resequence(List<ItemAsset> assets) {
+        for (int i = 0; i < assets.size(); i++) {
+            assets.get(i).setSortOrder(i);
+        }
+    }
+
+    /** Every asset on the item, its sizes' included — for bulk Cloudinary cleanup. */
+    private List<ItemAsset> allAssets(Item item) {
+        List<ItemAsset> all = new java.util.ArrayList<>(item.getAssets());
+        item.getSizes().forEach(s -> all.addAll(s.getAssets()));
+        return all;
+    }
+
+    /** Uploaded media. A null {@code sizeId} adds to the item's shared gallery. */
     @Transactional
-    public ItemView addAsset(Long itemId, CloudinaryResponse res, String resourceType) {
+    public ItemView addAsset(Long itemId, Long sizeId, CloudinaryResponse res, String resourceType) {
         Item item = findAnyItemOrThrow(itemId);
-        int nextOrder = item.getAssets().size();
+        List<ItemAsset> scope = assetScope(item, sizeId);
         ItemAsset asset = ItemAsset.builder()
             .item(item)
+            .itemSize(sizeId == null ? null : findSizeOrThrow(item, sizeId))
             .imageUrl(res.url())
             .imageId(res.imageId())
             .resourceType(resourceType)
-            .sortOrder(nextOrder)
+            .sortOrder(scope.size())
             .build();
-        item.getAssets().add(asset);
+        scope.add(asset);
         itemRepository.save(item);
-        log.info("added {} asset to item #{} ({})", resourceType, itemId, displayName(item));
+        log.info("added {} asset to item #{} ({}){}", resourceType, itemId, displayName(item),
+                 sizeId == null ? "" : " size #" + sizeId);
         return toItemView(item);
     }
 
-    public ItemView pickAsset(Long itemId, PickMediaRequest req) {
+    public ItemView addAsset(Long itemId, CloudinaryResponse res, String resourceType) {
+        return addAsset(itemId, null, res, resourceType);
+    }
+
+    /** Media picked from the existing Cloudinary library — never ours to delete. */
+    @Transactional
+    public ItemView pickAsset(Long itemId, Long sizeId, PickMediaRequest req) {
         Item item = findAnyItemOrThrow(itemId);
-        int nextOrder = item.getAssets().size();
+        List<ItemAsset> scope = assetScope(item, sizeId);
         ItemAsset asset = ItemAsset.builder()
             .item(item)
+            .itemSize(sizeId == null ? null : findSizeOrThrow(item, sizeId))
             .imageUrl(req.secureUrl())
             .imageId(req.publicId())
             .resourceType(req.resourceType())
-            .sortOrder(nextOrder)
+            .sortOrder(scope.size())
             .owned(false)
             .build();
-        item.getAssets().add(asset);
+        scope.add(asset);
         Item saved = itemRepository.saveAndFlush(item);
-        log.info("picked {} asset '{}' for item #{} ({})", req.resourceType(), req.publicId(), itemId, displayName(saved));
+        log.info("picked {} asset '{}' for item #{} ({}){}", req.resourceType(), req.publicId(), itemId,
+                 displayName(saved), sizeId == null ? "" : " size #" + sizeId);
         return toItemView(saved);
     }
 
+    public ItemView pickAsset(Long itemId, PickMediaRequest req) {
+        return pickAsset(itemId, null, req);
+    }
+
+    /** Deletes an asset from whichever gallery of the item holds it. */
     @Transactional
     public ItemView deleteAsset(Long itemId, Long assetId) {
         Item item = findAnyItemOrThrow(itemId);
-        ItemAsset asset = item.getAssets().stream()
+        List<ItemAsset> scope = owningScope(item, assetId);
+        ItemAsset asset = scope.stream()
             .filter(a -> a.getId().equals(assetId))
             .findFirst()
             .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "ASSET_NOT_FOUND"));
-        item.getAssets().remove(asset);
-        for (int i = 0; i < item.getAssets().size(); i++) {
-            item.getAssets().get(i).setSortOrder(i);
-        }
+        scope.remove(asset);
+        resequence(scope);
         itemRepository.saveAndFlush(item);
         if (asset.isOwned()) {
             cloudinaryService.delete(asset.getImageId(), asset.getResourceType());
         }
         log.info("deleted asset #{} from item #{} ({})", assetId, itemId, displayName(item));
         return toItemView(item);
+    }
+
+    /**
+     * Move an asset one slot towards the front ({@code delta} −1) or back (+1) of
+     * its own gallery. Mirrors {@link #moveSize}; a move past either end is a no-op.
+     */
+    @Transactional
+    public ItemView moveAsset(Long itemId, Long assetId, int delta) {
+        Item item = findAnyItemOrThrow(itemId);
+        List<ItemAsset> scope = owningScope(item, assetId);
+        int idx = 0;
+        while (!scope.get(idx).getId().equals(assetId)) idx++;
+        int target = idx + delta;
+        if (target >= 0 && target < scope.size()) {
+            Collections.swap(scope, idx, target);
+            resequence(scope);
+            itemRepository.save(item);
+            log.info("moved asset #{} of item #{} from position {} to {}", assetId, itemId, idx, target);
+        }
+        return toItemView(item);
+    }
+
+    /**
+     * Re-scope an existing asset: onto {@code sizeId}, or back to the item's shared
+     * gallery when it is null. Lets the admin hand a shot the item already has to
+     * one size without re-uploading it. Both galleries are resequenced afterwards
+     * so neither is left with a gap in its ordering.
+     */
+    @Transactional
+    public ItemView reassignAsset(Long itemId, Long assetId, Long sizeId) {
+        Item item = findAnyItemOrThrow(itemId);
+        owningScope(item, assetId); // 404 unless the asset is on this item
+        ItemSize target = sizeId == null ? null : findSizeOrThrow(item, sizeId);
+        itemAssetRepository.reassign(assetId, target);
+        // The query cleared the persistence context — re-read so both galleries
+        // reflect the move before their positions are renumbered.
+        Item reloaded = findAnyItemOrThrow(itemId);
+        resequence(reloaded.getAssets());
+        reloaded.getSizes().forEach(sz -> resequence(sz.getAssets()));
+        itemRepository.save(reloaded);
+        log.info("reassigned asset #{} of item #{} to {}", assetId, itemId,
+                 sizeId == null ? "the item" : "size #" + sizeId);
+        return toItemView(reloaded);
     }
 
     // ── Sizes ───────────────────────────────────────────────────────────────
@@ -390,11 +482,19 @@ public class ItemService {
     public ItemView deleteSize(Long itemId, Long sizeId) {
         Item item = findAnyItemOrThrow(itemId);
         ItemSize size = findSizeOrThrow(item, sizeId);
+        // Media scoped to this size goes with it; the item's shared gallery, which
+        // the size may only have been borrowing, is untouched.
+        List<ItemAsset> assets = List.copyOf(size.getAssets());
         item.getSizes().remove(size);
         for (int i = 0; i < item.getSizes().size(); i++) {
             item.getSizes().get(i).setSortOrder(i);
         }
-        itemRepository.save(item);
+        itemRepository.saveAndFlush(item);
+        for (ItemAsset asset : assets) {
+            if (asset.isOwned()) {
+                cloudinaryService.delete(asset.getImageId(), asset.getResourceType());
+            }
+        }
         log.info("deleted size #{} from item #{}", sizeId, itemId);
         return toItemView(item);
     }
@@ -447,7 +547,7 @@ public class ItemService {
         if (orderRepository.existsByOrderItems_Item_Id(id)) {
             throw new AppException(HttpStatus.CONFLICT, "ITEM_HAS_ORDERS");
         }
-        List<ItemAsset> assets = List.copyOf(item.getAssets());
+        List<ItemAsset> assets = allAssets(item);
         itemRepository.delete(item);
         itemRepository.flush();
         for (ItemAsset asset : assets) {

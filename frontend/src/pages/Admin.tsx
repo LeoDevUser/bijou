@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
-import type { ItemView, ItemViewVerbose, ItemRequest, ItemSizeView, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, MaterialSalesStats, ThemeConfig, AppSettings, BrevoQuota, CloudinaryResource, CloudinaryResourcesPage, JewelryMaterial, PricingFormula } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, ItemAssetView, ItemSizeView, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, MaterialSalesStats, ThemeConfig, AppSettings, BrevoQuota, CloudinaryResource, CloudinaryResourcesPage, JewelryMaterial, PricingFormula } from '../types';
 import { pickLocale, isItemIncomplete, isLabelIncomplete, formatMoney } from '../types';
 import { useTheme, THEME_DEFAULTS, mergeCollectionTheme } from '../context/ThemeContext';
 import { invalidatePublicSettings } from '../hooks/usePublicSettings';
@@ -687,21 +687,312 @@ function StockControls({ stock, version, onAdjust, onSet }: {
   );
 }
 
+// ── Size media ──────────────────────────────────────────────────────────────
+
+type PendingPick = { publicId: string; resourceType: string; secureUrl: string };
+type PendingFile = { file: File; name: string; url: string };
+
+/**
+ * Media chosen for a size that doesn't exist yet. Sizes are created in a single
+ * POST, so their images can't be uploaded until the ids come back — until then
+ * they're held here and flushed by {@link flushPendingMedia}.
+ */
+type PendingMedia = { files: PendingFile[]; picks: PendingPick[] };
+
+const emptyPendingMedia: PendingMedia = { files: [], picks: [] };
+
+const hasPendingMedia = (m: PendingMedia) => m.files.length > 0 || m.picks.length > 0;
+
+/** Uploads everything queued for a freshly created size; returns the latest view. */
+async function flushPendingMedia(itemId: number, sizeId: number, media: PendingMedia): Promise<ItemView | null> {
+  let view: ItemView | null = null;
+  for (const { file, name } of media.files) {
+    view = await api.admin.items.addSizeAsset(itemId, sizeId, file, name);
+  }
+  for (const pick of media.picks) {
+    view = await api.admin.items.pickSizeAsset(itemId, sizeId, pick);
+  }
+  return view;
+}
+
+/**
+ * Square preview shared by the size media grids. Videos have no still to show, so
+ * they get a label instead. Queued media carries a badge at the bottom, which is
+ * where saved media puts its action bar — so the two never collide.
+ */
+function MediaThumb({ url, resourceType, badge, actions, dim }: {
+  url: string; resourceType: string; badge?: string; actions?: React.ReactNode; dim?: boolean;
+}) {
+  return (
+    <div className={`relative group w-16 h-16 flex-shrink-0 ${badge ? 'ring-1 ring-gold' : ''} ${dim ? 'opacity-50' : ''}`}>
+      {resourceType === 'video' ? (
+        <div className="w-16 h-16 bg-[#F0EDE8] flex items-center justify-center text-[10px] text-muted uppercase tracking-widest">video</div>
+      ) : (
+        <img src={url} alt="" className="w-16 h-16 object-cover" />
+      )}
+      {badge && (
+        <span className="absolute bottom-0 inset-x-0 bg-gold/90 text-dark text-[9px] uppercase tracking-widest text-center py-px">{badge}</span>
+      )}
+      {actions && (
+        <div className={`absolute inset-x-0 ${badge ? 'top-0' : 'bottom-0'} flex justify-center gap-1 bg-dark/80 opacity-0 group-hover:opacity-100 transition-opacity`}>
+          {actions}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const thumbBtn = 'text-white text-[11px] leading-none px-1 py-1 hover:text-gold disabled:opacity-30 cursor-pointer';
+
+/** Upload / Browse pair, identical in the queued and saved flows. */
+function MediaButtons({ onFiles, onBrowse, disabled }: {
+  onFiles: (files: File[]) => void; onBrowse: () => void; disabled?: boolean;
+}) {
+  const { t } = useTranslation();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const btn = 'text-[11px] uppercase tracking-widest border border-border px-2 py-1 hover:border-dark transition-colors disabled:opacity-50';
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      <input
+        ref={fileRef}
+        type="file"
+        multiple
+        accept="image/*,video/mp4,video/webm,video/quicktime"
+        className="hidden"
+        onChange={e => { onFiles(Array.from(e.target.files ?? [])); e.target.value = ''; }}
+      />
+      <button type="button" disabled={disabled} onClick={() => fileRef.current?.click()} className={btn}>{t('admin.modal.addMedia')}</button>
+      <button type="button" disabled={disabled} onClick={onBrowse} className={btn}>{t('admin.site.browse')}</button>
+    </div>
+  );
+}
+
+/**
+ * Media for a size being created. Nothing can be uploaded yet, so picks are held
+ * locally and previewed from object URLs until the size has an id.
+ */
+function SizeMediaQueue({ media, onChange }: { media: PendingMedia; onChange: (m: PendingMedia) => void }) {
+  const { t } = useTranslation();
+  const [browsing, setBrowsing] = useState(false);
+
+  // Revoke whatever is still queued when this unmounts. A ref mirrors the latest
+  // list so the mount-only cleanup sees it, as in the item modal.
+  const mediaRef = useRef(media);
+  useEffect(() => { mediaRef.current = media; }, [media]);
+  useEffect(() => () => mediaRef.current.files.forEach(f => URL.revokeObjectURL(f.url)), []);
+
+  function addFiles(files: File[]) {
+    const accepted = files.filter(file => {
+      const limit = overSizeLimitMb(file);
+      if (limit) alert(t('admin.site.fileTooLarge', { name: file.name, max: limit }));
+      return !limit;
+    });
+    onChange({
+      ...media,
+      files: [...media.files, ...accepted.map(file => ({
+        file,
+        name: promptMediaName(file, t('admin.site.mediaNamePrompt')),
+        url: URL.createObjectURL(file),
+      }))],
+    });
+  }
+
+  function removeFile(idx: number) {
+    const removed = media.files[idx];
+    if (removed) URL.revokeObjectURL(removed.url);
+    onChange({ ...media, files: media.files.filter((_, i) => i !== idx) });
+  }
+
+  return (
+    <div className="border border-border p-3 space-y-2">
+      <p className="text-[11px] uppercase tracking-widest text-muted">{t('admin.sizes.media')}</p>
+      {hasPendingMedia(media) ? (
+        <div className="flex flex-wrap gap-2">
+          {media.files.map((f, idx) => (
+            <MediaThumb
+              key={f.url}
+              url={f.url}
+              resourceType={f.file.type.startsWith('video') ? 'video' : 'image'}
+              badge={t('admin.modal.pendingBadge')}
+              actions={<button type="button" onClick={() => removeFile(idx)} className={thumbBtn}>×</button>}
+            />
+          ))}
+          {media.picks.map((pick, idx) => (
+            <MediaThumb
+              key={pick.publicId}
+              url={pick.secureUrl}
+              resourceType={pick.resourceType}
+              badge={t('admin.modal.pendingBadge')}
+              actions={(
+                <button
+                  type="button"
+                  onClick={() => onChange({ ...media, picks: media.picks.filter((_, i) => i !== idx) })}
+                  className={thumbBtn}
+                >×</button>
+              )}
+            />
+          ))}
+        </div>
+      ) : (
+        <p className="text-[11px] text-muted">{t('admin.sizes.mediaHint')}</p>
+      )}
+      <MediaButtons onFiles={addFiles} onBrowse={() => setBrowsing(true)} />
+      {browsing && (
+        <CloudinaryBrowserModal
+          onClose={() => setBrowsing(false)}
+          onSelect={resource => {
+            setBrowsing(false);
+            if (media.picks.some(p => p.publicId === resource.publicId)) return;
+            onChange({
+              ...media,
+              picks: [...media.picks, { publicId: resource.publicId, resourceType: resource.resourceType, secureUrl: resource.secureUrl }],
+            });
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+/**
+ * Media for a saved size. Every change applies immediately (the size has an id),
+ * and the product's own gallery is listed alongside so a shot it already has can
+ * be handed to this size without re-uploading it.
+ */
+function SizeMediaEditor({ itemId, size, itemAssets, onChanged }: {
+  itemId: number;
+  size: ItemSizeView;
+  itemAssets: ItemAssetView[];
+  onChanged: (view: ItemView) => void;
+}) {
+  const { t } = useTranslation();
+  const [browsing, setBrowsing] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const assets = size.assets ?? [];
+
+  async function run(fn: () => Promise<ItemView>) {
+    setBusy(true);
+    setError(null);
+    try { onChanged(await fn()); }
+    catch { setError(t('admin.products.saveError')); }
+    finally { setBusy(false); }
+  }
+
+  // Names are prompted for up front so the whole batch uploads without pausing.
+  function upload(files: File[]) {
+    const named = files
+      .filter(file => {
+        const limit = overSizeLimitMb(file);
+        if (limit) alert(t('admin.site.fileTooLarge', { name: file.name, max: limit }));
+        return !limit;
+      })
+      .map(file => ({ file, name: promptMediaName(file, t('admin.site.mediaNamePrompt')) }));
+    if (!named.length) return;
+    run(async () => {
+      let view: ItemView | null = null;
+      for (const { file, name } of named) {
+        view = await api.admin.items.addSizeAsset(itemId, size.id, file, name);
+      }
+      return view as ItemView;
+    });
+  }
+
+  return (
+    <div className="border border-border p-3 space-y-2">
+      <p className="text-[11px] uppercase tracking-widest text-muted">{t('admin.sizes.media')}</p>
+      {assets.length > 0 ? (
+        <div className="flex flex-wrap gap-2">
+          {assets.map((a, idx) => (
+            <MediaThumb
+              key={a.id}
+              url={a.imageUrl ?? ''}
+              resourceType={a.resourceType}
+              actions={(
+                <>
+                  <button type="button" disabled={busy || idx === 0} onClick={() => run(() => api.admin.items.moveAssetUp(itemId, a.id))} className={thumbBtn}>‹</button>
+                  <button type="button" disabled={busy || idx === assets.length - 1} onClick={() => run(() => api.admin.items.moveAssetDown(itemId, a.id))} className={thumbBtn}>›</button>
+                  <button type="button" disabled={busy} title={t('admin.sizes.mediaReturn')} onClick={() => run(() => api.admin.items.reassignAsset(itemId, a.id, null))} className={thumbBtn}>↩</button>
+                  <button type="button" disabled={busy} onClick={() => run(() => api.admin.items.deleteAsset(itemId, a.id))} className={thumbBtn}>×</button>
+                </>
+              )}
+            />
+          ))}
+        </div>
+      ) : (
+        <>
+          <p className="text-[11px] text-muted">{t('admin.sizes.mediaInherited')}</p>
+          {itemAssets.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {itemAssets.map(a => (
+                <MediaThumb key={a.id} url={a.imageUrl ?? ''} resourceType={a.resourceType} dim />
+              ))}
+            </div>
+          )}
+        </>
+      )}
+      <MediaButtons onFiles={upload} onBrowse={() => setBrowsing(true)} disabled={busy} />
+      {itemAssets.length > 0 && (
+        <details>
+          <summary className="text-[11px] uppercase tracking-widest text-muted cursor-pointer">{t('admin.sizes.mediaFromProduct')}</summary>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {itemAssets.map(a => (
+              <MediaThumb
+                key={a.id}
+                url={a.imageUrl ?? ''}
+                resourceType={a.resourceType}
+                actions={(
+                  <button
+                    type="button"
+                    disabled={busy}
+                    title={t('admin.sizes.mediaUse')}
+                    onClick={() => run(() => api.admin.items.reassignAsset(itemId, a.id, size.id))}
+                    className={thumbBtn}
+                  >↓</button>
+                )}
+              />
+            ))}
+          </div>
+          <p className="text-[11px] text-muted mt-1">{t('admin.sizes.mediaMoveHint')}</p>
+        </details>
+      )}
+      {error && <p className="text-[11px] text-red-500">{error}</p>}
+      {browsing && (
+        <CloudinaryBrowserModal
+          onClose={() => setBrowsing(false)}
+          onSelect={resource => {
+            setBrowsing(false);
+            run(() => api.admin.items.pickSizeAsset(itemId, size.id, {
+              publicId: resource.publicId, resourceType: resource.resourceType, secureUrl: resource.secureUrl,
+            }));
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
 /**
  * Per-size CRUD inside the product edit modal. Sizes can only be added to a
  * saved item. Adding the first size also captures the item's original
  * configuration as a named size, so an item with sizes always has its original.
  */
-function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
+function ItemSizesPanel({ item, pricingFormula, itemAssets, onSizesChanged, onItemAssetsChanged }: {
   item: ItemView;
   pricingFormula: PricingFormula;
+  /** The product's own gallery, live from the modal — what a size without media shows. */
+  itemAssets: ItemAssetView[];
   onSizesChanged: (sizes: ItemSizeView[]) => void;
+  onItemAssetsChanged: (assets: ItemAssetView[]) => void;
 }) {
   const { t } = useTranslation();
   const [sizes, setSizes] = useState<ItemSizeView[]>(item.sizes ?? []);
   const [mode, setMode] = useState<'list' | 'add' | 'first' | number>('list');
   const [form, setForm] = useState<SizeForm>(emptySizeForm);
   const [origForm, setOrigForm] = useState<SizeForm>(emptySizeForm);
+  // Media for the not-yet-created sizes, one queue per form on screen.
+  const [media, setMedia] = useState<PendingMedia>(emptyPendingMedia);
+  const [origMedia, setOrigMedia] = useState<PendingMedia>(emptyPendingMedia);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -711,9 +1002,10 @@ function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
   const withTax = isStatic && item.priceIncludesTax;
   const showPrice = (net: number) => String(withTax ? toGross(net) : net);
 
-  function apply(updated: ItemSizeView[]) {
-    setSizes(updated);
-    onSizesChanged(updated);
+  function apply(updated: ItemView) {
+    setSizes(updated.sizes);
+    onSizesChanged(updated.sizes);
+    onItemAssetsChanged(updated.assets);
   }
 
   function toReq(f: SizeForm): ItemSizeRequest {
@@ -732,6 +1024,8 @@ function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
   function startAdd() {
     setError(null);
     setForm(emptySizeForm);
+    setMedia(emptyPendingMedia);
+    setOrigMedia(emptyPendingMedia);
     if (sizes.length === 0) {
       // First size: prefill the "original" row from the item's current values.
       setOrigForm({
@@ -763,12 +1057,22 @@ function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
     setMode(s.id);
   }
 
-  async function submitAdd(reqs: ItemSizeRequest[]) {
+  async function submitAdd(reqs: ItemSizeRequest[], queued: PendingMedia[]) {
     setBusy(true);
     setError(null);
     try {
-      const updated = await api.admin.items.addSizes(item.id, reqs);
-      apply(updated.sizes);
+      const knownIds = new Set(sizes.map(s => s.id));
+      let latest = await api.admin.items.addSizes(item.id, reqs);
+      // addSizes appends in request order, so the sizes that weren't there before
+      // line up one-to-one with `reqs` — and so with their queued media.
+      const created = latest.sizes.filter(s => !knownIds.has(s.id));
+      for (let i = 0; i < created.length; i++) {
+        if (!hasPendingMedia(queued[i])) continue;
+        latest = (await flushPendingMedia(item.id, created[i].id, queued[i])) ?? latest;
+      }
+      apply(latest);
+      setMedia(emptyPendingMedia);
+      setOrigMedia(emptyPendingMedia);
       setMode('list');
     } catch {
       setError(t('admin.products.saveError'));
@@ -782,7 +1086,7 @@ function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
     setError(null);
     try {
       const updated = await api.admin.items.updateSize(item.id, sizeId, toReq(form));
-      apply(updated.sizes);
+      apply(updated);
       setMode('list');
     } catch {
       setError(t('admin.products.saveError'));
@@ -793,12 +1097,12 @@ function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
 
   async function adjustSizeStock(sizeId: number, delta: number) {
     const u = await api.admin.items.adjustSizeStock(item.id, sizeId, delta);
-    apply(u.sizes);
+    apply(u);
   }
 
   async function setSizeStock(sizeId: number, value: number, version: number) {
     const u = await api.admin.items.setSizeStock(item.id, sizeId, value, version);
-    apply(u.sizes);
+    apply(u);
   }
 
   async function move(sizeId: number, dir: 'up' | 'down') {
@@ -808,7 +1112,7 @@ function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
       const updated = dir === 'up'
         ? await api.admin.items.moveSizeUp(item.id, sizeId)
         : await api.admin.items.moveSizeDown(item.id, sizeId);
-      apply(updated.sizes);
+      apply(updated);
     } catch {
       setError(t('admin.products.saveError'));
     } finally {
@@ -822,7 +1126,7 @@ function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
     setError(null);
     try {
       const updated = await api.admin.items.deleteSize(item.id, sizeId);
-      apply(updated.sizes);
+      apply(updated);
     } catch {
       setError(t('admin.products.saveError'));
     } finally {
@@ -864,6 +1168,7 @@ function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
               {mode === s.id && (
                 <div className="mt-1 space-y-2">
                   <SizeFields value={form} onChange={setForm} isStatic={isStatic} priceIncludesTax={withTax} hideStock />
+                  <SizeMediaEditor itemId={item.id} size={s} itemAssets={itemAssets} onChanged={apply} />
                   <StockControls
                     stock={s.stock}
                     version={s.version}
@@ -888,8 +1193,9 @@ function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
       {mode === 'add' && (
         <div className="space-y-2">
           <SizeFields value={form} onChange={setForm} isStatic={isStatic} priceIncludesTax={withTax} heading={t('admin.sizes.newHeading')} />
+          <SizeMediaQueue media={media} onChange={setMedia} />
           <div className="flex gap-2">
-            <button type="button" disabled={busy || !fieldsValid(form)} onClick={() => submitAdd([toReq(form)])} className={`${btn} border-dark bg-dark text-white hover:bg-gold`}>{t('admin.modal.save')}</button>
+            <button type="button" disabled={busy || !fieldsValid(form)} onClick={() => submitAdd([toReq(form)], [media])} className={`${btn} border-dark bg-dark text-white hover:bg-gold`}>{t('admin.modal.save')}</button>
             <button type="button" onClick={() => setMode('list')} className={`${btn} border-border hover:border-dark`}>{t('admin.modal.cancel')}</button>
           </div>
         </div>
@@ -899,12 +1205,14 @@ function ItemSizesPanel({ item, pricingFormula, onSizesChanged }: {
         <div className="space-y-2">
           <p className="text-[11px] text-muted">{t('admin.sizes.firstHint')}</p>
           <SizeFields value={origForm} onChange={setOrigForm} isStatic={isStatic} priceIncludesTax={withTax} heading={t('admin.sizes.originalHeading')} />
+          <SizeMediaQueue media={origMedia} onChange={setOrigMedia} />
           <SizeFields value={form} onChange={setForm} isStatic={isStatic} priceIncludesTax={withTax} heading={t('admin.sizes.newHeading')} />
+          <SizeMediaQueue media={media} onChange={setMedia} />
           <div className="flex gap-2">
             <button
               type="button"
               disabled={busy || !fieldsValid(origForm) || !fieldsValid(form)}
-              onClick={() => submitAdd([toReq(origForm), toReq(form)])}
+              onClick={() => submitAdd([toReq(origForm), toReq(form)], [origMedia, media])}
               className={`${btn} border-dark bg-dark text-white hover:bg-gold`}
             >{t('admin.modal.save')}</button>
             <button type="button" onClick={() => setMode('list')} className={`${btn} border-border hover:border-dark`}>{t('admin.modal.cancel')}</button>
@@ -1415,7 +1723,13 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
           {/* Sizes — only on saved items; adding the first size also captures the original */}
           <div>
             {item ? (
-              <ItemSizesPanel item={item} pricingFormula={item.pricingFormula ?? 'NONE'} onSizesChanged={() => {}} />
+              <ItemSizesPanel
+                item={item}
+                pricingFormula={item.pricingFormula ?? 'NONE'}
+                itemAssets={currentAssets}
+                onSizesChanged={() => {}}
+                onItemAssetsChanged={setCurrentAssets}
+              />
             ) : (
               <>
                 <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.sizes.title')}</label>

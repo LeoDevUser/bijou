@@ -294,7 +294,14 @@
       "newHeading": "Nouvelle taille",
       "originalHeading": "Original — ce produit",
       "firstHint": "Ajouter une taille transforme aussi les valeurs actuelles du produit en une taille. Nommez-la, puis ajoutez la nouvelle.",
-      "withTaxSuffix": "(TVA incl.)"
+      "withTaxSuffix": "(TVA incl.)",
+      "media": "Images de la taille",
+      "mediaHint": "Facultatif. Sans image, cette taille affiche celles du produit.",
+      "mediaInherited": "Aucune image propre — affichage de celles du produit :",
+      "mediaFromProduct": "Reprendre une image du produit",
+      "mediaMoveHint": "L'image est déplacée vers cette taille — elle disparaît des autres.",
+      "mediaUse": "Utiliser pour cette taille",
+      "mediaReturn": "Rendre au produit"
     },
     "stats": {
       "overallTitle": "Chiffre d'Affaires Global",

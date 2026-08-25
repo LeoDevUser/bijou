@@ -186,8 +186,29 @@ export const api = {
         if (!res.ok) { const body = await res.json().catch(() => ({})); throw { status: res.status, ...body }; }
         return res.json();
       },
+      /** Upload scoped to one size — shown only while that size is selected. */
+      addSizeAsset: async (itemId: number, sizeId: number, file: File, name?: string): Promise<ItemView> => {
+        const form = new FormData();
+        form.append('file', file);
+        if (name) form.append('name', name);
+        const res = await fetch(`${BASE_URL}/${ADMIN}/items/${itemId}/sizes/${sizeId}/assets`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: authHeaders(),
+          body: form,
+        });
+        if (!res.ok) { const body = await res.json().catch(() => ({})); throw { status: res.status, ...body }; }
+        return res.json();
+      },
       deleteAsset: (itemId: number, assetId: number) =>
         request<ItemView>(`/${ADMIN}/items/${itemId}/assets/${assetId}`, { method: 'DELETE' }),
+      /** Hand an asset the item already has to a size, or back to the item with null. */
+      reassignAsset: (itemId: number, assetId: number, sizeId: number | null) =>
+        request<ItemView>(`/${ADMIN}/items/${itemId}/assets/${assetId}/size`, { method: 'PATCH', body: JSON.stringify({ sizeId }) }),
+      moveAssetUp: (itemId: number, assetId: number) =>
+        request<ItemView>(`/${ADMIN}/items/${itemId}/assets/${assetId}/up`, { method: 'PATCH' }),
+      moveAssetDown: (itemId: number, assetId: number) =>
+        request<ItemView>(`/${ADMIN}/items/${itemId}/assets/${assetId}/down`, { method: 'PATCH' }),
       addSizes: (itemId: number, reqs: ItemSizeRequest[]) =>
         request<ItemView>(`/${ADMIN}/items/${itemId}/sizes`, { method: 'POST', body: JSON.stringify(reqs) }),
       updateSize: (itemId: number, sizeId: number, req: ItemSizeRequest) =>
@@ -209,6 +230,8 @@ export const api = {
         request<ItemView>(`/${ADMIN}/items/${itemId}/sizes/${sizeId}/stock`, { method: 'PATCH', body: JSON.stringify({ stock, expectedVersion }) }),
       pickAsset: (itemId: number, data: { publicId: string; resourceType: string; secureUrl: string }) =>
         request<ItemView>(`/${ADMIN}/items/${itemId}/assets/pick`, { method: 'PATCH', body: JSON.stringify(data) }),
+      pickSizeAsset: (itemId: number, sizeId: number, data: { publicId: string; resourceType: string; secureUrl: string }) =>
+        request<ItemView>(`/${ADMIN}/items/${itemId}/sizes/${sizeId}/assets/pick`, { method: 'PATCH', body: JSON.stringify(data) }),
       createWithImage: async (data: ItemRequest, file: File, name?: string): Promise<ItemView> => {
         const form = new FormData();
         form.append('item', new Blob([JSON.stringify(data)], { type: 'application/json' }));

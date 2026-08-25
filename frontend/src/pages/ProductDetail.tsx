@@ -48,7 +48,9 @@ export default function ProductDetail() {
   const hasSizes = activeSizes.length > 0;
   const selectedSize = hasSizes ? (activeSizes.find(s => s.id === selectedSizeId) ?? null) : null;
 
-  const assets = item?.assets ?? [];
+  // A size with media of its own replaces the gallery entirely; one without falls
+  // back to the item's — the shots it had before the product was split into sizes.
+  const assets = (selectedSize?.assets?.length ? selectedSize.assets : item?.assets) ?? [];
   const hasMultiple = assets.length > 1;
   const currentAsset = assets[assetIndex] ?? null;
 
@@ -60,11 +62,13 @@ export default function ProductDetail() {
     }, 10000);
   }
 
+  // Restart the gallery whenever it changes — including when picking a size swaps
+  // it for that size's own images.
   useEffect(() => {
+    setAssetIndex(0);
     resetInterval(assets.length);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [assets.length]);
+  }, [assets.length, selectedSizeId]);
 
   const name = item ? pickLocale(item.nameEn, item.nameFr, item.nameEs, i18n.language) : '';
   // A chosen size overrides price, stock, and (per-language) description.

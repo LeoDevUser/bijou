@@ -1,7 +1,10 @@
 package com.bijou.backend.entities;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -10,6 +13,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 
@@ -76,4 +81,14 @@ public class ItemSize {
     @Builder.Default
     @Column(nullable = false)
     private boolean active = true;
+
+    /**
+     * Media shown only while this size is selected. Empty is the normal case and
+     * means "use the item's gallery" — the images the item had before it was split
+     * into sizes — so a size never has to restate shots that apply to all of them.
+     */
+    @OneToMany(mappedBy = "itemSize", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sortOrder ASC")
+    @Builder.Default
+    private List<ItemAsset> assets = new ArrayList<>();
 }

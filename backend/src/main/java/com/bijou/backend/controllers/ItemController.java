@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.bijou.backend.repositories.MaterialSalesStats;
 import com.bijou.backend.repositories.SalesStats;
+import com.bijou.backend.services.AssetSizeRequest;
 import com.bijou.backend.services.CloudinaryResponse;
 import com.bijou.backend.services.CloudinaryService;
 import com.bijou.backend.services.ItemRequest;
@@ -109,6 +110,20 @@ public class ItemController {
             @PathVariable Long itemId,
             @RequestPart("file") MultipartFile file,
             @RequestParam(value = "name", required = false) String name) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(uploadAsset(itemId, null, file, name));
+    }
+
+    /** Same upload, scoped to one size — that size shows these instead of the item's. */
+    @PostMapping(value = "/${ADMIN_PAGE}/items/{itemId}/sizes/{sizeId}/assets", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ItemView> addSizeAsset(
+            @PathVariable Long itemId,
+            @PathVariable Long sizeId,
+            @RequestPart("file") MultipartFile file,
+            @RequestParam(value = "name", required = false) String name) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(uploadAsset(itemId, sizeId, file, name));
+    }
+
+    private ItemView uploadAsset(Long itemId, Long sizeId, MultipartFile file, String name) {
         String contentType = file.getContentType();
         CloudinaryResponse res;
         String resourceType;
@@ -119,7 +134,7 @@ public class ItemController {
             res = cloudinaryService.upload(file, name);
             resourceType = "image";
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(itemService.addAsset(itemId, res, resourceType));
+        return itemService.addAsset(itemId, sizeId, res, resourceType);
     }
 
     @PatchMapping("/${ADMIN_PAGE}/items/{itemId}/assets/pick")
@@ -127,6 +142,31 @@ public class ItemController {
         return ResponseEntity.ok(itemService.pickAsset(itemId, req));
     }
 
+    @PatchMapping("/${ADMIN_PAGE}/items/{itemId}/sizes/{sizeId}/assets/pick")
+    public ResponseEntity<ItemView> pickSizeAsset(
+            @PathVariable Long itemId, @PathVariable Long sizeId, @RequestBody PickMediaRequest req) {
+        return ResponseEntity.ok(itemService.pickAsset(itemId, sizeId, req));
+    }
+
+    /** Hands an asset the item already has to a size (or back to the item). */
+    @PatchMapping("/${ADMIN_PAGE}/items/{itemId}/assets/{assetId}/size")
+    public ResponseEntity<ItemView> reassignAsset(
+            @PathVariable Long itemId, @PathVariable Long assetId, @RequestBody AssetSizeRequest req) {
+        return ResponseEntity.ok(itemService.reassignAsset(itemId, assetId, req.sizeId()));
+    }
+
+    // Reordering works within the asset's own gallery, size-scoped or not.
+    @PatchMapping("/${ADMIN_PAGE}/items/{itemId}/assets/{assetId}/up")
+    public ResponseEntity<ItemView> moveAssetUp(@PathVariable Long itemId, @PathVariable Long assetId) {
+        return ResponseEntity.ok(itemService.moveAsset(itemId, assetId, -1));
+    }
+
+    @PatchMapping("/${ADMIN_PAGE}/items/{itemId}/assets/{assetId}/down")
+    public ResponseEntity<ItemView> moveAssetDown(@PathVariable Long itemId, @PathVariable Long assetId) {
+        return ResponseEntity.ok(itemService.moveAsset(itemId, assetId, 1));
+    }
+
+    /** Deletes from whichever gallery holds it — the item's or one of its sizes'. */
     @DeleteMapping("/${ADMIN_PAGE}/items/{itemId}/assets/{assetId}")
     public ResponseEntity<ItemView> deleteAsset(@PathVariable Long itemId, @PathVariable Long assetId) {
         return ResponseEntity.ok(itemService.deleteAsset(itemId, assetId));
