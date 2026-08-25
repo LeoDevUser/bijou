@@ -299,9 +299,9 @@
       "mediaHint": "Opcional. Si la dejas vacía, esta talla muestra las imágenes del producto.",
       "mediaInherited": "Sin imágenes propias — se muestran las del producto:",
       "mediaFromProduct": "Tomar una imagen del producto",
-      "mediaMoveHint": "La imagen se mueve a esta talla — deja de verse en las demás.",
       "mediaUse": "Usar para esta talla",
-      "mediaReturn": "Devolver al producto"
+      "mediaCopyHint": "Copia la imagen a esta talla. El producto la conserva, y las demás tallas también.",
+      "mediaAlreadyUsed": "Ya la usa esta talla"
     },
     "stats": {
       "overallTitle": "Ingresos Generales",

@@ -148,11 +148,11 @@ public class ItemController {
         return ResponseEntity.ok(itemService.pickAsset(itemId, sizeId, req));
     }
 
-    /** Hands an asset the item already has to a size (or back to the item). */
-    @PatchMapping("/${ADMIN_PAGE}/items/{itemId}/assets/{assetId}/size")
-    public ResponseEntity<ItemView> reassignAsset(
+    /** Gives a size its own copy of an image the item already has. */
+    @PostMapping("/${ADMIN_PAGE}/items/{itemId}/assets/{assetId}/copy")
+    public ResponseEntity<ItemView> copyAsset(
             @PathVariable Long itemId, @PathVariable Long assetId, @RequestBody AssetSizeRequest req) {
-        return ResponseEntity.ok(itemService.reassignAsset(itemId, assetId, req.sizeId()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(itemService.copyAsset(itemId, assetId, req.sizeId()));
     }
 
     // Reordering works within the asset's own gallery, size-scoped or not.

@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,6 @@ import com.bijou.backend.entities.Label;
 import com.bijou.backend.entities.PricingFormula;
 import com.bijou.backend.exception.AppException;
 import com.bijou.backend.repositories.CategoryRepository;
-import com.bijou.backend.repositories.ItemAssetRepository;
 import com.bijou.backend.repositories.ItemRepository;
 import com.bijou.backend.repositories.LabelRepository;
 import com.bijou.backend.repositories.MaterialSalesStats;
@@ -39,7 +39,6 @@ public class ItemService {
 
     private final CloudinaryService cloudinaryService;
     private final ItemRepository itemRepository;
-    private final ItemAssetRepository itemAssetRepository;
     private final LabelRepository labelRepository;
     private final CategoryRepository categoryRepository;
     private final OrderRepository orderRepository;
@@ -267,6 +266,27 @@ public class ItemService {
         return all;
     }
 
+    /**
+     * Drops the Cloudinary files behind {@code removed} — but only those the item no
+     * longer shows anywhere. A copy handed to a size points at the same file as the
+     * original, so deleting one of them must leave the file alone while the other
+     * still needs it. Call after the removal has been flushed, so {@code item}
+     * reflects what actually survives.
+     */
+    private void deleteFilesNoLongerUsed(Item item, List<ItemAsset> removed) {
+        Set<String> stillShown = allAssets(item).stream()
+            .map(ItemAsset::getImageId)
+            .filter(java.util.Objects::nonNull)
+            .collect(java.util.stream.Collectors.toSet());
+        removed.stream()
+            .filter(ItemAsset::isOwned)
+            .filter(a -> a.getImageId() != null && !stillShown.contains(a.getImageId()))
+            // Two removed rows can share a file (original and copy deleted together).
+            .collect(java.util.stream.Collectors.toMap(ItemAsset::getImageId, a -> a, (first, dup) -> first))
+            .values()
+            .forEach(a -> cloudinaryService.delete(a.getImageId(), a.getResourceType()));
+    }
+
     /** Uploaded media. A null {@code sizeId} adds to the item's shared gallery. */
     @Transactional
     public ItemView addAsset(Long itemId, Long sizeId, CloudinaryResponse res, String resourceType) {
@@ -328,9 +348,7 @@ public class ItemService {
         scope.remove(asset);
         resequence(scope);
         itemRepository.saveAndFlush(item);
-        if (asset.isOwned()) {
-            cloudinaryService.delete(asset.getImageId(), asset.getResourceType());
-        }
+        deleteFilesNoLongerUsed(item, List.of(asset));
         log.info("deleted asset #{} from item #{} ({})", assetId, itemId, displayName(item));
         return toItemView(item);
     }
@@ -356,26 +374,36 @@ public class ItemService {
     }
 
     /**
-     * Re-scope an existing asset: onto {@code sizeId}, or back to the item's shared
-     * gallery when it is null. Lets the admin hand a shot the item already has to
-     * one size without re-uploading it. Both galleries are resequenced afterwards
-     * so neither is left with a gap in its ordering.
+     * Give {@code sizeId} its own copy of an asset the item already has (or, with a
+     * null {@code sizeId}, copy one of a size's into the shared gallery). The source
+     * keeps its image — removing it is the separate delete action — so the copy is a
+     * second row over the same Cloudinary file, and the two are only distinguishable
+     * by which gallery holds them. {@link #deleteAsset} counts those references
+     * before dropping the file, which is why {@code owned} is inherited rather than
+     * forced to false: whichever copy is deleted last takes the file with it.
      */
     @Transactional
-    public ItemView reassignAsset(Long itemId, Long assetId, Long sizeId) {
+    public ItemView copyAsset(Long itemId, Long assetId, Long sizeId) {
         Item item = findAnyItemOrThrow(itemId);
-        owningScope(item, assetId); // 404 unless the asset is on this item
-        ItemSize target = sizeId == null ? null : findSizeOrThrow(item, sizeId);
-        itemAssetRepository.reassign(assetId, target);
-        // The query cleared the persistence context — re-read so both galleries
-        // reflect the move before their positions are renumbered.
-        Item reloaded = findAnyItemOrThrow(itemId);
-        resequence(reloaded.getAssets());
-        reloaded.getSizes().forEach(sz -> resequence(sz.getAssets()));
-        itemRepository.save(reloaded);
-        log.info("reassigned asset #{} of item #{} to {}", assetId, itemId,
+        ItemAsset source = owningScope(item, assetId).stream()
+            .filter(a -> a.getId().equals(assetId))
+            .findFirst()
+            .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "ASSET_NOT_FOUND"));
+        List<ItemAsset> scope = assetScope(item, sizeId);
+        ItemAsset copy = ItemAsset.builder()
+            .item(item)
+            .itemSize(sizeId == null ? null : findSizeOrThrow(item, sizeId))
+            .imageUrl(source.getImageUrl())
+            .imageId(source.getImageId())
+            .resourceType(source.getResourceType())
+            .sortOrder(scope.size())
+            .owned(source.isOwned())
+            .build();
+        scope.add(copy);
+        itemRepository.save(item);
+        log.info("copied asset #{} of item #{} to {}", assetId, itemId,
                  sizeId == null ? "the item" : "size #" + sizeId);
-        return toItemView(reloaded);
+        return toItemView(item);
     }
 
     // ── Sizes ───────────────────────────────────────────────────────────────
@@ -490,11 +518,7 @@ public class ItemService {
             item.getSizes().get(i).setSortOrder(i);
         }
         itemRepository.saveAndFlush(item);
-        for (ItemAsset asset : assets) {
-            if (asset.isOwned()) {
-                cloudinaryService.delete(asset.getImageId(), asset.getResourceType());
-            }
-        }
+        deleteFilesNoLongerUsed(item, assets);
         log.info("deleted size #{} from item #{}", sizeId, itemId);
         return toItemView(item);
     }
@@ -547,7 +571,10 @@ public class ItemService {
         if (orderRepository.existsByOrderItems_Item_Id(id)) {
             throw new AppException(HttpStatus.CONFLICT, "ITEM_HAS_ORDERS");
         }
-        List<ItemAsset> assets = allAssets(item);
+        // Distinct files only — an image copied onto a size appears more than once.
+        List<ItemAsset> assets = List.copyOf(allAssets(item).stream()
+            .collect(java.util.stream.Collectors.toMap(ItemAsset::getImageId, a -> a, (first, dup) -> first))
+            .values());
         itemRepository.delete(item);
         itemRepository.flush();
         for (ItemAsset asset : assets) {

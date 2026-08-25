@@ -299,9 +299,9 @@
       "mediaHint": "Optional. Leave empty and this size shows the product's images.",
       "mediaInherited": "No images of its own — showing the product's:",
       "mediaFromProduct": "Take one of the product's images",
-      "mediaMoveHint": "Moves the image to this size — it stops showing on the others.",
       "mediaUse": "Use for this size",
-      "mediaReturn": "Return to the product"
+      "mediaCopyHint": "Copies the image to this size. The product keeps it, and so do the other sizes.",
+      "mediaAlreadyUsed": "Already used by this size"
     },
     "stats": {
       "overallTitle": "Overall Revenue",

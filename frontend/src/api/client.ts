@@ -202,9 +202,9 @@ export const api = {
       },
       deleteAsset: (itemId: number, assetId: number) =>
         request<ItemView>(`/${ADMIN}/items/${itemId}/assets/${assetId}`, { method: 'DELETE' }),
-      /** Hand an asset the item already has to a size, or back to the item with null. */
-      reassignAsset: (itemId: number, assetId: number, sizeId: number | null) =>
-        request<ItemView>(`/${ADMIN}/items/${itemId}/assets/${assetId}/size`, { method: 'PATCH', body: JSON.stringify({ sizeId }) }),
+      /** Give a size its own copy of an image the item already has; the source keeps it. */
+      copyAsset: (itemId: number, assetId: number, sizeId: number | null) =>
+        request<ItemView>(`/${ADMIN}/items/${itemId}/assets/${assetId}/copy`, { method: 'POST', body: JSON.stringify({ sizeId }) }),
       moveAssetUp: (itemId: number, assetId: number) =>
         request<ItemView>(`/${ADMIN}/items/${itemId}/assets/${assetId}/up`, { method: 'PATCH' }),
       moveAssetDown: (itemId: number, assetId: number) =>

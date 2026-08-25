@@ -1,8 +1,8 @@
 package com.bijou.backend.services;
 
 /**
- * Moves an existing asset between scopes on the same item: {@code sizeId} names
- * the size it should belong to, or null to send it back to the item's shared
- * gallery. The asset keeps its Cloudinary file — nothing is re-uploaded.
+ * Target scope for copying an existing asset on an item: {@code sizeId} names the
+ * size that should get its own copy, or null for the item's shared gallery. The
+ * source keeps its image — taking one is not removing it from where it came from.
  */
 public record AssetSizeRequest(Long sizeId) {}

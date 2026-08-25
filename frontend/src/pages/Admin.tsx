@@ -912,7 +912,6 @@ function SizeMediaEditor({ itemId, size, itemAssets, onChanged }: {
                 <>
                   <button type="button" disabled={busy || idx === 0} onClick={() => run(() => api.admin.items.moveAssetUp(itemId, a.id))} className={thumbBtn}>‹</button>
                   <button type="button" disabled={busy || idx === assets.length - 1} onClick={() => run(() => api.admin.items.moveAssetDown(itemId, a.id))} className={thumbBtn}>›</button>
-                  <button type="button" disabled={busy} title={t('admin.sizes.mediaReturn')} onClick={() => run(() => api.admin.items.reassignAsset(itemId, a.id, null))} className={thumbBtn}>↩</button>
                   <button type="button" disabled={busy} onClick={() => run(() => api.admin.items.deleteAsset(itemId, a.id))} className={thumbBtn}>×</button>
                 </>
               )}
@@ -936,24 +935,29 @@ function SizeMediaEditor({ itemId, size, itemAssets, onChanged }: {
         <details>
           <summary className="text-[11px] uppercase tracking-widest text-muted cursor-pointer">{t('admin.sizes.mediaFromProduct')}</summary>
           <div className="flex flex-wrap gap-2 mt-2">
-            {itemAssets.map(a => (
-              <MediaThumb
-                key={a.id}
-                url={a.imageUrl ?? ''}
-                resourceType={a.resourceType}
-                actions={(
-                  <button
-                    type="button"
-                    disabled={busy}
-                    title={t('admin.sizes.mediaUse')}
-                    onClick={() => run(() => api.admin.items.reassignAsset(itemId, a.id, size.id))}
-                    className={thumbBtn}
-                  >↓</button>
-                )}
-              />
-            ))}
+            {itemAssets.map(a => {
+              // The product keeps its copy, so guard against taking the same one twice.
+              const taken = assets.some(own => own.imageId === a.imageId);
+              return (
+                <MediaThumb
+                  key={a.id}
+                  url={a.imageUrl ?? ''}
+                  resourceType={a.resourceType}
+                  dim={taken}
+                  actions={(
+                    <button
+                      type="button"
+                      disabled={busy || taken}
+                      title={taken ? t('admin.sizes.mediaAlreadyUsed') : t('admin.sizes.mediaUse')}
+                      onClick={() => run(() => api.admin.items.copyAsset(itemId, a.id, size.id))}
+                      className={thumbBtn}
+                    >{taken ? '✓' : '↓'}</button>
+                  )}
+                />
+              );
+            })}
           </div>
-          <p className="text-[11px] text-muted mt-1">{t('admin.sizes.mediaMoveHint')}</p>
+          <p className="text-[11px] text-muted mt-1">{t('admin.sizes.mediaCopyHint')}</p>
         </details>
       )}
       {error && <p className="text-[11px] text-red-500">{error}</p>}
