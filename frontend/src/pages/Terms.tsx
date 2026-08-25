@@ -1,8 +1,10 @@
 import { useTranslation } from 'react-i18next';
+import { formatSettingsAmount, usePublicSettings } from '../hooks/usePublicSettings';
 
 export default function Terms() {
   const { t } = useTranslation();
-  const p = (key: string) => t(`terms.${key}`);
+  const p = (key: string, opts?: Record<string, unknown>) => t(`terms.${key}`, opts);
+  const settings = usePublicSettings();
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-16">
@@ -78,7 +80,9 @@ export default function Terms() {
           <ul className="list-disc list-inside space-y-1">
             <li>{p('s9.i1')}</li>
             <li>{p('s9.i2')}</li>
-            <li>{p('s9.i3')}</li>
+            {settings && (
+              <li>{p('s9.i3', { threshold: formatSettingsAmount(settings.freeShippingThreshold) })}</li>
+            )}
           </ul>
         </section>
 

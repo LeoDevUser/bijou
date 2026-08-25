@@ -639,9 +639,9 @@
     "s4": {
       "title": "Costos de Envío",
       "body": "El costo de envío se calcula automáticamente en el checkout según el estado de destino:",
-      "i1": "Zona estándar: $149 MXN",
-      "i2": "Zona extendida: $219 MXN",
-      "i3": "Envío gratuito en pedidos superiores a $2,000 MXN",
+      "i1": "Zona estándar: ${{standard}} MXN",
+      "i2": "Zona extendida: ${{extended}} MXN",
+      "i3": "Envío gratuito en pedidos superiores a ${{threshold}} MXN",
       "i4": "Empaque seguro y número de rastreo incluidos",
       "note": "El monto exacto se muestra siempre en el checkout antes de confirmar tu pedido."
     },
@@ -766,11 +766,11 @@
       "intro": "Por el momento, Bijou Monde realiza envíos únicamente dentro de México:",
       "i1": "No es posible procesar pedidos con dirección de entrega fuera de México",
       "i2": "El costo de envío depende del estado de destino (zona estándar o extendida)",
-      "i3": "Envío gratuito en pedidos superiores a $2,000 MXN"
+      "i3": "Envío gratuito en pedidos superiores a ${{threshold}} MXN"
     },
     "s10": {
       "title": "Cambios y Devoluciones",
-      "body": "No se aceptan devoluciones por cambio de opinión ni en productos personalizados. Los cambios son aceptados únicamente por defecto de fábrica. Para solicitar un cambio, reporta el defecto dentro de las 48 horas posteriores a la entrega. Bijou Monde revisará y validará cada caso."
+      "body": "No se aceptan devoluciones por cambio de opinión ni en productos personalizados. Los cambios son aceptados únicamente por defecto de fábrica. Para solicitar un cambio, reporta el defecto dentro de las 24 horas posteriores a la entrega. Bijou Monde revisará y validará cada caso."
     },
     "s11": {
       "title": "Garantía",

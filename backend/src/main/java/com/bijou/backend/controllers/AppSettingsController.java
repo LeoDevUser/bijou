@@ -12,6 +12,7 @@ import com.bijou.backend.services.AppSettingsToggleRequest;
 import com.bijou.backend.services.AppSettingsView;
 import com.bijou.backend.services.BrevoEmailService;
 import com.bijou.backend.services.BrevoQuotaView;
+import com.bijou.backend.services.PublicSettingsView;
 import com.bijou.backend.services.ShippingConfigRequest;
 
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,12 @@ public class AppSettingsController {
 
     @Value("${ADMIN_PAGE}")
     private String adminPage;
+
+    /** Public so the storefront can quote the live shipping fees before login. */
+    @GetMapping("/public/settings")
+    public ResponseEntity<PublicSettingsView> getPublic() {
+        return ResponseEntity.ok(appSettingsService.getPublic());
+    }
 
     @GetMapping("/${ADMIN_PAGE}/settings")
     public ResponseEntity<AppSettingsView> get() {

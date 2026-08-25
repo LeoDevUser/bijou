@@ -237,7 +237,7 @@ export default function ProductDetail() {
         <div className="grid md:grid-cols-2 gap-12 md:gap-8 lg:gap-12 md:items-start">
           {/* Carousel */}
           <div className="flex flex-col gap-3 min-w-0 w-full md:mx-auto md:max-w-[min(100%,26rem,60vh)] lg:max-w-[min(100%,32rem,68vh)]">
-            <div className="relative bg-[#F0EDE8] aspect-square overflow-hidden">
+            <div className="group relative bg-[#F0EDE8] aspect-square overflow-hidden">
               {currentAsset ? (
                 currentAsset.resourceType === 'video' ? (
                   <AutoplayVideo
@@ -264,12 +264,12 @@ export default function ProductDetail() {
                 <>
                   <button
                     onClick={goPrev}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-dark w-9 h-9 flex items-center justify-center transition-colors cursor-pointer text-xl"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-dark w-9 h-9 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer text-xl"
                     aria-label="Previous"
                   >‹</button>
                   <button
                     onClick={goNext}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-dark w-9 h-9 flex items-center justify-center transition-colors cursor-pointer text-xl"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-dark w-9 h-9 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer text-xl"
                     aria-label="Next"
                   >›</button>
                 </>

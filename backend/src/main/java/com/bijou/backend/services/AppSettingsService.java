@@ -36,6 +36,15 @@ public class AppSettingsService {
         return toView(load());
     }
 
+    /** Storefront view: shipping fees + MSI availability, no operational flags. */
+    @Transactional(readOnly = true)
+    public PublicSettingsView getPublic() {
+        AppSettings s = load();
+        return new PublicSettingsView(
+            s.isMsiEnabled(),
+            s.getStandardShippingFee(), s.getExtendedShippingFee(), s.getFreeShippingThreshold());
+    }
+
     @Transactional(readOnly = true)
     public boolean isRelayEnabled() {
         return load().isSmtpRelayEnabled();

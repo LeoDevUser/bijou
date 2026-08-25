@@ -639,9 +639,9 @@
     "s4": {
       "title": "Shipping Costs",
       "body": "Shipping cost is calculated automatically at checkout based on the destination state:",
-      "i1": "Standard zone: $149 MXN",
-      "i2": "Extended zone: $219 MXN",
-      "i3": "Free shipping on orders over $2,000 MXN",
+      "i1": "Standard zone: ${{standard}} MXN",
+      "i2": "Extended zone: ${{extended}} MXN",
+      "i3": "Free shipping on orders over ${{threshold}} MXN",
       "i4": "Secure packaging and tracking number included",
       "note": "The exact amount is always shown at checkout before you confirm your order."
     },
@@ -766,11 +766,11 @@
       "intro": "At this time, Bijou Monde ships only within Mexico:",
       "i1": "Orders with a delivery address outside Mexico cannot be processed",
       "i2": "Shipping cost depends on the destination state (standard or extended zone)",
-      "i3": "Free shipping on orders over $2,000 MXN"
+      "i3": "Free shipping on orders over ${{threshold}} MXN"
     },
     "s10": {
       "title": "Returns and Exchanges",
-      "body": "We do not accept returns due to change of mind or on personalized products. Exchanges are accepted only for manufacturing defects. To request an exchange, report the defect within 48 hours of delivery. Bijou Monde will review and validate each case."
+      "body": "We do not accept returns due to change of mind or on personalized products. Exchanges are accepted only for manufacturing defects. To request an exchange, report the defect within 24 hours of delivery. Bijou Monde will review and validate each case."
     },
     "s11": {
       "title": "Warranty",

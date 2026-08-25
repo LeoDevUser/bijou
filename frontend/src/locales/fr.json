@@ -639,9 +639,9 @@
     "s4": {
       "title": "Frais d'Expédition",
       "body": "Les frais de livraison sont calculés automatiquement lors du paiement selon l'État de destination :",
-      "i1": "Zone standard : 149 $ MXN",
-      "i2": "Zone étendue : 219 $ MXN",
-      "i3": "Livraison offerte pour les commandes de plus de 2 000 $ MXN",
+      "i1": "Zone standard : {{standard}} $ MXN",
+      "i2": "Zone étendue : {{extended}} $ MXN",
+      "i3": "Livraison offerte pour les commandes de plus de {{threshold}} $ MXN",
       "i4": "Emballage sécurisé et numéro de suivi inclus",
       "note": "Le montant exact est toujours affiché lors du paiement avant la confirmation de votre commande."
     },
@@ -766,11 +766,11 @@
       "intro": "Pour le moment, Bijou Monde livre uniquement au Mexique :",
       "i1": "Les commandes avec une adresse de livraison hors du Mexique ne peuvent pas être traitées",
       "i2": "Les frais de livraison dépendent de l'État de destination (zone standard ou étendue)",
-      "i3": "Livraison offerte pour les commandes de plus de 2 000 $ MXN"
+      "i3": "Livraison offerte pour les commandes de plus de {{threshold}} $ MXN"
     },
     "s10": {
       "title": "Échanges et Retours",
-      "body": "Nous n'acceptons pas les retours pour changement d'avis ni sur les produits personnalisés. Les échanges sont acceptés uniquement pour défaut de fabrication. Pour demander un échange, signalez le défaut dans les 48 heures suivant la livraison. Bijou Monde examinera et validera chaque cas."
+      "body": "Nous n'acceptons pas les retours pour changement d'avis ni sur les produits personnalisés. Les échanges sont acceptés uniquement pour défaut de fabrication. Pour demander un échange, signalez le défaut dans les 24 heures suivant la livraison. Bijou Monde examinera et validera chaque cas."
     },
     "s11": {
       "title": "Garantie",

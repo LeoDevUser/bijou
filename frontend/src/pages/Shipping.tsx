@@ -1,8 +1,10 @@
 import { useTranslation } from 'react-i18next';
+import { formatSettingsAmount as amount, usePublicSettings } from '../hooks/usePublicSettings';
 
 export default function Shipping() {
   const { t } = useTranslation();
-  const p = (key: string) => t(`shipping.${key}`);
+  const p = (key: string, opts?: Record<string, unknown>) => t(`shipping.${key}`, opts);
+  const settings = usePublicSettings();
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-16">
@@ -48,9 +50,13 @@ export default function Shipping() {
           <h2 className="font-serif text-xl font-light text-dark mb-3">{p('s4.title')}</h2>
           <p className="mb-3">{p('s4.body')}</p>
           <ul className="list-disc list-inside space-y-1 mb-3">
-            <li>{p('s4.i1')}</li>
-            <li>{p('s4.i2')}</li>
-            <li>{p('s4.i3')}</li>
+            {settings && (
+              <>
+                <li>{p('s4.i1', { standard: amount(settings.standardShippingFee) })}</li>
+                <li>{p('s4.i2', { extended: amount(settings.extendedShippingFee) })}</li>
+                <li>{p('s4.i3', { threshold: amount(settings.freeShippingThreshold) })}</li>
+              </>
+            )}
             <li>{p('s4.i4')}</li>
           </ul>
           <p className="text-muted italic">{p('s4.note')}</p>

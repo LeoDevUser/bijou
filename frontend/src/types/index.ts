@@ -379,6 +379,14 @@ export interface AppSettings {
   freeShippingThreshold: number;
 }
 
+/** Storefront-visible slice of AppSettings (GET /public/settings). */
+export interface PublicSettings {
+  msiEnabled: boolean;
+  standardShippingFee: number;
+  extendedShippingFee: number;
+  freeShippingThreshold: number;
+}
+
 export interface StripeConfig {
   publishableKey: string;
   liveMode: boolean;

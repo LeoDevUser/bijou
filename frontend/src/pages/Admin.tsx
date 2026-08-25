@@ -4,6 +4,7 @@ import { api } from '../api/client';
 import type { ItemView, ItemViewVerbose, ItemRequest, ItemSizeView, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, MaterialSalesStats, ThemeConfig, AppSettings, BrevoQuota, CloudinaryResource, CloudinaryResourcesPage, JewelryMaterial, PricingFormula } from '../types';
 import { pickLocale, isItemIncomplete, isLabelIncomplete, formatMoney } from '../types';
 import { useTheme, THEME_DEFAULTS, mergeCollectionTheme } from '../context/ThemeContext';
+import { invalidatePublicSettings } from '../hooks/usePublicSettings';
 
 // ── Media naming ──────────────────────────────────────────────────────────────
 
@@ -3696,6 +3697,7 @@ function AdminSettings() {
         freeShippingThreshold: Number(shipForm.threshold),
       });
       setSettings(updated);
+      invalidatePublicSettings();
       setShipSaved(true);
     } finally {
       setShipSaving(false);

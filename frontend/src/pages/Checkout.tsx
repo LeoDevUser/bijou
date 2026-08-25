@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
+import { usePublicSettings } from '../hooks/usePublicSettings';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
@@ -37,7 +38,8 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [taxPreview, setTaxPreview] = useState<TaxPreview | null>(null);
-  const [msiEnabled, setMsiEnabled] = useState(false);
+  const settings = usePublicSettings();
+  const msiEnabled = settings?.msiEnabled ?? false;
   const previewAbortRef = useRef<AbortController | null>(null);
 
   // Factura (CFDI) request
@@ -75,7 +77,6 @@ export default function Checkout() {
   }, [isLoading, isAuthenticated, items.length, navigate]);
 
   useEffect(() => {
-    api.admin.settings.get().then(s => setMsiEnabled(s.msiEnabled)).catch(() => {});
     api.fiscal.catalog().then(setFiscal).catch(() => {});
   }, []);
 
