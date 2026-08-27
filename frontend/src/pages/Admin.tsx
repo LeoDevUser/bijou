@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import type { ItemView, ItemViewVerbose, ItemRequest, ItemAssetView, ItemSizeView, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, MaterialSalesStats, ThemeConfig, AppSettings, BrevoQuota, CloudinaryResource, CloudinaryResourcesPage, JewelryMaterial, PricingFormula } from '../types';
@@ -2149,12 +2149,14 @@ function CollectionFormModal({
   initial,
   labels,
   categories,
+  collections,
   onClose,
   onSaved,
 }: {
   initial?: CollectionView;
   labels: LabelView[];
   categories: CategoryView[];
+  collections: CollectionView[];
   onClose: () => void;
   onSaved: (c: CollectionView) => void;
 }) {
@@ -2176,10 +2178,21 @@ function CollectionFormModal({
     subheaderFr: initial?.subheaderFr ?? '',
     subheaderEs: initial?.subheaderEs ?? '',
     color: initial?.color ?? '',
+    parentId: initial?.parentId ?? null as number | null,
+    sortOrder: initial?.sortOrder ?? 0,
   });
 
   const set = (k: string, v: string) =>
     setForm(f => ({ ...f, [k]: v }));
+
+  // A collection cannot sit under itself or under one of its own descendants.
+  const parentOptions = useMemo(() => {
+    if (!initial) return collections;
+    const banned = new Set<number>([initial.id]);
+    // `collections` is ordered depth-first, so one pass marks the whole subtree.
+    collections.forEach(c => { if (c.parentId !== null && banned.has(c.parentId)) banned.add(c.id); });
+    return collections.filter(c => !banned.has(c.id));
+  }, [collections, initial]);
 
   async function handleSave() {
     setSaving(true);
@@ -2195,6 +2208,8 @@ function CollectionFormModal({
         subheaderFr: form.subheaderFr,
         subheaderEs: form.subheaderEs,
         color: form.color,
+        parentId: form.parentId,
+        sortOrder: form.sortOrder,
       };
       let saved: CollectionView;
       if (initial) {
@@ -2309,6 +2324,34 @@ function CollectionFormModal({
           onChange={v => set('color', v)}
           placeholder={t('admin.site.colorPlaceholder')}
         />
+
+        <div className="grid grid-cols-3 gap-2">
+          <div className="col-span-2">
+            <label className="text-xs uppercase tracking-widest text-muted block mb-1">{t('admin.collections.parent')}</label>
+            <select
+              value={form.parentId ?? ''}
+              onChange={e => setForm(f => ({ ...f, parentId: e.target.value ? Number(e.target.value) : null }))}
+              className={inputClass}
+            >
+              <option value="">{t('admin.collections.noParent')}</option>
+              {parentOptions.map(c => (
+                <option key={c.id} value={c.id}>
+                  {'\u00A0\u00A0'.repeat(c.depth)}
+                  {pickLocale(c.headerEn, c.headerFr, c.headerEs, i18n.language) || `#${c.id}`}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs uppercase tracking-widest text-muted block mb-1">{t('admin.collections.sortOrder')}</label>
+            <input
+              type="number"
+              value={form.sortOrder}
+              onChange={e => setForm(f => ({ ...f, sortOrder: Number(e.target.value) || 0 }))}
+              className={inputClass}
+            />
+          </div>
+        </div>
 
         <div>
           <label className="text-xs uppercase tracking-widest text-muted block mb-1">{t('admin.modal.image')}</label>
@@ -2991,7 +3034,11 @@ function AdminCollections() {
             const assetsOpen = expandedAssets === c.id;
             const themeOpen = expandedTheme === c.id;
             return (
-              <div key={c.id} className={`border transition-opacity ${c.active || c.isMain ? 'border-border' : 'border-border opacity-60'}`}>
+              <div
+                key={c.id}
+                style={c.depth > 0 ? { marginLeft: c.depth * 24 } : undefined}
+                className={`border transition-opacity ${c.active || c.isMain ? 'border-border' : 'border-border opacity-60'}`}
+              >
                 <div className="px-5 py-4">
                   {/* Header row */}
                   <div className="flex items-center gap-4">
@@ -3006,6 +3053,11 @@ function AdminCollections() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="text-sm font-medium truncate">{header || labelNames}</p>
+                        {c.parentId !== null && (
+                          <span className="text-[10px] uppercase tracking-widest border border-border text-muted px-1.5 py-0.5 flex-shrink-0">
+                            {t('admin.collections.subcollection')}
+                          </span>
+                        )}
                         {c.isMain && (
                           <span className="text-[10px] uppercase tracking-widest bg-dark text-white px-1.5 py-0.5 flex-shrink-0">
                             {t('admin.collections.isMain')}
@@ -3115,6 +3167,7 @@ function AdminCollections() {
           initial={modal === 'new' ? undefined : modal}
           labels={labels}
           categories={categories}
+          collections={collections}
           onClose={() => setModal(null)}
           onSaved={() => { setModal(null); loadCollections(); }}
         />

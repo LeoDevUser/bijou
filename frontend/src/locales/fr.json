@@ -205,7 +205,8 @@
   },
   "collections": {
     "empty": "Aucune collection pour l'instant.",
-    "shopNow": "Découvrir"
+    "shopNow": "Découvrir",
+    "subcollections": "Explorer"
   },
   "admin": {
     "title": "Admin",
@@ -413,7 +414,11 @@
         "active": "Thème personnalisé",
         "reset": "Supprimer le thème personnalisé",
         "resetConfirm": "Supprimer le thème personnalisé de cette collection et revenir au thème global ?"
-      }
+      },
+      "parent": "Collection parente",
+      "noParent": "— Aucune (niveau principal) —",
+      "sortOrder": "Ordre",
+      "subcollection": "Sous"
     },
     "labels": {
       "title": "Étiquettes",

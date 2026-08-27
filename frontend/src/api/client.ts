@@ -1,4 +1,4 @@
-import type { ItemView, ItemViewVerbose, ItemRequest, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, MaterialSalesStats, ThemeConfig, TaxPreview, AppSettings, PublicSettings, StripeConfig, BrevoQuota, CloudinaryResourcesPage, FiscalCatalog } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionRequest, CollectionSiteAssetView, CollectionThemeView, SalesStats, MaterialSalesStats, ThemeConfig, TaxPreview, AppSettings, PublicSettings, StripeConfig, BrevoQuota, CloudinaryResourcesPage, FiscalCatalog } from '../types';
 import { getToken, setToken } from './tokenStore';
 
 interface LabelRequest { nameEn: string; nameFr: string; nameEs: string; }
@@ -295,9 +295,9 @@ export const api = {
       setMain: (id: number) => request<CollectionView>(`/${ADMIN}/collections/${id}/main`, { method: 'PATCH' }),
       setActive: (id: number, active: boolean) =>
         request<CollectionView>(`/${ADMIN}/collections/${id}/active`, { method: 'PATCH', body: JSON.stringify({ active }) }),
-      create: (data: { labelIds: number[]; categoryIds: number[]; headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; color: string }) =>
+      create: (data: CollectionRequest) =>
         request<CollectionView>(`/${ADMIN}/collections`, { method: 'POST', body: JSON.stringify(data) }),
-      updateText: (id: number, data: { labelIds: number[]; categoryIds: number[]; headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; color: string }) =>
+      updateText: (id: number, data: CollectionRequest) =>
         request<CollectionView>(`/${ADMIN}/collections/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
       uploadImage: async (id: number, file: File, name?: string): Promise<CollectionView> => {
         const form = new FormData();

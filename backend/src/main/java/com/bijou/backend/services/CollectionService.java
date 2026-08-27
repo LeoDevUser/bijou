@@ -1,7 +1,13 @@
 package com.bijou.backend.services;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.http.HttpStatus;
@@ -63,7 +69,12 @@ public class CollectionService {
                 t.getNavbarSeparator(), t.getSiteTextMuted(), t.getSiteTextAccent(), t.getSiteSeparator());
     }
 
+    /** Shallow view: no nested children, depth 0. */
     private CollectionView toView(Collection c) {
+        return toView(c, 0, List.of());
+    }
+
+    private CollectionView toView(Collection c, int depth, List<CollectionView> children) {
         List<LabelView> labels = c.getLabels().stream().map(LabelService::toView).toList();
         List<CategoryView> categories = c.getCategories().stream().map(CategoryService::toView).toList();
         List<CollectionSiteAssetView> assets = c.getSiteAssets().stream()
@@ -76,27 +87,67 @@ public class CollectionService {
                 c.getHeaderEn(), c.getHeaderFr(), c.getHeaderEs(),
                 c.getSubheaderEn(), c.getSubheaderFr(), c.getSubheaderEs(),
                 c.getColor(), assets, theme,
-                c.isActive(), c.isMain());
+                c.isActive(), c.isMain(),
+                c.getParent() == null ? null : c.getParent().getId(),
+                c.getSortOrder() == null ? 0 : c.getSortOrder(), depth, children);
+    }
+
+    /** View carrying its direct, active subcollections as cards (one level deep). */
+    private CollectionView toViewWithChildren(Collection c) {
+        List<CollectionView> children = collectionRepository.findActiveChildren(c.getId())
+                .stream().map(this::toView).toList();
+        return toView(c, 0, children);
     }
 
     // ── Public queries ───────────────────────────────────────────────────────────
 
-    /** Returns all active collections (for the public /collections page). isMain does not affect visibility. */
+    /**
+     * Returns the active top-level collections (for the public /collections page),
+     * each carrying its active direct subcollections. isMain does not affect
+     * visibility; hiding a parent hides its whole branch from the index.
+     */
     public List<CollectionView> getAll() {
-        return collectionRepository.findByActiveTrueOrderByIdAsc().stream().map(this::toView).toList();
+        return collectionRepository.findActiveOrdered().stream()
+                .filter(c -> c.getParent() == null)
+                .map(this::toViewWithChildren)
+                .toList();
     }
 
-    /** Returns all collections including inactive and the main one (for the admin panel). */
+    /**
+     * Returns every collection including inactive ones and the main one (for the admin
+     * panel), flattened depth-first so subcollections follow their parent, with {@code depth}
+     * set for indentation.
+     */
     public List<CollectionView> getAllForAdmin() {
-        return collectionRepository.findAllByOrderByIdAsc().stream().map(this::toView).toList();
+        List<Collection> all = collectionRepository.findAllOrdered();
+        Map<Long, List<Collection>> byParent = new LinkedHashMap<>();
+        for (Collection c : all) {
+            byParent.computeIfAbsent(c.getParent() == null ? null : c.getParent().getId(),
+                    k -> new ArrayList<>()).add(c);
+        }
+        List<CollectionView> out = new ArrayList<>();
+        Set<Long> visited = new HashSet<>();
+        appendBranch(byParent, null, 0, out, visited);
+        // Safety net: any row unreachable from a root (a cycle in the data) still shows up.
+        all.stream().filter(c -> !visited.contains(c.getId())).forEach(c -> out.add(toView(c)));
+        return out;
+    }
+
+    private void appendBranch(Map<Long, List<Collection>> byParent, Long parentId, int depth,
+                              List<CollectionView> out, Set<Long> visited) {
+        for (Collection c : byParent.getOrDefault(parentId, List.of())) {
+            if (!visited.add(c.getId())) continue;
+            out.add(toView(c, depth, List.of()));
+            appendBranch(byParent, c.getId(), depth + 1, out, visited);
+        }
     }
 
     public java.util.Optional<CollectionView> getMain() {
-        return collectionRepository.findByIsMainTrue().map(this::toView);
+        return collectionRepository.findByIsMainTrue().map(this::toViewWithChildren);
     }
 
     public CollectionView getById(Long id) {
-        return toView(findOrThrow(id));
+        return toViewWithChildren(findOrThrow(id));
     }
 
     public List<ItemView> getItemsByCollection(Long id) {
@@ -112,10 +163,17 @@ public class CollectionService {
                 .toList();
     }
 
-    /** Fetches all active items matching the collection's labels or categories (deduped). */
-    private List<com.bijou.backend.entities.Item> collectItems(Collection c) {
-        List<Long> labelIds = c.getLabels().stream().map(Label::getId).toList();
-        List<Long> categoryIds = c.getCategories().stream().map(Category::getId).toList();
+    /**
+     * Fetches all active items matching the labels or categories of the collection or of
+     * any of its active subcollections, at any depth (deduped). A parent with no labels of
+     * its own therefore shows everything its subcollections hold.
+     */
+    private List<com.bijou.backend.entities.Item> collectItems(Collection root) {
+        List<Collection> branch = selfAndDescendants(root);
+        List<Long> labelIds = branch.stream().flatMap(c -> c.getLabels().stream())
+                .map(Label::getId).distinct().toList();
+        List<Long> categoryIds = branch.stream().flatMap(c -> c.getCategories().stream())
+                .map(Category::getId).distinct().toList();
         if (labelIds.isEmpty() && categoryIds.isEmpty()) return List.of();
         java.util.LinkedHashMap<Long, com.bijou.backend.entities.Item> seen = new java.util.LinkedHashMap<>();
         if (!labelIds.isEmpty()) {
@@ -125,6 +183,22 @@ public class CollectionService {
             itemRepository.findByAnyCategoryIdInAndActiveTrue(categoryIds).forEach(i -> seen.putIfAbsent(i.getId(), i));
         }
         return new java.util.ArrayList<>(seen.values());
+    }
+
+    /** The collection plus every active subcollection beneath it, cycle-safe. */
+    private List<Collection> selfAndDescendants(Collection root) {
+        List<Collection> out = new ArrayList<>();
+        Set<Long> seen = new HashSet<>();
+        Deque<Collection> stack = new ArrayDeque<>();
+        stack.push(root);
+        while (!stack.isEmpty()) {
+            Collection c = stack.pop();
+            if (!seen.add(c.getId())) continue;
+            out.add(c);
+            collectionRepository.findActiveChildren(c.getId())
+                    .forEach(stack::push);
+        }
+        return out;
     }
 
     // ── Admin CRUD ───────────────────────────────────────────────────────────────
@@ -141,6 +215,8 @@ public class CollectionService {
                 .subheaderFr(req.subheaderFr())
                 .subheaderEs(req.subheaderEs())
                 .color(req.color())
+                .parent(resolveParent(req.parentId(), null))
+                .sortOrder(req.sortOrder() == null ? 0 : req.sortOrder())
                 .build();
         collection.setLabels(labels);
         collection.setCategories(categories);
@@ -155,8 +231,9 @@ public class CollectionService {
             saved.getSiteAssets().add(collectionSiteAssetRepository.save(asset));
         }
         CollectionView view = toView(collectionRepository.save(saved));
-        log.info("created collection #{} '{}' with {} label(s) and {} category(ies)",
-                view.id(), req.headerEn(), labels.size(), categories.size());
+        log.info("created collection #{} '{}' with {} label(s), {} category(ies), parent {}",
+                view.id(), req.headerEn(), labels.size(), categories.size(),
+                view.parentId() == null ? "none" : "#" + view.parentId());
         return view;
     }
 
@@ -171,6 +248,8 @@ public class CollectionService {
         collection.setSubheaderFr(req.subheaderFr());
         collection.setSubheaderEs(req.subheaderEs());
         collection.setColor(req.color());
+        collection.setParent(resolveParent(req.parentId(), id));
+        collection.setSortOrder(req.sortOrder() == null ? 0 : req.sortOrder());
         log.info("updated text/labels for collection #{}", id);
         return toView(collectionRepository.save(collection));
     }
@@ -208,6 +287,16 @@ public class CollectionService {
     @Transactional
     public void delete(Long id) {
         Collection collection = findOrThrow(id);
+        // Promote any subcollections to the deleted one's own parent rather than
+        // orphaning them (null parent = they become top-level).
+        List<Collection> children = collectionRepository.findByParent_Id(id);
+        if (!children.isEmpty()) {
+            Collection newParent = collection.getParent();
+            children.forEach(child -> child.setParent(newParent));
+            collectionRepository.saveAll(children);
+            log.info("re-parented {} subcollection(s) of #{} to {}", children.size(), id,
+                    newParent == null ? "top level" : "#" + newParent.getId());
+        }
         String oldImageId = collection.getImageId();
         String oldResourceType = collection.getResourceType();
         // delete cloudinary media for all site-asset slots (only if not referenced elsewhere)
@@ -424,6 +513,29 @@ public class CollectionService {
             return;
         }
         cloudinaryService.delete(imageId, resourceType);
+    }
+
+    /**
+     * Resolves the requested parent, rejecting anything that would create a cycle:
+     * a collection cannot be its own parent, nor sit under one of its own descendants.
+     *
+     * @param selfId the collection being updated, or null when creating a new one
+     */
+    private Collection resolveParent(Long parentId, Long selfId) {
+        if (parentId == null) return null;
+        if (parentId.equals(selfId)) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "COLLECTION_PARENT_CYCLE");
+        }
+        Collection parent = collectionRepository.findById(parentId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "COLLECTION_NOT_FOUND"));
+        Set<Long> seen = new HashSet<>();
+        for (Collection a = parent; a != null; a = a.getParent()) {
+            if (!seen.add(a.getId())) break; // pre-existing cycle in the data — stop walking
+            if (a.getId().equals(selfId)) {
+                throw new AppException(HttpStatus.BAD_REQUEST, "COLLECTION_PARENT_CYCLE");
+            }
+        }
+        return parent;
     }
 
     private Collection findOrThrow(Long id) {

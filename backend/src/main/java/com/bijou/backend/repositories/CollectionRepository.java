@@ -18,6 +18,19 @@ public interface CollectionRepository extends JpaRepository<Collection, Long> {
     List<Collection> findByActiveTrueOrderByIdAsc();
     Optional<Collection> findByIsMainTrue();
     List<Collection> findByLabels_Id(Long labelId);
+    List<Collection> findByParent_Id(Long parentId);
+
+    // sortOrder is null on rows created before the column existed, and Postgres sorts
+    // nulls last in ASC — coalesce so those keep sorting ahead of explicitly ordered ones.
+    @Query("SELECT c FROM Collection c ORDER BY COALESCE(c.sortOrder, 0) ASC, c.id ASC")
+    List<Collection> findAllOrdered();
+
+    @Query("SELECT c FROM Collection c WHERE c.active = true ORDER BY COALESCE(c.sortOrder, 0) ASC, c.id ASC")
+    List<Collection> findActiveOrdered();
+
+    @Query("SELECT c FROM Collection c WHERE c.parent.id = :parentId AND c.active = true "
+            + "ORDER BY COALESCE(c.sortOrder, 0) ASC, c.id ASC")
+    List<Collection> findActiveChildren(@Param("parentId") Long parentId);
     boolean existsByImageIdAndIdNot(String imageId, Long excludeId);
     boolean existsByImageId(String imageId);
 

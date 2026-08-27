@@ -335,6 +335,28 @@ export interface CollectionView {
   theme: CollectionThemeView | null;
   active: boolean;
   isMain: boolean;
+  /** Parent collection when this one is a subcollection; null when top-level. */
+  parentId: number | null;
+  /** Display order among siblings. */
+  sortOrder: number;
+  /** Nesting level — 0 for top-level. Only meaningful in the flat admin listing. */
+  depth: number;
+  /** Direct, active subcollections. Populated on single-collection reads and the public index. */
+  children: CollectionView[];
+}
+
+export interface CollectionRequest {
+  labelIds: number[];
+  categoryIds: number[];
+  headerEn: string;
+  headerFr: string;
+  headerEs: string;
+  subheaderEn: string;
+  subheaderFr: string;
+  subheaderEs: string;
+  color: string;
+  parentId: number | null;
+  sortOrder: number;
 }
 
 export interface CloudinaryResource {

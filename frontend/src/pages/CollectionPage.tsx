@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import ProductCard from '../components/ui/ProductCard';
+import { CollectionCard } from './Collections';
 import AutoplayVideo from '../components/ui/AutoplayVideo';
 import { optimizedImageUrl } from '../utils/cloudinary';
 import type { CollectionView, CollectionSiteAssetView, ItemView } from '../types';
@@ -129,6 +130,7 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
   if (!collection) return null;
 
   const collectionName = pickLocale(collection.headerEn, collection.headerFr, collection.headerEs, i18n.language);
+  const subcollections = collection.children ?? [];
 
   return (
     <div>
@@ -176,6 +178,16 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
           )}
         </div>
       </section>
+
+      {/* Subcollections — rendered as cards, like products, above the item grid */}
+      {subcollections.length > 0 && (
+        <section className="max-w-7xl mx-auto px-6 pt-16">
+          <h2 className="font-serif text-3xl font-light mb-10">{t('collections.subcollections')}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {subcollections.map(child => <CollectionCard key={child.id} c={child} />)}
+          </div>
+        </section>
+      )}
 
       {/* Products section */}
       <section className="max-w-7xl mx-auto px-6 pt-16 pb-16">

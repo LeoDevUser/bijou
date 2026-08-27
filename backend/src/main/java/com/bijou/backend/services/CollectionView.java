@@ -19,5 +19,9 @@ public record CollectionView(
         List<CollectionSiteAssetView> siteAssets,
         CollectionThemeView theme,
         boolean active,
-        boolean isMain) {
+        boolean isMain,
+        Long parentId,
+        Integer sortOrder,
+        int depth,
+        List<CollectionView> children) {
 }

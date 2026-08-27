@@ -205,7 +205,8 @@
   },
   "collections": {
     "empty": "No collections yet.",
-    "shopNow": "Shop Now"
+    "shopNow": "Shop Now",
+    "subcollections": "Explore"
   },
   "admin": {
     "title": "Admin",
@@ -413,7 +414,11 @@
         "active": "Custom theme",
         "reset": "Remove custom theme",
         "resetConfirm": "Remove the custom theme for this collection and revert to the global theme?"
-      }
+      },
+      "parent": "Parent Collection",
+      "noParent": "— None (top level) —",
+      "sortOrder": "Order",
+      "subcollection": "Sub"
     },
     "labels": {
       "title": "Labels",

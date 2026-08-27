@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -12,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
@@ -35,6 +37,20 @@ public class Collection {
     private Long id;
     @Version
     private Long version;
+
+    /**
+     * Parent collection, when this one is a subcollection. Null for a top-level
+     * collection. Eager like the rest of the entity: the tree is a handful of rows
+     * deep and open-in-view is off, so a lazy proxy would be unusable in the views.
+     */
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "parent_id")
+    private Collection parent;
+
+    /** Display order among siblings (ties broken by id). */
+    @Builder.Default
+    @Column(columnDefinition = "integer default 0")
+    private Integer sortOrder = 0;
 
     @Builder.Default
     @ManyToMany(fetch = FetchType.EAGER)
