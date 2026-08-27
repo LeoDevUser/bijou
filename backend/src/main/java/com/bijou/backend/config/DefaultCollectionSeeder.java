@@ -45,7 +45,7 @@ public class DefaultCollectionSeeder implements ApplicationRunner {
                 .subheaderEn("Fine jewellery for every moment")
                 .subheaderFr("Bijoux fins pour chaque moment")
                 .subheaderEs("Joyería fina para cada momento")
-                .color("#1C1C1C")
+                .cardTextColor("#1C1C1C")
                 .active(false)
                 .isMain(true)
                 .build();

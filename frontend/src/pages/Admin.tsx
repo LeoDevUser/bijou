@@ -2177,7 +2177,7 @@ function CollectionFormModal({
     subheaderEn: initial?.subheaderEn ?? '',
     subheaderFr: initial?.subheaderFr ?? '',
     subheaderEs: initial?.subheaderEs ?? '',
-    color: initial?.color ?? '',
+    cardTextColor: initial?.cardTextColor ?? '',
     parentId: initial?.parentId ?? null as number | null,
     sortOrder: initial?.sortOrder ?? 0,
   });
@@ -2207,7 +2207,7 @@ function CollectionFormModal({
         subheaderEn: form.subheaderEn,
         subheaderFr: form.subheaderFr,
         subheaderEs: form.subheaderEs,
-        color: form.color,
+        cardTextColor: form.cardTextColor,
         parentId: form.parentId,
         sortOrder: form.sortOrder,
       };
@@ -2319,11 +2319,14 @@ function CollectionFormModal({
           </div>
         </div>
 
-        <ColorInput
-          value={form.color}
-          onChange={v => set('color', v)}
-          placeholder={t('admin.site.colorPlaceholder')}
-        />
+        <div>
+          <label className="text-xs uppercase tracking-widest text-muted block mb-1">{t('admin.collections.cardTextColor')}</label>
+          <ColorInput
+            value={form.cardTextColor}
+            onChange={v => set('cardTextColor', v)}
+            placeholder={t('admin.site.colorPlaceholder')}
+          />
+        </div>
 
         <div className="grid grid-cols-3 gap-2">
           <div className="col-span-2">
@@ -2580,7 +2583,7 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, o
   const [uploading, setUploading] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [browsingSlot, setBrowsingSlot] = useState<string | null>(null);
-  const [textForm, setTextForm] = useState<{ headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; taglineEn: string; taglineFr: string; taglineEs: string; color: string; headerColor: string; subheaderColor: string; taglineColor: string; ctaCategoryIds: number[]; ctaLabelIds: number[] }>({ headerEn: '', headerFr: '', headerEs: '', subheaderEn: '', subheaderFr: '', subheaderEs: '', taglineEn: '', taglineFr: '', taglineEs: '', color: '', headerColor: '', subheaderColor: '', taglineColor: '', ctaCategoryIds: [], ctaLabelIds: [] });
+  const [textForm, setTextForm] = useState<{ headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; taglineEn: string; taglineFr: string; taglineEs: string; baseTextColor: string; headerTextColor: string; subheaderTextColor: string; taglineTextColor: string; ctaTextColor: string; ctaBorderColor: string; ctaBgColor: string; ctaHoverTextColor: string; ctaHoverBorderColor: string; ctaHoverBgColor: string; ctaCategoryIds: number[]; ctaLabelIds: number[] }>({ headerEn: '', headerFr: '', headerEs: '', subheaderEn: '', subheaderFr: '', subheaderEs: '', taglineEn: '', taglineFr: '', taglineEs: '', baseTextColor: '', headerTextColor: '', subheaderTextColor: '', taglineTextColor: '', ctaTextColor: '', ctaBorderColor: '', ctaBgColor: '', ctaHoverTextColor: '', ctaHoverBorderColor: '', ctaHoverBgColor: '', ctaCategoryIds: [], ctaLabelIds: [] });
 
   function openEdit(asset: CollectionSiteAssetView) {
     setEditing(asset.slot);
@@ -2594,10 +2597,16 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, o
       taglineEn: asset.taglineEn ?? '',
       taglineFr: asset.taglineFr ?? '',
       taglineEs: asset.taglineEs ?? '',
-      color: asset.color ?? '',
-      headerColor: asset.headerColor ?? '',
-      subheaderColor: asset.subheaderColor ?? '',
-      taglineColor: asset.taglineColor ?? '',
+      baseTextColor: asset.baseTextColor ?? '',
+      headerTextColor: asset.headerTextColor ?? '',
+      subheaderTextColor: asset.subheaderTextColor ?? '',
+      taglineTextColor: asset.taglineTextColor ?? '',
+      ctaTextColor: asset.ctaTextColor ?? '',
+      ctaBorderColor: asset.ctaBorderColor ?? '',
+      ctaBgColor: asset.ctaBgColor ?? '',
+      ctaHoverTextColor: asset.ctaHoverTextColor ?? '',
+      ctaHoverBorderColor: asset.ctaHoverBorderColor ?? '',
+      ctaHoverBgColor: asset.ctaHoverBgColor ?? '',
       ctaCategoryIds: asset.ctaCategoryIds ?? [],
       ctaLabelIds: asset.ctaLabelIds ?? [],
     });
@@ -2616,10 +2625,16 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, o
         taglineEn: textForm.taglineEn || null,
         taglineFr: textForm.taglineFr || null,
         taglineEs: textForm.taglineEs || null,
-        color: textForm.color,
-        headerColor: textForm.headerColor || null,
-        subheaderColor: textForm.subheaderColor || null,
-        taglineColor: textForm.taglineColor || null,
+        baseTextColor: textForm.baseTextColor || null,
+        headerTextColor: textForm.headerTextColor || null,
+        subheaderTextColor: textForm.subheaderTextColor || null,
+        taglineTextColor: textForm.taglineTextColor || null,
+        ctaTextColor: textForm.ctaTextColor || null,
+        ctaBorderColor: textForm.ctaBorderColor || null,
+        ctaBgColor: textForm.ctaBgColor || null,
+        ctaHoverTextColor: textForm.ctaHoverTextColor || null,
+        ctaHoverBorderColor: textForm.ctaHoverBorderColor || null,
+        ctaHoverBgColor: textForm.ctaHoverBgColor || null,
         ctaCategoryIds: textForm.ctaCategoryIds,
         ctaLabelIds: textForm.ctaLabelIds,
       });
@@ -2751,22 +2766,51 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, o
                   <input value={textForm.taglineFr} onChange={e => setTextForm(f => ({ ...f, taglineFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                   <input value={textForm.taglineEs} onChange={e => setTextForm(f => ({ ...f, taglineEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                 </div>
+                <p className="text-xs uppercase tracking-widest mt-3">{t('admin.site.textColors')}</p>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.headerColor')}</p>
-                    <ColorInput value={textForm.headerColor} onChange={v => setTextForm(f => ({ ...f, headerColor: v }))} placeholder="#FFFFFF" />
+                    <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.baseTextColor')}</p>
+                    <ColorInput value={textForm.baseTextColor} onChange={v => setTextForm(f => ({ ...f, baseTextColor: v }))} placeholder="#FFFFFF" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.subheaderColor')}</p>
-                    <ColorInput value={textForm.subheaderColor} onChange={v => setTextForm(f => ({ ...f, subheaderColor: v }))} placeholder="#FFFFFF" />
+                    <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.headerTextColor')}</p>
+                    <ColorInput value={textForm.headerTextColor} onChange={v => setTextForm(f => ({ ...f, headerTextColor: v }))} placeholder="#FFFFFF" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.taglineColor')}</p>
-                    <ColorInput value={textForm.taglineColor} onChange={v => setTextForm(f => ({ ...f, taglineColor: v }))} placeholder="#FFFFFF" />
+                    <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.subheaderTextColor')}</p>
+                    <ColorInput value={textForm.subheaderTextColor} onChange={v => setTextForm(f => ({ ...f, subheaderTextColor: v }))} placeholder="#FFFFFF" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.taglineTextColor')}</p>
+                    <ColorInput value={textForm.taglineTextColor} onChange={v => setTextForm(f => ({ ...f, taglineTextColor: v }))} placeholder="#FFFFFF" />
+                  </div>
+                </div>
+
+                <p className="text-xs uppercase tracking-widest mt-3">{t('admin.site.buttonColors')}</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.ctaTextColor')}</p>
+                    <ColorInput value={textForm.ctaTextColor} onChange={v => setTextForm(f => ({ ...f, ctaTextColor: v }))} placeholder="#FFFFFF" />
                   </div>
                   <div>
                     <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.ctaBorderColor')}</p>
-                    <ColorInput value={textForm.color} onChange={v => setTextForm(f => ({ ...f, color: v }))} placeholder="#FFFFFF" />
+                    <ColorInput value={textForm.ctaBorderColor} onChange={v => setTextForm(f => ({ ...f, ctaBorderColor: v }))} placeholder="#FFFFFF" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.ctaBgColor')}</p>
+                    <ColorInput value={textForm.ctaBgColor} onChange={v => setTextForm(f => ({ ...f, ctaBgColor: v }))} placeholder="#FFFFFF" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.ctaHoverTextColor')}</p>
+                    <ColorInput value={textForm.ctaHoverTextColor} onChange={v => setTextForm(f => ({ ...f, ctaHoverTextColor: v }))} placeholder="#FFFFFF" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.ctaHoverBorderColor')}</p>
+                    <ColorInput value={textForm.ctaHoverBorderColor} onChange={v => setTextForm(f => ({ ...f, ctaHoverBorderColor: v }))} placeholder="#FFFFFF" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.ctaHoverBgColor')}</p>
+                    <ColorInput value={textForm.ctaHoverBgColor} onChange={v => setTextForm(f => ({ ...f, ctaHoverBgColor: v }))} placeholder="#FFFFFF" />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">

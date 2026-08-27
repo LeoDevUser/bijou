@@ -1,4 +1,4 @@
-import type { ItemView, ItemViewVerbose, ItemRequest, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionRequest, CollectionSiteAssetView, CollectionThemeView, SalesStats, MaterialSalesStats, ThemeConfig, TaxPreview, AppSettings, PublicSettings, StripeConfig, BrevoQuota, CloudinaryResourcesPage, FiscalCatalog } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionRequest, CollectionAssetRequest, CollectionSiteAssetView, CollectionThemeView, SalesStats, MaterialSalesStats, ThemeConfig, TaxPreview, AppSettings, PublicSettings, StripeConfig, BrevoQuota, CloudinaryResourcesPage, FiscalCatalog } from '../types';
 import { getToken, setToken } from './tokenStore';
 
 interface LabelRequest { nameEn: string; nameFr: string; nameEs: string; }
@@ -316,7 +316,7 @@ export const api = {
         request<CollectionView>(`/${ADMIN}/collections/${id}/image`, { method: 'DELETE' }),
       delete: (id: number) =>
         request<void>(`/${ADMIN}/collections/${id}`, { method: 'DELETE' }),
-      updateAsset: (id: number, slot: string, data: { headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; taglineEn: string | null; taglineFr: string | null; taglineEs: string | null; color: string; headerColor: string | null; subheaderColor: string | null; taglineColor: string | null; ctaCategoryIds: number[]; ctaLabelIds: number[] }) =>
+      updateAsset: (id: number, slot: string, data: CollectionAssetRequest) =>
         request<CollectionSiteAssetView>(`/${ADMIN}/collections/${id}/assets/${slot}`, { method: 'PATCH', body: JSON.stringify(data) }),
       uploadAssetImage: async (id: number, slot: string, file: File, name?: string): Promise<CollectionSiteAssetView> => {
         const form = new FormData();

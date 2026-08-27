@@ -60,10 +60,21 @@ public class CollectionSiteAsset {
     private String taglineFr;
     private String taglineEs;
 
-    private String color;
-    private String headerColor;
-    private String subheaderColor;
-    private String taglineColor;
+    /** Fallback colour for any text in this slot that has no colour of its own. */
+    private String baseTextColor;
+    private String headerTextColor;
+    private String subheaderTextColor;
+    private String taglineTextColor;
+
+    /** CTA button, resting state. Null falls back to the slot's text colour / transparent. */
+    private String ctaTextColor;
+    private String ctaBorderColor;
+    private String ctaBgColor;
+
+    /** CTA button, hover state. Null keeps the resting colour; all three null = fade to 75% opacity. */
+    private String ctaHoverTextColor;
+    private String ctaHoverBorderColor;
+    private String ctaHoverBgColor;
 
     /** Categories the CTA links to (item category ids). Empty = no category filter. */
     @ElementCollection(fetch = FetchType.EAGER)

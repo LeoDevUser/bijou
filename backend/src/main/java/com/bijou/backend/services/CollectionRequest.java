@@ -11,7 +11,7 @@ public record CollectionRequest(
         String subheaderEn,
         String subheaderFr,
         String subheaderEs,
-        String color,
+        String cardTextColor,
         Long parentId,
         Integer sortOrder) {
 }

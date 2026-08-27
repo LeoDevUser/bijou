@@ -56,7 +56,9 @@ public class CollectionService {
                 a.getHeaderEn(), a.getHeaderFr(), a.getHeaderEs(),
                 a.getSubheaderEn(), a.getSubheaderFr(), a.getSubheaderEs(),
                 a.getTaglineEn(), a.getTaglineFr(), a.getTaglineEs(),
-                a.getColor(), a.getHeaderColor(), a.getSubheaderColor(), a.getTaglineColor(),
+                a.getBaseTextColor(), a.getHeaderTextColor(), a.getSubheaderTextColor(), a.getTaglineTextColor(),
+                a.getCtaTextColor(), a.getCtaBorderColor(), a.getCtaBgColor(),
+                a.getCtaHoverTextColor(), a.getCtaHoverBorderColor(), a.getCtaHoverBgColor(),
                 List.copyOf(a.getCtaCategoryIds()), List.copyOf(a.getCtaLabelIds()));
     }
 
@@ -86,7 +88,7 @@ public class CollectionService {
                 c.getImageUrl(), c.getImageId(), c.getResourceType(),
                 c.getHeaderEn(), c.getHeaderFr(), c.getHeaderEs(),
                 c.getSubheaderEn(), c.getSubheaderFr(), c.getSubheaderEs(),
-                c.getColor(), assets, theme,
+                c.getCardTextColor(), assets, theme,
                 c.isActive(), c.isMain(),
                 c.getParent() == null ? null : c.getParent().getId(),
                 c.getSortOrder() == null ? 0 : c.getSortOrder(), depth, children);
@@ -214,7 +216,7 @@ public class CollectionService {
                 .subheaderEn(req.subheaderEn())
                 .subheaderFr(req.subheaderFr())
                 .subheaderEs(req.subheaderEs())
-                .color(req.color())
+                .cardTextColor(req.cardTextColor())
                 .parent(resolveParent(req.parentId(), null))
                 .sortOrder(req.sortOrder() == null ? 0 : req.sortOrder())
                 .build();
@@ -247,7 +249,7 @@ public class CollectionService {
         collection.setSubheaderEn(req.subheaderEn());
         collection.setSubheaderFr(req.subheaderFr());
         collection.setSubheaderEs(req.subheaderEs());
-        collection.setColor(req.color());
+        collection.setCardTextColor(req.cardTextColor());
         collection.setParent(resolveParent(req.parentId(), id));
         collection.setSortOrder(req.sortOrder() == null ? 0 : req.sortOrder());
         log.info("updated text/labels for collection #{}", id);
@@ -322,10 +324,16 @@ public class CollectionService {
         asset.setTaglineEn(req.taglineEn());
         asset.setTaglineFr(req.taglineFr());
         asset.setTaglineEs(req.taglineEs());
-        asset.setColor(req.color());
-        asset.setHeaderColor(req.headerColor());
-        asset.setSubheaderColor(req.subheaderColor());
-        asset.setTaglineColor(req.taglineColor());
+        asset.setBaseTextColor(req.baseTextColor());
+        asset.setHeaderTextColor(req.headerTextColor());
+        asset.setSubheaderTextColor(req.subheaderTextColor());
+        asset.setTaglineTextColor(req.taglineTextColor());
+        asset.setCtaTextColor(req.ctaTextColor());
+        asset.setCtaBorderColor(req.ctaBorderColor());
+        asset.setCtaBgColor(req.ctaBgColor());
+        asset.setCtaHoverTextColor(req.ctaHoverTextColor());
+        asset.setCtaHoverBorderColor(req.ctaHoverBorderColor());
+        asset.setCtaHoverBgColor(req.ctaHoverBgColor());
         asset.getCtaCategoryIds().clear();
         if (req.ctaCategoryIds() != null) asset.getCtaCategoryIds().addAll(req.ctaCategoryIds());
         asset.getCtaLabelIds().clear();

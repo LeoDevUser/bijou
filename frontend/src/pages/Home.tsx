@@ -20,7 +20,7 @@ type AssetEntry = {
   url: string | null; resourceType: string;
   headerEn: string | null; headerFr: string | null; headerEs: string | null;
   subheaderEn: string | null; subheaderFr: string | null; subheaderEs: string | null;
-  color: string | null;
+  baseTextColor: string | null;
   ctaCategoryIds: number[]; ctaLabelIds: number[];
 };
 
@@ -84,7 +84,7 @@ export default function Home() {
             : <div className="w-full h-full flex items-center justify-center"><p className="text-muted text-sm uppercase tracking-widest">{t('home.hero.imagePlaceholder')}</p></div>
           }
         </div>
-        <div className="relative z-10 p-10 md:p-16 max-w-lg" style={hero?.color ? { color: hero.color } : undefined}>
+        <div className="relative z-10 p-10 md:p-16 max-w-lg" style={hero?.baseTextColor ? { color: hero.baseTextColor } : undefined}>
           <h1 className="font-serif text-5xl md:text-6xl italic font-light leading-tight mb-6">
             {pickLocale(hero?.headerEn, hero?.headerFr, hero?.headerEs, i18n.language) || t('home.hero.tagline')}
           </h1>
@@ -94,7 +94,7 @@ export default function Home() {
           <Link
             to={ctaHref(hero)}
             className="inline-block border px-10 py-3 text-xs uppercase tracking-widest hover:opacity-75 transition-opacity"
-            style={hero?.color ? { borderColor: hero.color } : { borderColor: '#1C1C1C' }}
+            style={{ borderColor: hero?.baseTextColor ?? '#1C1C1C' }}
           >
             {t('home.hero.cta')}
           </Link>
@@ -155,7 +155,7 @@ export default function Home() {
           }
         </div>
         <div className="bg-[#F5F0EA] flex items-center justify-center p-12 md:p-20 min-h-[440px]">
-          <div className="text-center max-w-xs" style={ed1?.color ? { color: ed1.color } : undefined}>
+          <div className="text-center max-w-xs" style={ed1?.baseTextColor ? { color: ed1.baseTextColor } : undefined}>
             <p className="text-xs uppercase tracking-widest mb-4">{pickLocale(ed1?.subheaderEn, ed1?.subheaderFr, ed1?.subheaderEs, i18n.language) || t('home.editorial1.label')}</p>
             <h2 className="font-serif text-4xl md:text-5xl italic font-light mb-6 leading-tight">
               {pickLocale(ed1?.headerEn, ed1?.headerFr, ed1?.headerEs, i18n.language) || t('home.editorial1.tagline')}
@@ -163,7 +163,7 @@ export default function Home() {
             <Link
               to={ctaHref(ed1)}
               className="text-xs uppercase tracking-widest border-b pb-0.5 hover:opacity-75 transition-opacity"
-              style={ed1?.color ? { borderColor: ed1.color } : { borderColor: '#1C1C1C' }}
+              style={{ borderColor: ed1?.baseTextColor ?? '#1C1C1C' }}
             >
               {t('home.editorial1.cta')}
             </Link>
@@ -174,7 +174,7 @@ export default function Home() {
       {/* Editorial 2 */}
       <section className="grid md:grid-cols-2">
         <div className="bg-[#EAE8E4] flex items-center justify-center p-12 md:p-20 min-h-[440px] order-2 md:order-1">
-          <div className="text-center max-w-xs" style={ed2?.color ? { color: ed2.color } : undefined}>
+          <div className="text-center max-w-xs" style={ed2?.baseTextColor ? { color: ed2.baseTextColor } : undefined}>
             <p className="text-xs uppercase tracking-widest mb-4">{pickLocale(ed2?.subheaderEn, ed2?.subheaderFr, ed2?.subheaderEs, i18n.language) || t('home.editorial2.label')}</p>
             <h2 className="font-serif text-4xl md:text-5xl italic font-light mb-6 leading-tight">
               {pickLocale(ed2?.headerEn, ed2?.headerFr, ed2?.headerEs, i18n.language) || t('home.editorial2.tagline')}
@@ -182,7 +182,7 @@ export default function Home() {
             <Link
               to={ctaHref(ed2)}
               className="text-xs uppercase tracking-widest border-b pb-0.5 hover:opacity-75 transition-opacity"
-              style={ed2?.color ? { borderColor: ed2.color } : { borderColor: '#1C1C1C' }}
+              style={{ borderColor: ed2?.baseTextColor ?? '#1C1C1C' }}
             >
               {t('home.editorial2.cta')}
             </Link>

@@ -195,11 +195,11 @@ public class CollectionSeeder implements ApplicationRunner {
             List<Label> labels,
             String headerEn, String headerFr, String headerEs,
             String subEn, String subFr, String subEs,
-            String color, boolean main) {
+            String cardTextColor, boolean main) {
         Collection c = Collection.builder()
                 .headerEn(headerEn).headerFr(headerFr).headerEs(headerEs)
                 .subheaderEn(subEn).subheaderFr(subFr).subheaderEs(subEs)
-                .color(color)
+                .cardTextColor(cardTextColor)
                 .isMain(main)
                 .build();
         c.setLabels(labels);
@@ -222,10 +222,10 @@ public class CollectionSeeder implements ApplicationRunner {
                 .headerEn(heroHeadEn).headerFr(heroHeadFr).headerEs(heroHeadEs)
                 .subheaderEn(heroSubEn).subheaderFr(heroSubFr).subheaderEs(heroSubEs)
                 .taglineEn(heroTaglineEn).taglineFr(heroTaglineFr).taglineEs(heroTaglineEs)
-                .color(CHAMP)          // CTA border color
-                .headerColor(CHAMP)
-                .subheaderColor(BLANCO)
-                .taglineColor(BLANCO)
+                .baseTextColor(CHAMP)
+                .headerTextColor(CHAMP)
+                .subheaderTextColor(BLANCO)
+                .taglineTextColor(BLANCO)
                 .imageId("xkpammnhpuy60pcjccbj")
                 .imageUrl("https://res.cloudinary.com/ds3htctzs/video/upload/v1776032704/xkpammnhpuy60pcjccbj.mp4")
                 .resourceType("video")
@@ -235,18 +235,18 @@ public class CollectionSeeder implements ApplicationRunner {
                 .collection(c).slot("editorial1")
                 .headerEn(ed1HeadEn).headerFr(ed1HeadFr).headerEs(ed1HeadEs)
                 .subheaderEn(ed1SubEn).subheaderFr(ed1SubFr).subheaderEs(ed1SubEs)
-                .color(NEGRO)
+                .baseTextColor(NEGRO)
                 .build(),
 
             CollectionSiteAsset.builder()
                 .collection(c).slot("editorial2")
                 .headerEn(ed2HeadEn).headerFr(ed2HeadFr).headerEs(ed2HeadEs)
                 .subheaderEn(ed2SubEn).subheaderFr(ed2SubFr).subheaderEs(ed2SubEs)
-                .color(NEGRO)
+                .baseTextColor(NEGRO)
                 .build(),
 
-            CollectionSiteAsset.builder().collection(c).slot("editorial3").color(NEGRO).build(),
-            CollectionSiteAsset.builder().collection(c).slot("editorial4").color(NEGRO).build()
+            CollectionSiteAsset.builder().collection(c).slot("editorial3").baseTextColor(NEGRO).build(),
+            CollectionSiteAsset.builder().collection(c).slot("editorial4").baseTextColor(NEGRO).build()
         ));
     }
 }

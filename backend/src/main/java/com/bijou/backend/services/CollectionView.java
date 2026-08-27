@@ -15,7 +15,7 @@ public record CollectionView(
         String subheaderEn,
         String subheaderFr,
         String subheaderEs,
-        String color,
+        String cardTextColor,
         List<CollectionSiteAssetView> siteAssets,
         CollectionThemeView theme,
         boolean active,

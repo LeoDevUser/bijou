@@ -84,7 +84,8 @@ public class Collection {
     private String subheaderFr;
     private String subheaderEs;
 
-    private String color;
+    /** Default text colour for this collection's card on the collections grid. */
+    private String cardTextColor;
 
     @Builder.Default
     private boolean active = true;

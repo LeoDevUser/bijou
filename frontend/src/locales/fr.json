@@ -418,7 +418,8 @@
       "parent": "Collection parente",
       "noParent": "— Aucune (niveau principal) —",
       "sortOrder": "Ordre",
-      "subcollection": "Sous"
+      "subcollection": "Sous",
+      "cardTextColor": "Couleur du texte de la carte"
     },
     "labels": {
       "title": "Étiquettes",
@@ -443,10 +444,7 @@
       "taglinePlaceholder": "Accroche",
       "subheaderPlaceholder": "Sous-titre",
       "colorPlaceholder": "Couleur du texte (ex. #1C1C1C)",
-      "ctaBorderColor": "Bordure du Bouton CTA",
-      "headerColor": "Couleur du Titre",
-      "subheaderColor": "Couleur du Sous-titre",
-      "taglineColor": "Couleur de l'Accroche",
+      "ctaBorderColor": "Bordure du bouton",
       "ctaCategory": "Lien vers une catégorie",
       "ctaLabel": "Lien vers un label",
       "noneOption": "— Aucun —",
@@ -488,7 +486,18 @@
       "browseRename": "Renommer",
       "ctaFilter": "Lien vers un filtre boutique",
       "fileTooLarge": "« {{name}} » est trop volumineux — la limite est de {{max}} Mo.",
-      "uploadFailed": "Échec de l'envoi. Vérifiez la taille et le format du fichier, puis réessayez."
+      "uploadFailed": "Échec de l'envoi. Vérifiez la taille et le format du fichier, puis réessayez.",
+      "textColors": "Couleurs du texte",
+      "buttonColors": "Couleurs du bouton",
+      "baseTextColor": "Texte par défaut",
+      "headerTextColor": "Texte du titre",
+      "subheaderTextColor": "Texte du sous-titre",
+      "taglineTextColor": "Texte de l’accroche",
+      "ctaTextColor": "Texte du bouton",
+      "ctaBgColor": "Fond du bouton",
+      "ctaHoverTextColor": "Texte du bouton (survol)",
+      "ctaHoverBorderColor": "Bordure du bouton (survol)",
+      "ctaHoverBgColor": "Fond du bouton (survol)"
     },
     "theme": {
       "title": "Thème de Couleur",

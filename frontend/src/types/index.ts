@@ -291,10 +291,43 @@ export interface CollectionSiteAssetView {
   taglineEn: string | null;
   taglineFr: string | null;
   taglineEs: string | null;
-  color: string | null;
-  headerColor: string | null;
-  subheaderColor: string | null;
-  taglineColor: string | null;
+  /** Fallback colour for any text in this slot without a colour of its own. */
+  baseTextColor: string | null;
+  headerTextColor: string | null;
+  subheaderTextColor: string | null;
+  taglineTextColor: string | null;
+  /** CTA button, resting state. Null falls back to the slot's text colour / transparent. */
+  ctaTextColor: string | null;
+  ctaBorderColor: string | null;
+  ctaBgColor: string | null;
+  /** CTA button, hover state. Null keeps the resting colour; all three null = fade to 75%. */
+  ctaHoverTextColor: string | null;
+  ctaHoverBorderColor: string | null;
+  ctaHoverBgColor: string | null;
+  ctaCategoryIds: number[];
+  ctaLabelIds: number[];
+}
+
+export interface CollectionAssetRequest {
+  headerEn: string;
+  headerFr: string;
+  headerEs: string;
+  subheaderEn: string;
+  subheaderFr: string;
+  subheaderEs: string;
+  taglineEn: string | null;
+  taglineFr: string | null;
+  taglineEs: string | null;
+  baseTextColor: string | null;
+  headerTextColor: string | null;
+  subheaderTextColor: string | null;
+  taglineTextColor: string | null;
+  ctaTextColor: string | null;
+  ctaBorderColor: string | null;
+  ctaBgColor: string | null;
+  ctaHoverTextColor: string | null;
+  ctaHoverBorderColor: string | null;
+  ctaHoverBgColor: string | null;
   ctaCategoryIds: number[];
   ctaLabelIds: number[];
 }
@@ -330,7 +363,8 @@ export interface CollectionView {
   subheaderEn: string | null;
   subheaderFr: string | null;
   subheaderEs: string | null;
-  color: string | null;
+  /** Default text colour for this collection's card on the collections grid. */
+  cardTextColor: string | null;
   siteAssets: CollectionSiteAssetView[];
   theme: CollectionThemeView | null;
   active: boolean;
@@ -354,7 +388,7 @@ export interface CollectionRequest {
   subheaderEn: string;
   subheaderFr: string;
   subheaderEs: string;
-  color: string;
+  cardTextColor: string;
   parentId: number | null;
   sortOrder: number;
 }

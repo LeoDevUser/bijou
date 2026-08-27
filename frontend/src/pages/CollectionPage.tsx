@@ -16,8 +16,10 @@ type AssetEntry = {
   headerEn: string | null; headerFr: string | null; headerEs: string | null;
   subheaderEn: string | null; subheaderFr: string | null; subheaderEs: string | null;
   taglineEn: string | null; taglineFr: string | null; taglineEs: string | null;
-  color: string | null;
-  headerColor: string | null; subheaderColor: string | null; taglineColor: string | null;
+  baseTextColor: string | null;
+  headerTextColor: string | null; subheaderTextColor: string | null; taglineTextColor: string | null;
+  ctaTextColor: string | null; ctaBorderColor: string | null; ctaBgColor: string | null;
+  ctaHoverTextColor: string | null; ctaHoverBorderColor: string | null; ctaHoverBgColor: string | null;
   ctaCategoryIds: number[]; ctaLabelIds: number[];
 };
 
@@ -28,8 +30,10 @@ function fromSiteAsset(a: CollectionSiteAssetView | undefined): AssetEntry | und
     headerEn: a.headerEn, headerFr: a.headerFr, headerEs: a.headerEs,
     subheaderEn: a.subheaderEn, subheaderFr: a.subheaderFr, subheaderEs: a.subheaderEs,
     taglineEn: a.taglineEn, taglineFr: a.taglineFr, taglineEs: a.taglineEs,
-    color: a.color,
-    headerColor: a.headerColor, subheaderColor: a.subheaderColor, taglineColor: a.taglineColor,
+    baseTextColor: a.baseTextColor,
+    headerTextColor: a.headerTextColor, subheaderTextColor: a.subheaderTextColor, taglineTextColor: a.taglineTextColor,
+    ctaTextColor: a.ctaTextColor, ctaBorderColor: a.ctaBorderColor, ctaBgColor: a.ctaBgColor,
+    ctaHoverTextColor: a.ctaHoverTextColor, ctaHoverBorderColor: a.ctaHoverBorderColor, ctaHoverBgColor: a.ctaHoverBgColor,
     ctaCategoryIds: a.ctaCategoryIds, ctaLabelIds: a.ctaLabelIds,
   };
 }
@@ -45,6 +49,56 @@ function ctaHref(entry: AssetEntry | undefined): string {
   entry.ctaLabelIds.forEach(id => params.append('label', String(id)));
   const qs = params.toString();
   return qs ? `/shop?${qs}` : '/shop';
+}
+
+type CtaFallback = { text?: string; border?: string; bg?: string };
+
+/**
+ * Resting and hover styles for a slot's CTA. Each resting colour falls back to what the
+ * caller passes (the slot's own text colour, historically), and each hover colour falls
+ * back to its resting value — so a slot with no CTA colours set renders exactly as before.
+ * With no hover colour at all, `hover` is null and the button keeps the opacity fade.
+ */
+function ctaStyles(entry: AssetEntry | undefined, fallback: CtaFallback) {
+  const text = entry?.ctaTextColor ?? fallback.text;
+  const border = entry?.ctaBorderColor ?? fallback.border;
+  const bg = entry?.ctaBgColor ?? fallback.bg;
+  const rest: React.CSSProperties = { color: text, borderColor: border, backgroundColor: bg };
+
+  const hoverText = entry?.ctaHoverTextColor;
+  const hoverBorder = entry?.ctaHoverBorderColor;
+  const hoverBg = entry?.ctaHoverBgColor;
+  const hover = (hoverText || hoverBorder || hoverBg)
+    ? { color: hoverText ?? text, borderColor: hoverBorder ?? border, backgroundColor: hoverBg ?? bg }
+    : null;
+  return { rest, hover };
+}
+
+/**
+ * CTA link that swaps colours on hover. Tailwind can't express `hover:` for colours only
+ * known at runtime, so the swap is driven by state; focus mirrors hover for keyboard users.
+ */
+function CtaLink({ to, className, styles, children }: {
+  to: string;
+  className: string;
+  styles: ReturnType<typeof ctaStyles>;
+  children: React.ReactNode;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const active = hovered && styles.hover ? { ...styles.rest, ...styles.hover } : styles.rest;
+  return (
+    <Link
+      to={to}
+      className={`${className} transition-colors ${styles.hover ? '' : 'hover:opacity-75 transition-opacity'}`}
+      style={active}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={() => setHovered(true)}
+      onBlur={() => setHovered(false)}
+    >
+      {children}
+    </Link>
+  );
 }
 
 function SlotMedia({ entry, alt, className }: { entry: AssetEntry; alt: string; className: string }) {
@@ -147,14 +201,14 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
         <div className="relative z-10 p-10 md:p-16 max-w-lg">
           <h1
             className="font-serif text-5xl md:text-6xl italic font-light leading-tight mb-6"
-            style={{ color: hero?.headerColor ?? hero?.color ?? undefined }}
+            style={{ color: hero?.headerTextColor ?? hero?.baseTextColor ?? undefined }}
           >
             {pickLocale(hero?.headerEn, hero?.headerFr, hero?.headerEs, i18n.language) || collectionName}
           </h1>
           {(hero?.subheaderEn || hero?.subheaderFr || hero?.subheaderEs) && (
             <p
               className="text-xl uppercase tracking-widest mb-3"
-              style={{ color: hero?.subheaderColor ?? hero?.color ?? undefined }}
+              style={{ color: hero?.subheaderTextColor ?? hero?.baseTextColor ?? undefined }}
             >
               {pickLocale(hero?.subheaderEn, hero?.subheaderFr, hero?.subheaderEs, i18n.language)}
             </p>
@@ -162,19 +216,19 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
           {(hero?.taglineEn || hero?.taglineFr || hero?.taglineEs) && (
             <p
               className="text-base tracking-wide opacity-80 mb-4"
-              style={{ color: hero?.taglineColor ?? hero?.color ?? undefined }}
+              style={{ color: hero?.taglineTextColor ?? hero?.baseTextColor ?? undefined }}
             >
               {pickLocale(hero?.taglineEn, hero?.taglineFr, hero?.taglineEs, i18n.language)}
             </p>
           )}
           {assetHasCta(hero) && (
-            <Link
+            <CtaLink
               to={ctaHref(hero)}
-              className="inline-block border px-10 py-3 text-xs uppercase tracking-widest hover:opacity-75 transition-opacity"
-              style={hero?.color ? { borderColor: hero.color } : { borderColor: '#1C1C1C' }}
+              className="inline-block border px-10 py-3 text-xs uppercase tracking-widest"
+              styles={ctaStyles(hero, { border: hero?.baseTextColor ?? '#1C1C1C' })}
             >
               {t('home.hero.cta')}
-            </Link>
+            </CtaLink>
           )}
         </div>
       </section>
@@ -213,7 +267,8 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
           const hasCta    = assetHasCta(ed);
           const hasText   = header || subheader || (tagline && hasCta);
           const fallbackColor = ed?.url ? '#FFFFFF' : '#1C1C1C';
-          const ctaColor  = ed?.taglineColor ?? ed?.color ?? fallbackColor;
+          const ctaColor  = ed?.taglineTextColor ?? ed?.baseTextColor ?? fallbackColor;
+          const ctaStyle  = ctaStyles(ed, { text: ctaColor, border: ctaColor });
           return (
             <div
               key={i}
@@ -224,7 +279,7 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
                 <SlotMedia entry={ed} alt={`Editorial ${i + 1}`} className="absolute inset-0 w-full h-full object-cover" />
               )}
               {hasText && (
-                <div className="relative z-10 text-center max-w-xs p-8 md:p-12" style={{ color: ed?.color ?? fallbackColor }}>
+                <div className="relative z-10 text-center max-w-xs p-8 md:p-12" style={{ color: ed?.baseTextColor ?? fallbackColor }}>
                   {subheader && (
                     <p className="text-xs uppercase tracking-widest mb-4">{subheader}</p>
                   )}
@@ -232,13 +287,13 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
                     <h2 className="font-serif text-4xl md:text-5xl italic font-light mb-6 leading-tight">{header}</h2>
                   )}
                   {hasCta && (
-                    <Link
+                    <CtaLink
                       to={ctaHref(ed)}
-                      className="text-xs uppercase tracking-widest border-b pb-0.5 hover:opacity-75 transition-opacity"
-                      style={{ color: ctaColor, borderColor: ctaColor }}
+                      className="inline-block text-xs uppercase tracking-widest border-b pb-0.5"
+                      styles={ctaStyle}
                     >
                       {tagline || t('home.editorial1.cta')}
-                    </Link>
+                    </CtaLink>
                   )}
                 </div>
               )}

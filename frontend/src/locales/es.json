@@ -418,7 +418,8 @@
       "parent": "Colección principal",
       "noParent": "— Ninguna (nivel superior) —",
       "sortOrder": "Orden",
-      "subcollection": "Sub"
+      "subcollection": "Sub",
+      "cardTextColor": "Color del texto de la tarjeta"
     },
     "labels": {
       "title": "Etiquetas",
@@ -443,10 +444,7 @@
       "taglinePlaceholder": "Eslogan",
       "subheaderPlaceholder": "Subtítulo",
       "colorPlaceholder": "Color del texto (ej. #1C1C1C)",
-      "ctaBorderColor": "Borde del Botón CTA",
-      "headerColor": "Color del Título",
-      "subheaderColor": "Color del Subtítulo",
-      "taglineColor": "Color del Eslogan",
+      "ctaBorderColor": "Borde del botón",
       "ctaCategory": "Enlace a categoría",
       "ctaLabel": "Enlace a etiqueta",
       "noneOption": "— Ninguno —",
@@ -488,7 +486,18 @@
       "browseRename": "Renombrar",
       "ctaFilter": "Enlace a filtro de tienda",
       "fileTooLarge": "«{{name}}» es demasiado grande — el límite es de {{max}} MB.",
-      "uploadFailed": "Error al subir. Revisa el tamaño y el formato del archivo e inténtalo de nuevo."
+      "uploadFailed": "Error al subir. Revisa el tamaño y el formato del archivo e inténtalo de nuevo.",
+      "textColors": "Colores de texto",
+      "buttonColors": "Colores del botón",
+      "baseTextColor": "Texto predeterminado",
+      "headerTextColor": "Texto del encabezado",
+      "subheaderTextColor": "Texto del subencabezado",
+      "taglineTextColor": "Texto del lema",
+      "ctaTextColor": "Texto del botón",
+      "ctaBgColor": "Relleno del botón",
+      "ctaHoverTextColor": "Texto del botón (hover)",
+      "ctaHoverBorderColor": "Borde del botón (hover)",
+      "ctaHoverBgColor": "Relleno del botón (hover)"
     },
     "theme": {
       "title": "Tema de Color",

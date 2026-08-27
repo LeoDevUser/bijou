@@ -418,7 +418,8 @@
       "parent": "Parent Collection",
       "noParent": "— None (top level) —",
       "sortOrder": "Order",
-      "subcollection": "Sub"
+      "subcollection": "Sub",
+      "cardTextColor": "Card Text Color"
     },
     "labels": {
       "title": "Labels",
@@ -443,10 +444,7 @@
       "taglinePlaceholder": "Tagline",
       "subheaderPlaceholder": "Subheader",
       "colorPlaceholder": "Text color (e.g. #1C1C1C)",
-      "ctaBorderColor": "CTA Border Color",
-      "headerColor": "Header Color",
-      "subheaderColor": "Subheader Color",
-      "taglineColor": "Tagline Color",
+      "ctaBorderColor": "Button Border",
       "ctaCategory": "Link to category",
       "ctaLabel": "Link to label",
       "noneOption": "— None —",
@@ -488,7 +486,18 @@
       "browseRename": "Rename",
       "ctaFilter": "Link to shop filter",
       "fileTooLarge": "\"{{name}}\" is too large — the limit is {{max}}MB.",
-      "uploadFailed": "Upload failed. Check the file size and format, then try again."
+      "uploadFailed": "Upload failed. Check the file size and format, then try again.",
+      "textColors": "Text Colors",
+      "buttonColors": "Button Colors",
+      "baseTextColor": "Default Text",
+      "headerTextColor": "Header Text",
+      "subheaderTextColor": "Subheader Text",
+      "taglineTextColor": "Tagline Text",
+      "ctaTextColor": "Button Text",
+      "ctaBgColor": "Button Fill",
+      "ctaHoverTextColor": "Button Text (Hover)",
+      "ctaHoverBorderColor": "Button Border (Hover)",
+      "ctaHoverBgColor": "Button Fill (Hover)"
     },
     "theme": {
       "title": "Color Theme",

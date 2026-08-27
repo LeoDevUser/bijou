@@ -34,14 +34,14 @@ export function CollectionCard({ c }: { c: CollectionView }) {
       {/* Text */}
       <div
         className="absolute inset-0 flex flex-col items-center justify-center text-center p-8"
-        style={c.color ? { color: c.color } : { color: '#FFFFFF' }}
+        style={{ color: c.cardTextColor ?? '#FFFFFF' }}
       >
         {subheader && (
           <p className="text-xs uppercase tracking-widest mb-3 opacity-90">{subheader}</p>
         )}
         <h2 className="font-serif text-3xl md:text-4xl italic font-light leading-tight mb-4">{header || labelName}</h2>
         <span className="text-xs uppercase tracking-widest border-b pb-0.5 opacity-90"
-          style={c.color ? { borderColor: c.color } : { borderColor: '#FFFFFF' }}>
+          style={{ borderColor: c.cardTextColor ?? '#FFFFFF' }}>
           {t('collections.shopNow')}
         </span>
       </div>
