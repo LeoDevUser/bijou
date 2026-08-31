@@ -28,5 +28,6 @@ public record CollectionSiteAssetView(
         String ctaHoverBorderColor,
         String ctaHoverBgColor,
         List<Long> ctaCategoryIds,
-        List<Long> ctaLabelIds) {
+        List<Long> ctaLabelIds,
+        List<Long> ctaCollectionIds) {
 }

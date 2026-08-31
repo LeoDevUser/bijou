@@ -89,4 +89,15 @@ public class CollectionSiteAsset {
     @Column(name = "label_id")
     @Builder.Default
     private List<Long> ctaLabelIds = new ArrayList<>();
+
+    /**
+     * Collections the CTA links to (collection ids). Empty = no collection filter.
+     * The shop rolls each one up over its subcollections, so linking a parent lands
+     * on everything beneath it.
+     */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "collection_asset_cta_collections", joinColumns = @JoinColumn(name = "asset_id"))
+    @Column(name = "target_collection_id")
+    @Builder.Default
+    private List<Long> ctaCollectionIds = new ArrayList<>();
 }

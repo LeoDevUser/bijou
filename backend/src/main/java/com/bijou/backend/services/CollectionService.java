@@ -59,7 +59,8 @@ public class CollectionService {
                 a.getBaseTextColor(), a.getHeaderTextColor(), a.getSubheaderTextColor(), a.getTaglineTextColor(),
                 a.getCtaTextColor(), a.getCtaBorderColor(), a.getCtaBgColor(),
                 a.getCtaHoverTextColor(), a.getCtaHoverBorderColor(), a.getCtaHoverBgColor(),
-                List.copyOf(a.getCtaCategoryIds()), List.copyOf(a.getCtaLabelIds()));
+                List.copyOf(a.getCtaCategoryIds()), List.copyOf(a.getCtaLabelIds()),
+                List.copyOf(a.getCtaCollectionIds()));
     }
 
     private CollectionThemeView toThemeView(com.bijou.backend.entities.CollectionTheme t) {
@@ -94,19 +95,30 @@ public class CollectionService {
                 c.getSortOrder() == null ? 0 : c.getSortOrder(), depth, children);
     }
 
-    /** View carrying its direct, active subcollections as cards (one level deep). */
+    /**
+     * View carrying its active subcollections as nested cards, all the way down —
+     * the shop needs the whole branch to roll a parent's filter up over its
+     * descendants. {@code depth} is set on each node so callers can indent.
+     */
     private CollectionView toViewWithChildren(Collection c) {
-        List<CollectionView> children = collectionRepository.findActiveChildren(c.getId())
-                .stream().map(this::toView).toList();
-        return toView(c, 0, children);
+        return toViewWithChildren(c, 0, new HashSet<>());
+    }
+
+    private CollectionView toViewWithChildren(Collection c, int depth, Set<Long> seen) {
+        // A cycle in the data would otherwise recurse forever; stop at the repeat.
+        if (!seen.add(c.getId())) return toView(c, depth, List.of());
+        List<CollectionView> children = collectionRepository.findActiveChildren(c.getId()).stream()
+                .map(child -> toViewWithChildren(child, depth + 1, seen))
+                .toList();
+        return toView(c, depth, children);
     }
 
     // ── Public queries ───────────────────────────────────────────────────────────
 
     /**
      * Returns the active top-level collections (for the public /collections page),
-     * each carrying its active direct subcollections. isMain does not affect
-     * visibility; hiding a parent hides its whole branch from the index.
+     * each carrying its active subcollections nested beneath it. isMain does not
+     * affect visibility; hiding a parent hides its whole branch from the index.
      */
     public List<CollectionView> getAll() {
         return collectionRepository.findActiveOrdered().stream()
@@ -338,6 +350,8 @@ public class CollectionService {
         if (req.ctaCategoryIds() != null) asset.getCtaCategoryIds().addAll(req.ctaCategoryIds());
         asset.getCtaLabelIds().clear();
         if (req.ctaLabelIds() != null) asset.getCtaLabelIds().addAll(req.ctaLabelIds());
+        asset.getCtaCollectionIds().clear();
+        if (req.ctaCollectionIds() != null) asset.getCtaCollectionIds().addAll(req.ctaCollectionIds());
         log.info("updated text for collection #{} slot {}", collectionId, slot);
         return toAssetView(collectionSiteAssetRepository.save(asset));
     }

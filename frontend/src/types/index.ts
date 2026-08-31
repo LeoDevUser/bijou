@@ -306,6 +306,7 @@ export interface CollectionSiteAssetView {
   ctaHoverBgColor: string | null;
   ctaCategoryIds: number[];
   ctaLabelIds: number[];
+  ctaCollectionIds: number[];
 }
 
 export interface CollectionAssetRequest {
@@ -330,6 +331,7 @@ export interface CollectionAssetRequest {
   ctaHoverBgColor: string | null;
   ctaCategoryIds: number[];
   ctaLabelIds: number[];
+  ctaCollectionIds: number[];
 }
 
 export interface CollectionThemeView {

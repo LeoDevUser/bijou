@@ -2571,11 +2571,12 @@ function CloudinaryBrowserModal({ onSelect, onClose }: {
   );
 }
 
-function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, onUpdate }: {
+function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, collections, onUpdate }: {
   collectionId: number;
   siteAssets: CollectionSiteAssetView[];
   labels: LabelView[];
   categories: CategoryView[];
+  collections: CollectionView[];
   onUpdate: (updated: CollectionSiteAssetView) => void;
 }) {
   const { t, i18n } = useTranslation();
@@ -2583,7 +2584,21 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, o
   const [uploading, setUploading] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [browsingSlot, setBrowsingSlot] = useState<string | null>(null);
-  const [textForm, setTextForm] = useState<{ headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; taglineEn: string; taglineFr: string; taglineEs: string; baseTextColor: string; headerTextColor: string; subheaderTextColor: string; taglineTextColor: string; ctaTextColor: string; ctaBorderColor: string; ctaBgColor: string; ctaHoverTextColor: string; ctaHoverBorderColor: string; ctaHoverBgColor: string; ctaCategoryIds: number[]; ctaLabelIds: number[] }>({ headerEn: '', headerFr: '', headerEs: '', subheaderEn: '', subheaderFr: '', subheaderEs: '', taglineEn: '', taglineFr: '', taglineEs: '', baseTextColor: '', headerTextColor: '', subheaderTextColor: '', taglineTextColor: '', ctaTextColor: '', ctaBorderColor: '', ctaBgColor: '', ctaHoverTextColor: '', ctaHoverBorderColor: '', ctaHoverBgColor: '', ctaCategoryIds: [], ctaLabelIds: [] });
+  // Only collections the public tree actually exposes are worth linking to: an inactive
+  // one — or one under an inactive parent — is hidden from /collections, so a CTA
+  // pointing at it would land the shopper on an empty shop.
+  const linkableCollections = useMemo(() => {
+    const byId = new Map(collections.map(c => [c.id, c]));
+    return collections.filter(c => {
+      const seen = new Set<number>(); // a cycle in the data would otherwise loop forever
+      for (let n: CollectionView | undefined = c; n && !seen.has(n.id); n = n.parentId == null ? undefined : byId.get(n.parentId)) {
+        seen.add(n.id);
+        if (!n.active) return false;
+      }
+      return true;
+    });
+  }, [collections]);
+  const [textForm, setTextForm] = useState<{ headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; taglineEn: string; taglineFr: string; taglineEs: string; baseTextColor: string; headerTextColor: string; subheaderTextColor: string; taglineTextColor: string; ctaTextColor: string; ctaBorderColor: string; ctaBgColor: string; ctaHoverTextColor: string; ctaHoverBorderColor: string; ctaHoverBgColor: string; ctaCategoryIds: number[]; ctaLabelIds: number[]; ctaCollectionIds: number[] }>({ headerEn: '', headerFr: '', headerEs: '', subheaderEn: '', subheaderFr: '', subheaderEs: '', taglineEn: '', taglineFr: '', taglineEs: '', baseTextColor: '', headerTextColor: '', subheaderTextColor: '', taglineTextColor: '', ctaTextColor: '', ctaBorderColor: '', ctaBgColor: '', ctaHoverTextColor: '', ctaHoverBorderColor: '', ctaHoverBgColor: '', ctaCategoryIds: [], ctaLabelIds: [], ctaCollectionIds: [] });
 
   function openEdit(asset: CollectionSiteAssetView) {
     setEditing(asset.slot);
@@ -2609,6 +2624,7 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, o
       ctaHoverBgColor: asset.ctaHoverBgColor ?? '',
       ctaCategoryIds: asset.ctaCategoryIds ?? [],
       ctaLabelIds: asset.ctaLabelIds ?? [],
+      ctaCollectionIds: asset.ctaCollectionIds ?? [],
     });
   }
 
@@ -2637,6 +2653,7 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, o
         ctaHoverBgColor: textForm.ctaHoverBgColor || null,
         ctaCategoryIds: textForm.ctaCategoryIds,
         ctaLabelIds: textForm.ctaLabelIds,
+        ctaCollectionIds: textForm.ctaCollectionIds,
       });
       onUpdate(updated);
       setEditing(null);
@@ -2862,6 +2879,32 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, o
                       </div>
                     )}
                   </div>
+                </div>
+                <div>
+                  <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.ctaCollection')}</p>
+                  {linkableCollections.length === 0 ? (
+                    <p className="text-xs text-muted">{t('admin.collections.empty')}</p>
+                  ) : (
+                    <div className="flex flex-wrap gap-x-3 gap-y-1.5">
+                      {linkableCollections.map(col => (
+                        <label key={col.id} className="flex items-center gap-1.5 text-sm cursor-pointer select-none"
+                          style={col.depth > 0 ? { marginLeft: col.depth * 12 } : undefined}>
+                          <input
+                            type="checkbox"
+                            checked={textForm.ctaCollectionIds.includes(col.id)}
+                            onChange={e => setTextForm(f => ({
+                              ...f,
+                              ctaCollectionIds: e.target.checked
+                                ? [...f.ctaCollectionIds, col.id]
+                                : f.ctaCollectionIds.filter(id => id !== col.id),
+                            }))}
+                          />
+                          {col.depth > 0 && <span className="text-muted" aria-hidden="true">↳</span>}
+                          {pickLocale(col.headerEn, col.headerFr, col.headerEs, i18n.language) || `#${col.id}`}
+                        </label>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-2 pt-1">
                   <button onClick={() => saveText(slot)} disabled={saving} className="text-xs uppercase tracking-widest border border-dark bg-dark text-white px-4 py-1.5 hover:bg-gold transition-colors disabled:opacity-50">
@@ -3190,6 +3233,7 @@ function AdminCollections() {
                     siteAssets={c.siteAssets}
                     labels={labels}
                     categories={categories}
+                    collections={collections}
                     onUpdate={updated => handleAssetUpdate(c.id, updated)}
                   />
                 )}

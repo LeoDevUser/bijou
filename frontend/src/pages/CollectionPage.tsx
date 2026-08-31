@@ -20,7 +20,7 @@ type AssetEntry = {
   headerTextColor: string | null; subheaderTextColor: string | null; taglineTextColor: string | null;
   ctaTextColor: string | null; ctaBorderColor: string | null; ctaBgColor: string | null;
   ctaHoverTextColor: string | null; ctaHoverBorderColor: string | null; ctaHoverBgColor: string | null;
-  ctaCategoryIds: number[]; ctaLabelIds: number[];
+  ctaCategoryIds: number[]; ctaLabelIds: number[]; ctaCollectionIds: number[];
 };
 
 function fromSiteAsset(a: CollectionSiteAssetView | undefined): AssetEntry | undefined {
@@ -35,11 +35,13 @@ function fromSiteAsset(a: CollectionSiteAssetView | undefined): AssetEntry | und
     ctaTextColor: a.ctaTextColor, ctaBorderColor: a.ctaBorderColor, ctaBgColor: a.ctaBgColor,
     ctaHoverTextColor: a.ctaHoverTextColor, ctaHoverBorderColor: a.ctaHoverBorderColor, ctaHoverBgColor: a.ctaHoverBgColor,
     ctaCategoryIds: a.ctaCategoryIds, ctaLabelIds: a.ctaLabelIds,
+    ctaCollectionIds: a.ctaCollectionIds ?? [],
   };
 }
 
 function assetHasCta(entry: AssetEntry | undefined): boolean {
-  return !!entry && (entry.ctaCategoryIds.length > 0 || entry.ctaLabelIds.length > 0);
+  return !!entry && (entry.ctaCategoryIds.length > 0 || entry.ctaLabelIds.length > 0
+    || entry.ctaCollectionIds.length > 0);
 }
 
 function ctaHref(entry: AssetEntry | undefined): string {
@@ -47,6 +49,7 @@ function ctaHref(entry: AssetEntry | undefined): string {
   const params = new URLSearchParams();
   entry.ctaCategoryIds.forEach(id => params.append('category', String(id)));
   entry.ctaLabelIds.forEach(id => params.append('label', String(id)));
+  entry.ctaCollectionIds.forEach(id => params.append('collection', String(id)));
   const qs = params.toString();
   return qs ? `/shop?${qs}` : '/shop';
 }

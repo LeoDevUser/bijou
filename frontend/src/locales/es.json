@@ -49,6 +49,7 @@
     "all": "Todo",
     "category": "Categoría",
     "label": "Etiqueta",
+    "collection": "Colección",
     "misc": "Otro",
     "clearFilters": "Borrar filtros",
     "sort": "Ordenar",

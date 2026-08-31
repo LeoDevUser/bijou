@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import ProductCard from '../components/ui/ProductCard';
-import type { ItemView, LabelView, CategoryView } from '../types';
+import type { ItemView, LabelView, CategoryView, CollectionView } from '../types';
 import { pickLocale } from '../types';
 
 type SortOption = 'default' | 'bestselling' | 'price_asc' | 'price_desc';
@@ -11,22 +11,37 @@ type SortOption = 'default' | 'bestselling' | 'price_asc' | 'price_desc';
 const effectivePrice = (item: ItemView) =>
   item.discountPercent ? item.price * (1 - item.discountPercent / 100) : item.price;
 
+type FlatCollection = { c: CollectionView; depth: number };
+
+/** Depth-first flatten of the collection tree — each parent immediately before its children. */
+function flattenCollections(roots: CollectionView[], depth = 0): FlatCollection[] {
+  return roots.flatMap(c => [{ c, depth }, ...flattenCollections(c.children ?? [], depth + 1)]);
+}
+
+/** A collection together with every subcollection beneath it. */
+function branchOf(c: CollectionView): CollectionView[] {
+  return [c, ...(c.children ?? []).flatMap(branchOf)];
+}
+
 export default function Shop() {
   const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [allItems, setAllItems] = useState<ItemView[]>([]);
   const [labels, setLabels] = useState<LabelView[]>([]);
   const [categories, setCategories] = useState<CategoryView[]>([]);
+  const [collections, setCollections] = useState<CollectionView[]>([]);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState<SortOption>('default');
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const activeCategories = useMemo(() => searchParams.getAll('category'), [searchParams]);
   const activeLabelValues = useMemo(() => searchParams.getAll('label'), [searchParams]);
+  const activeCollections = useMemo(() => searchParams.getAll('collection'), [searchParams]);
 
   useEffect(() => {
     api.labels.list().then(setLabels).catch(console.error);
     api.categories.list().then(setCategories).catch(console.error);
+    api.collections.list().then(setCollections).catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -54,6 +69,30 @@ export default function Shop() {
     return Array.from(new Set(ids));
   }, [activeLabelValues, labels]);
 
+  const flatCollections = useMemo(() => flattenCollections(collections), [collections]);
+
+  /**
+   * A collection holds the items sharing a label or category with it or with any of its
+   * subcollections — the same roll-up /public/collections/{id}/items does server-side, so
+   * picking a parent here matches everything its children hold. Selected ids that resolve
+   * to no active collection contribute nothing, exactly as an unknown category id does.
+   */
+  const collectionFilter = useMemo(() => {
+    if (activeCollections.length === 0) return null;
+    const byId = new Map(flatCollections.map(({ c }) => [String(c.id), c]));
+    const labelIds = new Set<number>();
+    const categoryIds = new Set<number>();
+    activeCollections.forEach(value => {
+      const selected = byId.get(value);
+      if (!selected) return;
+      branchOf(selected).forEach(c => {
+        c.labels.forEach(l => labelIds.add(l.id));
+        c.categories.forEach(cat => categoryIds.add(cat.id));
+      });
+    });
+    return { labelIds, categoryIds };
+  }, [activeCollections, flatCollections]);
+
   const items = useMemo(() => {
     let result = allItems;
     if (activeCategories.length > 0) {
@@ -62,45 +101,33 @@ export default function Shop() {
     if (resolvedLabelIds.length > 0) {
       result = result.filter(item => item.labels.some(l => resolvedLabelIds.includes(l.id)));
     }
+    if (collectionFilter) {
+      result = result.filter(item =>
+        item.labels.some(l => collectionFilter.labelIds.has(l.id)) ||
+        item.categories.some(c => collectionFilter.categoryIds.has(c.id)));
+    }
     if (sort === 'price_asc') result = [...result].sort((a, b) => effectivePrice(a) - effectivePrice(b));
     if (sort === 'price_desc') result = [...result].sort((a, b) => effectivePrice(b) - effectivePrice(a));
     return result;
-  }, [allItems, activeCategories, resolvedLabelIds, sort]);
+  }, [allItems, activeCategories, resolvedLabelIds, collectionFilter, sort]);
 
-  function toggleCategory(value: string) {
+  // Each filter group is a repeated query param, so the current selection is shareable
+  // and CTAs elsewhere can deep-link straight into it.
+  function toggleParam(key: string, value: string) {
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);
-      const current = next.getAll('category');
-      next.delete('category');
+      const current = next.getAll(key);
+      next.delete(key);
       (current.includes(value) ? current.filter(v => v !== value) : [...current, value])
-        .forEach(v => next.append('category', v));
+        .forEach(v => next.append(key, v));
       return next;
     }, { replace: true });
   }
 
-  function toggleLabel(value: string) {
+  function clearParam(key: string) {
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);
-      const current = next.getAll('label');
-      next.delete('label');
-      (current.includes(value) ? current.filter(v => v !== value) : [...current, value])
-        .forEach(v => next.append('label', v));
-      return next;
-    }, { replace: true });
-  }
-
-  function clearCategories() {
-    setSearchParams(prev => {
-      const next = new URLSearchParams(prev);
-      next.delete('category');
-      return next;
-    }, { replace: true });
-  }
-
-  function clearLabels() {
-    setSearchParams(prev => {
-      const next = new URLSearchParams(prev);
-      next.delete('label');
+      next.delete(key);
       return next;
     }, { replace: true });
   }
@@ -109,7 +136,7 @@ export default function Shop() {
     setSearchParams({}, { replace: true });
   }
 
-  const hasFilters = activeCategories.length > 0 || resolvedLabelIds.length > 0;
+  const hasFilters = activeCategories.length > 0 || resolvedLabelIds.length > 0 || activeCollections.length > 0;
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
@@ -130,7 +157,7 @@ export default function Shop() {
           {t('shop.filter')}
           {hasFilters && (
             <span className="ml-1 inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-1 text-[0.65rem] bg-dark text-white rounded-full leading-none">
-              {activeCategories.length + resolvedLabelIds.length}
+              {activeCategories.length + resolvedLabelIds.length + activeCollections.length}
             </span>
           )}
         </button>
@@ -143,7 +170,7 @@ export default function Shop() {
           <span className="text-xs uppercase tracking-widest text-muted">{t('shop.category')}</span>
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={clearCategories}
+              onClick={() => clearParam('category')}
               className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${activeCategories.length === 0 ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
             >
               {t('shop.all')}
@@ -151,7 +178,7 @@ export default function Shop() {
             {categories.map(cat => (
               <button
                 key={cat.id}
-                onClick={() => toggleCategory(String(cat.id))}
+                onClick={() => toggleParam('category', String(cat.id))}
                 className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${activeCategories.includes(String(cat.id)) ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
               >
                 {pickLocale(cat.nameEn, cat.nameFr, cat.nameEs, i18n.language)}
@@ -166,7 +193,7 @@ export default function Shop() {
             <span className="text-xs uppercase tracking-widest text-muted">{t('shop.label')}</span>
             <div className="flex flex-wrap gap-2">
               <button
-                onClick={clearLabels}
+                onClick={() => clearParam('label')}
                 className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${resolvedLabelIds.length === 0 ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
               >
                 {t('shop.all')}
@@ -174,10 +201,36 @@ export default function Shop() {
               {labels.map(label => (
                 <button
                   key={label.id}
-                  onClick={() => toggleLabel(String(label.id))}
+                  onClick={() => toggleParam('label', String(label.id))}
                   className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${resolvedLabelIds.includes(label.id) ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
                 >
                   {pickLocale(label.nameEn, label.nameFr, label.nameEs, i18n.language)}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Collection pills — subcollections follow their parent, marked with a chevron */}
+        {flatCollections.length > 0 && (
+          <div className="space-y-2">
+            <span className="text-xs uppercase tracking-widest text-muted">{t('shop.collection')}</span>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => clearParam('collection')}
+                className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${activeCollections.length === 0 ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
+              >
+                {t('shop.all')}
+              </button>
+              {flatCollections.map(({ c, depth }) => (
+                <button
+                  key={c.id}
+                  onClick={() => toggleParam('collection', String(c.id))}
+                  className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${activeCollections.includes(String(c.id)) ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
+                >
+                  {depth > 0 && <span className="opacity-60 mr-1" aria-hidden="true">↳</span>}
+                  {pickLocale(c.headerEn, c.headerFr, c.headerEs, i18n.language)
+                    || (c.labels[0] && pickLocale(c.labels[0].nameEn, c.labels[0].nameFr, c.labels[0].nameEs, i18n.language))}
                 </button>
               ))}
             </div>
