@@ -841,6 +841,7 @@ function SizeMediaQueue({ media, onChange }: { media: PendingMedia; onChange: (m
       <MediaButtons onFiles={addFiles} onBrowse={() => setBrowsing(true)} />
       {browsing && (
         <CloudinaryBrowserModal
+          selected={[...media.files.map(() => null), ...media.picks.map(p => p.publicId)]}
           onClose={() => setBrowsing(false)}
           onSelect={resource => {
             setBrowsing(false);
@@ -965,6 +966,7 @@ function SizeMediaEditor({ itemId, size, itemAssets, onChanged }: {
       {error && <p className="text-[11px] text-red-500">{error}</p>}
       {browsing && (
         <CloudinaryBrowserModal
+          selected={assets.map(a => a.imageId)}
           onClose={() => setBrowsing(false)}
           onSelect={resource => {
             setBrowsing(false);
@@ -1762,6 +1764,11 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
       </div>
       {browsingMedia && (
         <CloudinaryBrowserModal
+          selected={[
+            ...currentAssets.map(a => a.imageId),
+            ...pendingFiles.map(() => null),
+            ...pendingPicks.map(p => p.publicId),
+          ]}
           onClose={() => setBrowsingMedia(false)}
           onSelect={resource => {
             setBrowsingMedia(false);
@@ -2409,6 +2416,8 @@ function CollectionFormModal({
         </div>
         {browsingCard && (
           <CloudinaryBrowserModal
+            selected={file ? [] : [pickedMedia?.publicId ?? initial?.imageId ?? null]}
+            numbered={false}
             onSelect={r => { setPickedMedia({ publicId: r.publicId, resourceType: r.resourceType, secureUrl: r.secureUrl }); setFile(null); setBrowsingCard(false); }}
             onClose={() => setBrowsingCard(false)}
           />
@@ -2438,9 +2447,17 @@ function CollectionFormModal({
 
 // ── Cloudinary Browser Modal ──────────────────────────────────────────────────
 
-function CloudinaryBrowserModal({ onSelect, onClose }: {
+function CloudinaryBrowserModal({ onSelect, onClose, selected = [], numbered = true }: {
   onSelect: (resource: CloudinaryResource) => void;
   onClose: () => void;
+  /**
+   * What the target gallery already holds, in the order it shows them. An entry is
+   * the asset's Cloudinary publicId, or null for something the library can't name
+   * (a queued upload) — those still occupy a position, so the numbers stay honest.
+   */
+  selected?: (string | null)[];
+  /** False where the target holds a single asset and a position number says nothing. */
+  numbered?: boolean;
 }) {
   const { t } = useTranslation();
   const [tab, setTab] = useState<'image' | 'video'>('image');
@@ -2528,8 +2545,20 @@ function CloudinaryBrowserModal({ onSelect, onClose }: {
           {!loading && filtered.length === 0 && (
             <p className="text-xs text-muted text-center py-6">{t('admin.site.browseEmpty')}</p>
           )}
-          {filtered.map(resource => (
-            <div key={resource.publicId} className="flex items-center gap-3 border border-border px-3 py-2 hover:border-dark transition-colors">
+          {filtered.map(resource => {
+            const position = selected.indexOf(resource.publicId);
+            const picked = position >= 0;
+            return (
+            <div
+              key={resource.publicId}
+              className={`flex items-center gap-3 border px-3 py-2 transition-colors ${picked ? 'border-gold bg-gold/10' : 'border-border hover:border-dark'}`}
+            >
+              {picked && (
+                <span
+                  title={numbered ? t('admin.site.browsePosition', { n: position + 1 }) : t('admin.site.browseSelected')}
+                  className="shrink-0 w-5 h-5 flex items-center justify-center bg-gold text-dark text-[10px] font-medium"
+                >{numbered ? position + 1 : '✓'}</span>
+              )}
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-mono truncate">{resource.displayName ?? resource.publicId}</p>
                 <p className="text-xs text-muted mt-0.5">
@@ -2539,9 +2568,10 @@ function CloudinaryBrowserModal({ onSelect, onClose }: {
               <div className="flex gap-2 shrink-0">
                 <button
                   onClick={() => onSelect(resource)}
-                  className="text-xs uppercase tracking-widest border border-dark bg-dark text-white px-3 py-1 hover:bg-gold transition-colors"
+                  disabled={picked}
+                  className="text-xs uppercase tracking-widest border border-dark bg-dark text-white px-3 py-1 hover:bg-gold transition-colors disabled:opacity-50 disabled:hover:bg-dark"
                 >
-                  {t('admin.site.browseSelect')}
+                  {picked ? t('admin.site.browseSelected') : t('admin.site.browseSelect')}
                 </button>
                 <button
                   onClick={() => handleRename(resource)}
@@ -2558,7 +2588,8 @@ function CloudinaryBrowserModal({ onSelect, onClose }: {
                 </button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Load more */}
@@ -2940,6 +2971,8 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, c
       })}
       {browsingSlot && (
         <CloudinaryBrowserModal
+          selected={[slotMap[browsingSlot]?.imageId ?? null]}
+          numbered={false}
           onSelect={resource => handlePickResource(browsingSlot, resource)}
           onClose={() => setBrowsingSlot(null)}
         />

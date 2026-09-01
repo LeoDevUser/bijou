@@ -457,6 +457,8 @@
       "browseImages": "Images",
       "browseVideos": "Vidéos",
       "browseSelect": "Sélectionner",
+      "browseSelected": "Sélectionné",
+      "browsePosition": "Position {{n}}",
       "browseDelete": "Supprimer",
       "browseDeleteConfirm": "Supprimer cet asset de Cloudinary ? Cette action est irréversible.",
       "browseLoadMore": "Charger plus",

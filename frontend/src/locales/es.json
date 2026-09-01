@@ -457,6 +457,8 @@
       "browseImages": "Imágenes",
       "browseVideos": "Videos",
       "browseSelect": "Seleccionar",
+      "browseSelected": "Seleccionado",
+      "browsePosition": "Posición {{n}}",
       "browseDelete": "Eliminar",
       "browseDeleteConfirm": "¿Eliminar este recurso de Cloudinary? Esta acción no se puede deshacer.",
       "browseLoadMore": "Cargar más",
