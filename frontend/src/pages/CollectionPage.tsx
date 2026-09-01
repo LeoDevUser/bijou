@@ -8,7 +8,7 @@ import AutoplayVideo from '../components/ui/AutoplayVideo';
 import { optimizedImageUrl } from '../utils/cloudinary';
 import type { CollectionView, CollectionSiteAssetView, ItemView } from '../types';
 import { pickLocale } from '../types';
-import { useTheme, mergeCollectionTheme } from '../context/ThemeContext';
+import { useTheme } from '../context/ThemeContext';
 
 
 type AssetEntry = {
@@ -118,7 +118,7 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
   const { t, i18n } = useTranslation();
   const collectionId = propId ?? Number(paramId);
   const isEmbedded = propId !== undefined;
-  const { theme: globalTheme, setTheme } = useTheme();
+  const { setCollectionOverride } = useTheme();
 
   const [collection, setCollection] = useState<CollectionView | null>(null);
   const [trending, setTrending] = useState<ItemView[]>([]);
@@ -146,19 +146,12 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
       .finally(() => setLoading(false));
   }, [collectionId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Apply collection theme globally when the collection loads.
-  // Reload once per collection navigation so CSS vars re-initialize cleanly.
-  // sessionStorage tracks which collection was last reloaded to prevent infinite loops.
+  // This collection's colours hold for as long as its page is on screen and are dropped
+  // on the way out — they are global CSS variables, so leaving them behind would repaint
+  // every page the shopper visits next in this collection's palette.
   useEffect(() => {
-    if (!collection?.theme) return;
-    setTheme(mergeCollectionTheme(globalTheme, collection.theme));
-    const key = 'bm_last_reloaded_collection';
-    const lastReloaded = sessionStorage.getItem(key);
-    if (lastReloaded !== String(collection.id)) {
-      sessionStorage.setItem(key, String(collection.id));
-      const timer = setTimeout(() => window.location.reload(), 200);
-      return () => clearTimeout(timer);
-    }
+    setCollectionOverride(collection?.theme ?? null);
+    return () => setCollectionOverride(null);
   }, [collection?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const assetMap = useMemo(() => {

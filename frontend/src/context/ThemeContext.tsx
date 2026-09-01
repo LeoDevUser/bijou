@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
 import type { ThemeConfig, CollectionThemeView } from '../types';
 
@@ -61,54 +61,72 @@ export function mergeCollectionTheme(base: ThemeConfig, ct: CollectionThemeView)
 }
 
 interface ThemeContextValue {
+  /** The colours currently in effect: the site-wide theme, plus any page override over it. */
   theme: ThemeConfig;
-  setTheme: (t: ThemeConfig) => void;
+  /** Replaces the site-wide theme — the admin panel, once a new one is saved. */
+  setBaseTheme: (t: ThemeConfig) => void;
+  /**
+   * Layers one collection's theme on top of the site-wide one for as long as its page is
+   * mounted. Pass null to drop it. Anything else would leak: the CSS variables live on
+   * <html>, so a collection's colours would otherwise follow the shopper onto product,
+   * shop and cart pages — a collection with a light Site Text over the site's light
+   * background left product names and prices painted invisible until a hard refresh.
+   */
+  setCollectionOverride: (t: CollectionThemeView | null) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
+/** Drops null fields so a partially-filled theme falls back to what it is layered over. */
+function withoutNulls(raw: object): Partial<ThemeConfig> {
+  return Object.fromEntries(Object.entries(raw).filter(([, v]) => v != null)) as Partial<ThemeConfig>;
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeConfig>(DEFAULTS);
+  // The site-wide theme: the global ThemeConfig with the main collection's theme over it.
+  const [base, setBase] = useState<ThemeConfig>(DEFAULTS);
+  // The collection page currently on screen, if it has a theme of its own.
+  const [override, setOverride] = useState<CollectionThemeView | null>(null);
 
   useEffect(() => {
-    applyTheme(DEFAULTS);
-
     // 1. Load global ThemeConfig from DB
     api.theme.get()
       .then(raw => {
-        const globalTheme: ThemeConfig = {
-          ...DEFAULTS,
-          ...Object.fromEntries(Object.entries(raw).filter(([, v]) => v != null)),
-        };
-        setThemeState(globalTheme);
-        applyTheme(globalTheme);
+        const globalTheme: ThemeConfig = { ...DEFAULTS, ...withoutNulls(raw) };
+        setBase(globalTheme);
 
-        // 2. If a main collection has a custom theme, apply it over the global theme.
-        //    This makes the main collection's theme the effective site-wide theme from app start.
+        // 2. If a main collection has a custom theme, fold it into the site-wide theme.
+        //    This makes the main collection's theme the effective one from app start.
         api.collections.getMain()
           .then(main => {
-            if (main.theme) {
-              const merged = mergeCollectionTheme(globalTheme, main.theme);
-              setThemeState(merged);
-              applyTheme(merged);
-            }
+            if (main.theme) setBase(mergeCollectionTheme(globalTheme, main.theme));
           })
           .catch(() => {});
       })
       .catch(() => {});
   }, []);
 
-  function setTheme(raw: ThemeConfig) {
-    const t: ThemeConfig = {
-      ...DEFAULTS,
-      ...Object.fromEntries(Object.entries(raw as unknown as Record<string, unknown>).filter(([, v]) => v != null)),
-    };
-    setThemeState(t);
-    applyTheme(t);
+  const theme = useMemo(
+    () => (override ? mergeCollectionTheme(base, override) : base),
+    [base, override],
+  );
+
+  // The one place the CSS variables are written. Because it re-runs on every change to
+  // either layer, dropping an override restores the site-wide colours on its own — no
+  // page reload needed to get them back.
+  useEffect(() => { applyTheme(theme); }, [theme]);
+
+  function setBaseTheme(raw: ThemeConfig) {
+    setBase({ ...DEFAULTS, ...withoutNulls(raw) } as ThemeConfig);
   }
 
+  const value = useMemo(
+    () => ({ theme, setBaseTheme, setCollectionOverride: setOverride }),
+    [theme], // setBaseTheme only calls a stable setter; setOverride is stable itself
+  );
+
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );

@@ -3986,7 +3986,7 @@ const THEME_SECTIONS: { titleKey: string; fields: ColorField[] }[] = [
 
 function AdminTheme() {
   const { t, i18n } = useTranslation();
-  const { setTheme } = useTheme();
+  const { setBaseTheme } = useTheme();
   const [homeCollection, setHomeCollection] = useState<CollectionView | null | undefined>(undefined);
   const [form, setForm] = useState<CollectionThemeView>({
     navbarBg: THEME_DEFAULTS.navbarBg, navbarText: THEME_DEFAULTS.navbarText,
@@ -4019,7 +4019,7 @@ function AdminTheme() {
     try {
       const updated = await api.admin.collections.updateTheme(homeCollection.id, form);
       setForm({ ...form, ...Object.fromEntries(Object.entries(updated).filter(([, v]) => v != null)) });
-      setTheme(mergeCollectionTheme(THEME_DEFAULTS, updated));
+      setBaseTheme(mergeCollectionTheme(THEME_DEFAULTS, updated));
     } finally {
       setSaving(false);
     }
