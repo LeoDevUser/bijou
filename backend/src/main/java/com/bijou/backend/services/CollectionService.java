@@ -499,7 +499,7 @@ public class CollectionService {
         List<ItemAssetView> assetViews = toAssetViews(item.getAssets());
         List<ItemSizeView> sizeViews = item.getSizes() == null ? List.of() :
                 item.getSizes().stream()
-                        .map(s -> new ItemSizeView(s.getId(), s.getSize(), s.getStock(), s.getVersion(), s.getWeightGrams(), s.getPrice(),
+                        .map(s -> new ItemSizeView(s.getId(), s.getSizeEn(), s.getSizeFr(), s.getSizeEs(), s.getStock(), s.getVersion(), s.getWeightGrams(), s.getPrice(),
                                 s.getPricingWork(), s.getDescriptionEn(), s.getDescriptionFr(), s.getDescriptionEs(),
                                 s.getSortOrder(), s.isActive(), toAssetViews(s.getAssets())))
                         .toList();

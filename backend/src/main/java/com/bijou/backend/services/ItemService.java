@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -83,7 +84,7 @@ public class ItemService {
         if (sizes == null) return List.of();
         return sizes.stream()
             .map(s -> new ItemSizeView(
-                s.getId(), s.getSize(), s.getStock(), s.getVersion(), s.getWeightGrams(), s.getPrice(), s.getPricingWork(),
+                s.getId(), s.getSizeEn(), s.getSizeFr(), s.getSizeEs(), s.getStock(), s.getVersion(), s.getWeightGrams(), s.getPrice(), s.getPricingWork(),
                 s.getDescriptionEn(), s.getDescriptionFr(), s.getDescriptionEs(), s.getSortOrder(), s.isActive(),
                 toAssetViews(s.getAssets())))
             .toList();
@@ -417,10 +418,13 @@ public class ItemService {
     public ItemView addSizes(Long itemId, List<ItemSizeRequest> reqs) {
         Item item = findAnyItemOrThrow(itemId);
         int nextOrder = item.getSizes().size();
+        reqs.forEach(ItemService::requireSizeName);
         for (ItemSizeRequest req : reqs) {
             ItemSize size = ItemSize.builder()
                 .item(item)
-                .size(req.size())
+                .sizeEn(req.sizeEn())
+                .sizeFr(req.sizeFr())
+                .sizeEs(req.sizeEs())
                 .stock(req.stock())
                 .weightGrams(req.weightGrams())
                 .price(resolveSizePrice(item, req))
@@ -441,7 +445,10 @@ public class ItemService {
     public ItemView updateSize(Long itemId, Long sizeId, ItemSizeRequest req) {
         Item item = findAnyItemOrThrow(itemId);
         ItemSize size = findSizeOrThrow(item, sizeId);
-        size.setSize(req.size());
+        requireSizeName(req);
+        size.setSizeEn(req.sizeEn());
+        size.setSizeFr(req.sizeFr());
+        size.setSizeEs(req.sizeEs());
         // Stock intentionally not written here — see updateItem. Managed via
         // adjustSizeStock / setSizeStock only.
         size.setWeightGrams(req.weightGrams());
@@ -453,6 +460,18 @@ public class ItemService {
         itemRepository.save(item);
         log.info("updated size #{} of item #{}", sizeId, itemId);
         return toItemView(item);
+    }
+
+    /**
+     * A size must be named in at least one language. Bean validation cannot carry this:
+     * the bulk add takes a {@code List<ItemSizeRequest>}, and {@code @Valid} on a list
+     * body does not cascade to its elements — so the check lives here, where both the
+     * bulk add and the single update go through it.
+     */
+    private static void requireSizeName(ItemSizeRequest req) {
+        boolean named = Stream.of(req.sizeEn(), req.sizeFr(), req.sizeEs())
+                .anyMatch(v -> v != null && !v.isBlank());
+        if (!named) throw new AppException(HttpStatus.BAD_REQUEST, "SIZE_NAME_REQUIRED");
     }
 
     // ── Stock ─────────────────────────────────────────────────────────────────

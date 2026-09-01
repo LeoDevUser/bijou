@@ -10,7 +10,9 @@ import java.util.List;
  */
 public record ItemSizeView(
         Long id,
-        String size,
+        String sizeEn,
+        String sizeFr,
+        String sizeEs,
         Integer stock,
         Long version,
         float weightGrams,

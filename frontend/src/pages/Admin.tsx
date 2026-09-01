@@ -584,9 +584,9 @@ const PRICING_FACTORS: Record<Exclude<PricingFormula, 'NONE'>, { factor: number;
 
 // ── Item sizes ──────────────────────────────────────────────────────────────
 
-type SizeForm = { size: string; stock: string; weightGrams: string; price: string; descriptionEn: string; descriptionFr: string; descriptionEs: string };
+type SizeForm = { sizeEn: string; sizeFr: string; sizeEs: string; stock: string; weightGrams: string; price: string; descriptionEn: string; descriptionFr: string; descriptionEs: string };
 
-const emptySizeForm: SizeForm = { size: '', stock: '', weightGrams: '', price: '', descriptionEn: '', descriptionFr: '', descriptionEs: '' };
+const emptySizeForm: SizeForm = { sizeEn: '', sizeFr: '', sizeEs: '', stock: '', weightGrams: '', price: '', descriptionEn: '', descriptionFr: '', descriptionEs: '' };
 
 // Module-scope so it isn't recreated each render (which would remount the inputs
 // and drop focus on every keystroke).
@@ -600,9 +600,11 @@ function SizeFields({ value, onChange, isStatic, priceIncludesTax, heading, hide
     <div className="border border-border p-3 space-y-2">
       {heading && <p className="text-[11px] uppercase tracking-widest text-muted">{heading}</p>}
       <div className="grid grid-cols-2 gap-2">
-        <div className="col-span-2">
+        <div className="col-span-2 space-y-1">
           <label className="text-[11px] uppercase tracking-widest text-muted">{t('admin.sizes.name')}</label>
-          <input value={value.size} onChange={e => onChange({ ...value, size: e.target.value })} placeholder={t('admin.sizes.namePlaceholder')} className={inputClass} />
+          <input value={value.sizeEn} onChange={e => onChange({ ...value, sizeEn: e.target.value })} placeholder={`EN — ${t('admin.sizes.namePlaceholder')}`} className={inputClass} />
+          <input value={value.sizeFr} onChange={e => onChange({ ...value, sizeFr: e.target.value })} placeholder={`FR — ${t('admin.sizes.namePlaceholder')}`} className={inputClass} />
+          <input value={value.sizeEs} onChange={e => onChange({ ...value, sizeEs: e.target.value })} placeholder={`ES — ${t('admin.sizes.namePlaceholder')}`} className={inputClass} />
         </div>
         {!hideStock && (
           <div>
@@ -989,7 +991,7 @@ function ItemSizesPanel({ item, pricingFormula, itemAssets, onSizesChanged, onIt
   onSizesChanged: (sizes: ItemSizeView[]) => void;
   onItemAssetsChanged: (assets: ItemAssetView[]) => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [sizes, setSizes] = useState<ItemSizeView[]>(item.sizes ?? []);
   const [mode, setMode] = useState<'list' | 'add' | 'first' | number>('list');
   const [form, setForm] = useState<SizeForm>(emptySizeForm);
@@ -1014,7 +1016,9 @@ function ItemSizesPanel({ item, pricingFormula, itemAssets, onSizesChanged, onIt
 
   function toReq(f: SizeForm): ItemSizeRequest {
     return {
-      size: f.size.trim(),
+      sizeEn: f.sizeEn.trim() || null,
+      sizeFr: f.sizeFr.trim() || null,
+      sizeEs: f.sizeEs.trim() || null,
       stock: parseInt(f.stock) || 0,
       weightGrams: parseFloat(f.weightGrams) || 0,
       price: isStatic ? (f.price ? parseFloat(f.price) : null) : null,
@@ -1033,7 +1037,7 @@ function ItemSizesPanel({ item, pricingFormula, itemAssets, onSizesChanged, onIt
     if (sizes.length === 0) {
       // First size: prefill the "original" row from the item's current values.
       setOrigForm({
-        size: '',
+        sizeEn: '', sizeFr: '', sizeEs: '',
         stock: String(item.stock),
         weightGrams: String(item.weightGrams),
         price: isStatic ? showPrice(item.price) : '',
@@ -1050,7 +1054,9 @@ function ItemSizesPanel({ item, pricingFormula, itemAssets, onSizesChanged, onIt
   function startEdit(s: ItemSizeView) {
     setError(null);
     setForm({
-      size: s.size,
+      sizeEn: s.sizeEn ?? '',
+      sizeFr: s.sizeFr ?? '',
+      sizeEs: s.sizeEs ?? '',
       stock: String(s.stock),
       weightGrams: String(s.weightGrams),
       price: isStatic ? showPrice(s.price) : '',
@@ -1138,7 +1144,8 @@ function ItemSizesPanel({ item, pricingFormula, itemAssets, onSizesChanged, onIt
     }
   }
 
-  const fieldsValid = (f: SizeForm) => f.size.trim() && f.weightGrams && f.stock !== '' && (!isStatic || f.price);
+  const fieldsValid = (f: SizeForm) =>
+    (f.sizeEn.trim() || f.sizeFr.trim() || f.sizeEs.trim()) && f.weightGrams && f.stock !== '' && (!isStatic || f.price);
 
   const btn = 'text-xs uppercase tracking-widest px-3 py-1.5 border transition-colors disabled:opacity-50';
 
@@ -1162,7 +1169,7 @@ function ItemSizesPanel({ item, pricingFormula, itemAssets, onSizesChanged, onIt
                   <button type="button" onClick={() => move(s.id, 'up')} disabled={busy || idx === 0} className="text-xs border border-border px-1.5 py-0.5 hover:border-dark transition-colors disabled:opacity-30">↑</button>
                   <button type="button" onClick={() => move(s.id, 'down')} disabled={busy || idx === sizes.length - 1} className="text-xs border border-border px-1.5 py-0.5 hover:border-dark transition-colors disabled:opacity-30">↓</button>
                 </div>
-                <span className="font-medium">{s.size}</span>
+                <span className="font-medium">{pickLocale(s.sizeEn, s.sizeFr, s.sizeEs, i18n.language)}</span>
                 <span className="text-muted text-xs">· {s.stock} {t('admin.modal.stock').toLowerCase()} · {s.weightGrams} g · ${formatMoney(withTax ? toGross(s.price) : s.price)}{withTax ? ` ${t('admin.sizes.withTaxSuffix')}` : ''}</span>
                 <div className="ml-auto flex gap-2">
                   <button type="button" onClick={() => startEdit(s)} className="text-xs uppercase tracking-widest text-muted hover:text-dark">{t('admin.products.edit')}</button>

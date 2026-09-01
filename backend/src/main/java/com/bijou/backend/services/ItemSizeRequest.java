@@ -1,6 +1,5 @@
 package com.bijou.backend.services;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 /**
@@ -10,8 +9,9 @@ import jakarta.validation.constraints.NotNull;
  * input, and the description fields override the item's when non-blank.
  */
 public record ItemSizeRequest(
-        @NotBlank
-        String size,
+        String sizeEn,
+        String sizeFr,
+        String sizeEs,
         @NotNull
         Integer stock,
         float weightGrams,

@@ -21,7 +21,10 @@ export interface CategoryView {
 
 export interface ItemSizeView {
   id: number;
-  size: string;
+  /** Label per language; at least one is filled, the rest fall back via pickLocale. */
+  sizeEn: string | null;
+  sizeFr: string | null;
+  sizeEs: string | null;
   stock: number;
   version: number;
   weightGrams: number;
@@ -206,7 +209,9 @@ export interface ItemRequest {
 }
 
 export interface ItemSizeRequest {
-  size: string;
+  sizeEn: string | null;
+  sizeFr: string | null;
+  sizeEs: string | null;
   stock: number;
   weightGrams: number;
   price: number | null;

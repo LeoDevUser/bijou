@@ -92,12 +92,12 @@ public class OrderService {
                     .findFirst()
                     .orElseThrow(() -> new AppException(HttpStatus.BAD_REQUEST, "SIZE_REQUIRED", item.getNameEn()));
                 if (size.getStock() < orderItemReq.quantity()) {
-                    log.warn("size {} of item {} has insufficient stock", size.getSize(), item.getNameEn());
+                    log.warn("size {} of item {} has insufficient stock", size.label(), item.getNameEn());
                     throw new AppException(HttpStatus.UNPROCESSABLE_CONTENT, "INSUFFICIENT_STOCK", item.getNameEn());
                 }
                 size.setStock(size.getStock() - orderItemReq.quantity());
                 basePrice = size.getPrice();
-                builder.itemSize(size).sizeLabel(size.getSize());
+                builder.itemSize(size).sizeLabel(size.label());
             } else {
                 if (item.getStock() < orderItemReq.quantity()) {
                     log.warn("item {} has insufficient stock", item.getNameEn());

@@ -49,9 +49,15 @@ public class ItemSize {
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
 
-    /** Free-text size label, e.g. "60 cm", "Talla 7", "Chica". */
-    @Column(nullable = false)
-    private String size;
+    /**
+     * Free-text size label per language, e.g. "60 cm", "Size 7", "Chica". At least one
+     * is always filled; the others fall back through {@code pickLocale} on the client.
+     * Replaces the single {@code size} column, which {@code ItemSizeLocaleBackfill}
+     * copies across and drops.
+     */
+    private String sizeEn;
+    private String sizeFr;
+    private String sizeEs;
 
     @Column(nullable = false)
     private Integer stock;
@@ -91,4 +97,15 @@ public class ItemSize {
     @OrderBy("sortOrder ASC")
     @Builder.Default
     private List<ItemAsset> assets = new ArrayList<>();
+
+    /**
+     * The label for contexts that carry no language of their own — server logs, and the
+     * snapshot written onto an order line. English first, then whatever is filled in.
+     */
+    public String label() {
+        if (sizeEn != null && !sizeEn.isBlank()) return sizeEn;
+        if (sizeFr != null && !sizeFr.isBlank()) return sizeFr;
+        if (sizeEs != null && !sizeEs.isBlank()) return sizeEs;
+        return "";
+    }
 }

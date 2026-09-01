@@ -91,6 +91,9 @@ export default function ProductDetail() {
         i18n.language,
       )
     : '';
+  const selectedSizeLabel = selectedSize
+    ? pickLocale(selectedSize.sizeEn, selectedSize.sizeFr, selectedSize.sizeEs, i18n.language)
+    : null;
   const basePrice = selectedSize ? Number(selectedSize.price) : Number(item?.price ?? 0);
   const effectiveStock = selectedSize ? selectedSize.stock : (item?.stock ?? 0);
 
@@ -118,7 +121,7 @@ export default function ProductDetail() {
     addItem({
       id: item.id, name, price: salePrice, quantity: 1,
       imageUrl: assets[0]?.imageUrl ?? null, resourceType: assets[0]?.resourceType,
-      sizeId: selectedSize?.id ?? null, sizeLabel: selectedSize?.size ?? null,
+      sizeId: selectedSize?.id ?? null, sizeLabel: selectedSizeLabel,
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
@@ -339,7 +342,7 @@ export default function ProductDetail() {
                         onClick={() => setSelectedSizeId(s.id)}
                         className={`text-xs uppercase tracking-widest px-4 py-2 border transition-colors ${selected ? 'bg-dark text-white border-dark' : 'border-border hover:border-dark'} ${soldOut ? 'opacity-40 line-through cursor-not-allowed' : 'cursor-pointer'}`}
                       >
-                        {s.size}
+                        {pickLocale(s.sizeEn, s.sizeFr, s.sizeEs, i18n.language)}
                       </button>
                     );
                   })}
@@ -397,8 +400,8 @@ export default function ProductDetail() {
               <p className="text-sm">{format(salePrice)}</p>
               {hasDiscount && <p className="text-xs line-through text-muted">{format(basePrice)}</p>}
             </div>
-            {selectedSize && (
-              <p className="text-xs uppercase tracking-widest text-muted truncate">{selectedSize.size}</p>
+            {selectedSizeLabel && (
+              <p className="text-xs uppercase tracking-widest text-muted truncate">{selectedSizeLabel}</p>
             )}
           </div>
           {effectiveStock === 0 ? (
