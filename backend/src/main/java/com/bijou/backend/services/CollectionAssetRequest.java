@@ -22,6 +22,9 @@ public record CollectionAssetRequest(
         String ctaHoverTextColor,
         String ctaHoverBorderColor,
         String ctaHoverBgColor,
+        String ctaTitleEn,
+        String ctaTitleFr,
+        String ctaTitleEs,
         List<Long> ctaCategoryIds,
         List<Long> ctaLabelIds,
         List<Long> ctaCollectionIds) {

@@ -44,6 +44,7 @@
   },
   "shop": {
     "title": "All Jewelry",
+    "customSearch": "Custom Search",
     "items": "items",
     "noProducts": "No products found.",
     "all": "All",
@@ -447,6 +448,7 @@
       "colorPlaceholder": "Text color (e.g. #1C1C1C)",
       "ctaBorderColor": "Button Border",
       "ctaCategory": "Link to category",
+      "ctaTitle": "Shop page heading",
       "ctaLabel": "Link to label",
       "noneOption": "— None —",
       "browse": "Browse",

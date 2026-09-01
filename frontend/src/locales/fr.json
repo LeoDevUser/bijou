@@ -44,6 +44,7 @@
   },
   "shop": {
     "title": "Tous les Bijoux",
+    "customSearch": "Recherche personnalisée",
     "items": "articles",
     "noProducts": "Aucun produit trouvé.",
     "all": "Tous",
@@ -447,6 +448,7 @@
       "colorPlaceholder": "Couleur du texte (ex. #1C1C1C)",
       "ctaBorderColor": "Bordure du bouton",
       "ctaCategory": "Lien vers une catégorie",
+      "ctaTitle": "Titre de la page boutique",
       "ctaLabel": "Lien vers un label",
       "noneOption": "— Aucun —",
       "browse": "Parcourir",

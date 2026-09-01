@@ -20,6 +20,9 @@ export default function ProductDetail() {
   const [assetIndex, setAssetIndex] = useState(0);
   const [selectedSizeId, setSelectedSizeId] = useState<number | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // The sticky mobile bar stands in for the in-flow button once it scrolls away.
+  const addToCartRef = useRef<HTMLDivElement | null>(null);
+  const [addToCartVisible, setAddToCartVisible] = useState(true);
 
   // Lightbox
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -69,6 +72,14 @@ export default function ProductDetail() {
     resetInterval(assets.length);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [assets.length, selectedSizeId]);
+
+  useEffect(() => {
+    const el = addToCartRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) => setAddToCartVisible(entry.isIntersecting));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [item?.id]);
 
   const name = item ? pickLocale(item.nameEn, item.nameFr, item.nameEs, i18n.language) : '';
   // A chosen size overrides price, stock, and (per-language) description.
@@ -237,7 +248,7 @@ export default function ProductDetail() {
 
   return (
     <>
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className="max-w-7xl mx-auto px-6 py-12 pb-28 md:pb-12">
         <div className="grid md:grid-cols-2 gap-12 md:gap-8 lg:gap-12 md:items-start">
           {/* Carousel */}
           <div className="flex flex-col gap-3 min-w-0 w-full md:mx-auto md:max-w-[min(100%,26rem,60vh)] lg:max-w-[min(100%,32rem,68vh)]">
@@ -346,29 +357,66 @@ export default function ProductDetail() {
               </div>
             )}
 
-            <p className="text-[#555] text-sm leading-relaxed mb-8 whitespace-pre-line">{description}</p>
+            {/* Buying comes before reading: the button sits above the description so it is
+                reachable without scrolling past the copy. */}
+            <div ref={addToCartRef}>
+              {effectiveStock === 0 ? (
+                <p className="text-xs uppercase tracking-widest text-muted border border-border px-8 py-4 text-center">
+                  {t('product.outOfStock')}
+                </p>
+              ) : (
+                <button
+                  onClick={handleAddToCart}
+                  className={`w-full py-4 text-xs uppercase tracking-widest transition-colors cursor-pointer ${
+                    added ? 'bg-gold text-white' : 'bg-dark text-white hover:bg-gold'
+                  }`}
+                >
+                  {added ? t('product.added') : t('product.addToCart')}
+                </button>
+              )}
 
-            {effectiveStock === 0 ? (
-              <p className="text-xs uppercase tracking-widest text-muted border border-border px-8 py-4 text-center">
-                {t('product.outOfStock')}
+              <p className="text-xs text-muted mt-4 text-center">
+                {effectiveStock} {t('product.inStock')}
               </p>
-            ) : (
-              <button
-                onClick={handleAddToCart}
-                className={`w-full py-4 text-xs uppercase tracking-widest transition-colors cursor-pointer ${
-                  added ? 'bg-gold text-white' : 'bg-dark text-white hover:bg-gold'
-                }`}
-              >
-                {added ? t('product.added') : t('product.addToCart')}
-              </button>
-            )}
+            </div>
 
-            <p className="text-xs text-muted mt-4 text-center">
-              {effectiveStock} {t('product.inStock')}
-            </p>
+            <p className="text-[#555] text-sm leading-relaxed mt-8 whitespace-pre-line">{description}</p>
           </div>
         </div>
       </div>
+
+      {/* Sticky add to cart — mobile only, and only once the in-flow button is off screen.
+          Hidden behind the lightbox, which owns the screen while it is open. */}
+      {!addToCartVisible && !lightboxOpen && (
+        <div
+          className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border px-4 py-3 flex items-center gap-4"
+          style={{ backgroundColor: 'var(--bijou-site-bg)' }}
+        >
+          <div className="min-w-0 flex-1">
+            <div className="flex items-baseline gap-2">
+              <p className="text-sm">{format(salePrice)}</p>
+              {hasDiscount && <p className="text-xs line-through text-muted">{format(basePrice)}</p>}
+            </div>
+            {selectedSize && (
+              <p className="text-xs uppercase tracking-widest text-muted truncate">{selectedSize.size}</p>
+            )}
+          </div>
+          {effectiveStock === 0 ? (
+            <span className="text-xs uppercase tracking-widest text-muted border border-border px-5 py-3 flex-shrink-0">
+              {t('product.outOfStock')}
+            </span>
+          ) : (
+            <button
+              onClick={handleAddToCart}
+              className={`px-6 py-3 text-xs uppercase tracking-widest transition-colors cursor-pointer flex-shrink-0 ${
+                added ? 'bg-gold text-white' : 'bg-dark text-white'
+              }`}
+            >
+              {added ? t('product.added') : t('product.addToCart')}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Lightbox */}
       {lightboxOpen && (

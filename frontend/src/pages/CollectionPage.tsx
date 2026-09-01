@@ -21,6 +21,7 @@ type AssetEntry = {
   ctaTextColor: string | null; ctaBorderColor: string | null; ctaBgColor: string | null;
   ctaHoverTextColor: string | null; ctaHoverBorderColor: string | null; ctaHoverBgColor: string | null;
   ctaCategoryIds: number[]; ctaLabelIds: number[]; ctaCollectionIds: number[];
+  slot: string; namesShopHeading: boolean;
 };
 
 function fromSiteAsset(a: CollectionSiteAssetView | undefined): AssetEntry | undefined {
@@ -36,6 +37,8 @@ function fromSiteAsset(a: CollectionSiteAssetView | undefined): AssetEntry | und
     ctaHoverTextColor: a.ctaHoverTextColor, ctaHoverBorderColor: a.ctaHoverBorderColor, ctaHoverBgColor: a.ctaHoverBgColor,
     ctaCategoryIds: a.ctaCategoryIds, ctaLabelIds: a.ctaLabelIds,
     ctaCollectionIds: a.ctaCollectionIds ?? [],
+    slot: a.slot,
+    namesShopHeading: !!(a.ctaTitleEn || a.ctaTitleFr || a.ctaTitleEs),
   };
 }
 
@@ -44,12 +47,16 @@ function assetHasCta(entry: AssetEntry | undefined): boolean {
     || entry.ctaCollectionIds.length > 0);
 }
 
-function ctaHref(entry: AssetEntry | undefined): string {
+function ctaHref(entry: AssetEntry | undefined, collectionId: number): string {
   if (!entry) return '/shop';
   const params = new URLSearchParams();
   entry.ctaCategoryIds.forEach(id => params.append('category', String(id)));
   entry.ctaLabelIds.forEach(id => params.append('label', String(id)));
   entry.ctaCollectionIds.forEach(id => params.append('collection', String(id)));
+  // A slot that names its own shop heading points back at itself, rather than spelling
+  // the text into the URL — the shop reads it from the collection tree it already loads,
+  // so the heading follows whatever language the shopper is reading in.
+  if (entry.namesShopHeading) params.append('cta', `${collectionId}:${entry.slot}`);
   const qs = params.toString();
   return qs ? `/shop?${qs}` : '/shop';
 }
@@ -219,7 +226,7 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
           )}
           {assetHasCta(hero) && (
             <CtaLink
-              to={ctaHref(hero)}
+              to={ctaHref(hero, collection.id)}
               className="inline-block border px-10 py-3 text-xs uppercase tracking-widest"
               styles={ctaStyles(hero, { border: hero?.baseTextColor ?? '#1C1C1C' })}
             >
@@ -284,7 +291,7 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
                   )}
                   {hasCta && (
                     <CtaLink
-                      to={ctaHref(ed)}
+                      to={ctaHref(ed, collection.id)}
                       className="inline-block text-xs uppercase tracking-widest border-b pb-0.5"
                       styles={ctaStyle}
                     >

@@ -304,6 +304,10 @@ export interface CollectionSiteAssetView {
   ctaHoverTextColor: string | null;
   ctaHoverBorderColor: string | null;
   ctaHoverBgColor: string | null;
+  /** Heading the shop page shows when a shopper arrives through this CTA. */
+  ctaTitleEn: string | null;
+  ctaTitleFr: string | null;
+  ctaTitleEs: string | null;
   ctaCategoryIds: number[];
   ctaLabelIds: number[];
   ctaCollectionIds: number[];
@@ -329,6 +333,10 @@ export interface CollectionAssetRequest {
   ctaHoverTextColor: string | null;
   ctaHoverBorderColor: string | null;
   ctaHoverBgColor: string | null;
+  /** Heading the shop page shows when a shopper arrives through this CTA. */
+  ctaTitleEn: string | null;
+  ctaTitleFr: string | null;
+  ctaTitleEs: string | null;
   ctaCategoryIds: number[];
   ctaLabelIds: number[];
   ctaCollectionIds: number[];

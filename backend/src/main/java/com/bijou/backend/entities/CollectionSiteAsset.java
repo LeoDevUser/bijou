@@ -76,6 +76,15 @@ public class CollectionSiteAsset {
     private String ctaHoverBorderColor;
     private String ctaHoverBgColor;
 
+    /**
+     * Heading the shop page shows in place of its default title when a shopper arrives
+     * through this CTA. Null or blank leaves the shop to name itself after whichever
+     * filter is applied.
+     */
+    private String ctaTitleEn;
+    private String ctaTitleFr;
+    private String ctaTitleEs;
+
     /** Categories the CTA links to (item category ids). Empty = no category filter. */
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "collection_asset_cta_categories", joinColumns = @JoinColumn(name = "asset_id"))

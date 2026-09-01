@@ -2598,7 +2598,7 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, c
       return true;
     });
   }, [collections]);
-  const [textForm, setTextForm] = useState<{ headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; taglineEn: string; taglineFr: string; taglineEs: string; baseTextColor: string; headerTextColor: string; subheaderTextColor: string; taglineTextColor: string; ctaTextColor: string; ctaBorderColor: string; ctaBgColor: string; ctaHoverTextColor: string; ctaHoverBorderColor: string; ctaHoverBgColor: string; ctaCategoryIds: number[]; ctaLabelIds: number[]; ctaCollectionIds: number[] }>({ headerEn: '', headerFr: '', headerEs: '', subheaderEn: '', subheaderFr: '', subheaderEs: '', taglineEn: '', taglineFr: '', taglineEs: '', baseTextColor: '', headerTextColor: '', subheaderTextColor: '', taglineTextColor: '', ctaTextColor: '', ctaBorderColor: '', ctaBgColor: '', ctaHoverTextColor: '', ctaHoverBorderColor: '', ctaHoverBgColor: '', ctaCategoryIds: [], ctaLabelIds: [], ctaCollectionIds: [] });
+  const [textForm, setTextForm] = useState<{ headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; taglineEn: string; taglineFr: string; taglineEs: string; baseTextColor: string; headerTextColor: string; subheaderTextColor: string; taglineTextColor: string; ctaTextColor: string; ctaBorderColor: string; ctaBgColor: string; ctaHoverTextColor: string; ctaHoverBorderColor: string; ctaHoverBgColor: string; ctaTitleEn: string; ctaTitleFr: string; ctaTitleEs: string; ctaCategoryIds: number[]; ctaLabelIds: number[]; ctaCollectionIds: number[] }>({ headerEn: '', headerFr: '', headerEs: '', subheaderEn: '', subheaderFr: '', subheaderEs: '', taglineEn: '', taglineFr: '', taglineEs: '', baseTextColor: '', headerTextColor: '', subheaderTextColor: '', taglineTextColor: '', ctaTextColor: '', ctaBorderColor: '', ctaBgColor: '', ctaHoverTextColor: '', ctaHoverBorderColor: '', ctaHoverBgColor: '', ctaTitleEn: '', ctaTitleFr: '', ctaTitleEs: '', ctaCategoryIds: [], ctaLabelIds: [], ctaCollectionIds: [] });
 
   function openEdit(asset: CollectionSiteAssetView) {
     setEditing(asset.slot);
@@ -2622,6 +2622,9 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, c
       ctaHoverTextColor: asset.ctaHoverTextColor ?? '',
       ctaHoverBorderColor: asset.ctaHoverBorderColor ?? '',
       ctaHoverBgColor: asset.ctaHoverBgColor ?? '',
+      ctaTitleEn: asset.ctaTitleEn ?? '',
+      ctaTitleFr: asset.ctaTitleFr ?? '',
+      ctaTitleEs: asset.ctaTitleEs ?? '',
       ctaCategoryIds: asset.ctaCategoryIds ?? [],
       ctaLabelIds: asset.ctaLabelIds ?? [],
       ctaCollectionIds: asset.ctaCollectionIds ?? [],
@@ -2651,6 +2654,9 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, c
         ctaHoverTextColor: textForm.ctaHoverTextColor || null,
         ctaHoverBorderColor: textForm.ctaHoverBorderColor || null,
         ctaHoverBgColor: textForm.ctaHoverBgColor || null,
+        ctaTitleEn: textForm.ctaTitleEn || null,
+        ctaTitleFr: textForm.ctaTitleFr || null,
+        ctaTitleEs: textForm.ctaTitleEs || null,
         ctaCategoryIds: textForm.ctaCategoryIds,
         ctaLabelIds: textForm.ctaLabelIds,
         ctaCollectionIds: textForm.ctaCollectionIds,
@@ -2829,6 +2835,12 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, c
                     <p className="text-xs text-muted uppercase tracking-widest mb-1">{t('admin.site.ctaHoverBgColor')}</p>
                     <ColorInput value={textForm.ctaHoverBgColor} onChange={v => setTextForm(f => ({ ...f, ctaHoverBgColor: v }))} placeholder="#FFFFFF" />
                   </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted uppercase tracking-widest">{t('admin.site.ctaTitle')}</p>
+                  <input value={textForm.ctaTitleEn} onChange={e => setTextForm(f => ({ ...f, ctaTitleEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={textForm.ctaTitleFr} onChange={e => setTextForm(f => ({ ...f, ctaTitleFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={textForm.ctaTitleEs} onChange={e => setTextForm(f => ({ ...f, ctaTitleEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>

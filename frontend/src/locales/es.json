@@ -44,6 +44,7 @@
   },
   "shop": {
     "title": "Todas las Joyas",
+    "customSearch": "Búsqueda personalizada",
     "items": "artículos",
     "noProducts": "No se encontraron productos.",
     "all": "Todo",
@@ -447,6 +448,7 @@
       "colorPlaceholder": "Color del texto (ej. #1C1C1C)",
       "ctaBorderColor": "Borde del botón",
       "ctaCategory": "Enlace a categoría",
+      "ctaTitle": "Título de la página de tienda",
       "ctaLabel": "Enlace a etiqueta",
       "noneOption": "— Ninguno —",
       "browse": "Explorar",

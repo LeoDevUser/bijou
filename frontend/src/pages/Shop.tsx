@@ -23,6 +23,12 @@ function branchOf(c: CollectionView): CollectionView[] {
   return [c, ...(c.children ?? []).flatMap(branchOf)];
 }
 
+/** A collection's display name, falling back to its first label as the cards do. */
+function collectionName(c: CollectionView, lang: string): string {
+  return pickLocale(c.headerEn, c.headerFr, c.headerEs, lang)
+    || (c.labels[0] ? pickLocale(c.labels[0].nameEn, c.labels[0].nameFr, c.labels[0].nameEs, lang) : '');
+}
+
 export default function Shop() {
   const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -116,6 +122,7 @@ export default function Shop() {
   function toggleParam(key: string, value: string) {
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);
+      next.delete('cta'); // a CTA's heading only describes the selection it arrived with
       const current = next.getAll(key);
       next.delete(key);
       (current.includes(value) ? current.filter(v => v !== value) : [...current, value])
@@ -127,6 +134,7 @@ export default function Shop() {
   function clearParam(key: string) {
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);
+      next.delete('cta');
       next.delete(key);
       return next;
     }, { replace: true });
@@ -136,11 +144,55 @@ export default function Shop() {
     setSearchParams({}, { replace: true });
   }
 
-  const hasFilters = activeCategories.length > 0 || resolvedLabelIds.length > 0 || activeCollections.length > 0;
+  const activeFilterCount = activeCategories.length + resolvedLabelIds.length + activeCollections.length;
+  const hasFilters = activeFilterCount > 0;
+
+  /**
+   * A CTA can name the heading it lands on, as "<collectionId>:<slot>". The text lives on
+   * that slot rather than in the URL, so it is resolved here against the tree already
+   * loaded for the pills — and re-resolved, in the new language, whenever the shopper
+   * switches ES/EN/FR. A slot that has since lost its title, or sits on a collection no
+   * longer public, resolves to nothing and the heading falls back to naming the filter.
+   */
+  const ctaTitle = useMemo(() => {
+    const ref = searchParams.get('cta');
+    if (!ref) return null;
+    const [collectionId, slot] = ref.split(':');
+    const found = flatCollections.find(({ c }) => String(c.id) === collectionId);
+    const asset = found?.c.siteAssets.find(a => a.slot === slot);
+    if (!asset) return null;
+    return pickLocale(asset.ctaTitleEn, asset.ctaTitleFr, asset.ctaTitleEs, i18n.language) || null;
+  }, [searchParams, flatCollections, i18n.language]);
+
+  /**
+   * With exactly one filter on, the page is really that filter's own listing, so it is
+   * titled after it — arriving from a CTA into one collection reads as that collection.
+   * Several at once have no one name, and an id naming nothing falls back to the default.
+   */
+  const heading = useMemo(() => {
+    if (ctaTitle) return ctaTitle;
+    if (activeFilterCount === 0) return t('shop.title');
+    if (activeFilterCount > 1) return t('shop.customSearch');
+
+    const [categoryId] = activeCategories;
+    if (categoryId !== undefined) {
+      const cat = categories.find(c => String(c.id) === categoryId);
+      return cat ? pickLocale(cat.nameEn, cat.nameFr, cat.nameEs, i18n.language) : t('shop.title');
+    }
+    const [labelId] = resolvedLabelIds;
+    if (labelId !== undefined) {
+      const label = labels.find(l => l.id === labelId);
+      return label ? pickLocale(label.nameEn, label.nameFr, label.nameEs, i18n.language) : t('shop.title');
+    }
+    const [collectionId] = activeCollections;
+    const found = flatCollections.find(({ c }) => String(c.id) === collectionId);
+    return (found && collectionName(found.c, i18n.language)) || t('shop.title');
+  }, [ctaTitle, activeFilterCount, activeCategories, resolvedLabelIds, activeCollections,
+      categories, labels, flatCollections, i18n.language, t]);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
-      <h1 className="font-serif text-4xl font-light mb-1">{t('shop.title')}</h1>
+      <h1 className="font-serif text-4xl font-light mb-1">{heading}</h1>
       <p className="text-muted text-sm mb-8">{items.length} {t('shop.items')}</p>
 
       {/* Filters — collapsed by default behind a search/filter toggle */}
@@ -157,7 +209,7 @@ export default function Shop() {
           {t('shop.filter')}
           {hasFilters && (
             <span className="ml-1 inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-1 text-[0.65rem] bg-dark text-white rounded-full leading-none">
-              {activeCategories.length + resolvedLabelIds.length + activeCollections.length}
+              {activeFilterCount}
             </span>
           )}
         </button>
@@ -229,8 +281,7 @@ export default function Shop() {
                   className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${activeCollections.includes(String(c.id)) ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
                 >
                   {depth > 0 && <span className="opacity-60 mr-1" aria-hidden="true">↳</span>}
-                  {pickLocale(c.headerEn, c.headerFr, c.headerEs, i18n.language)
-                    || (c.labels[0] && pickLocale(c.labels[0].nameEn, c.labels[0].nameFr, c.labels[0].nameEs, i18n.language))}
+                  {collectionName(c, i18n.language)}
                 </button>
               ))}
             </div>

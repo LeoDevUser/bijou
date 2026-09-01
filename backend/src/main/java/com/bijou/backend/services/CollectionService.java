@@ -59,6 +59,7 @@ public class CollectionService {
                 a.getBaseTextColor(), a.getHeaderTextColor(), a.getSubheaderTextColor(), a.getTaglineTextColor(),
                 a.getCtaTextColor(), a.getCtaBorderColor(), a.getCtaBgColor(),
                 a.getCtaHoverTextColor(), a.getCtaHoverBorderColor(), a.getCtaHoverBgColor(),
+                a.getCtaTitleEn(), a.getCtaTitleFr(), a.getCtaTitleEs(),
                 List.copyOf(a.getCtaCategoryIds()), List.copyOf(a.getCtaLabelIds()),
                 List.copyOf(a.getCtaCollectionIds()));
     }
@@ -346,6 +347,9 @@ public class CollectionService {
         asset.setCtaHoverTextColor(req.ctaHoverTextColor());
         asset.setCtaHoverBorderColor(req.ctaHoverBorderColor());
         asset.setCtaHoverBgColor(req.ctaHoverBgColor());
+        asset.setCtaTitleEn(req.ctaTitleEn());
+        asset.setCtaTitleFr(req.ctaTitleFr());
+        asset.setCtaTitleEs(req.ctaTitleEs());
         asset.getCtaCategoryIds().clear();
         if (req.ctaCategoryIds() != null) asset.getCtaCategoryIds().addAll(req.ctaCategoryIds());
         asset.getCtaLabelIds().clear();
