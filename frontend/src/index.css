@@ -74,3 +74,19 @@ video:not([controls])::-webkit-media-controls {
 .bijou-nav-inactive {
   color: var(--bijou-navbar-inactive);
 }
+
+/* A slot whose text block has been placed by hand in the admin. The two coordinate
+   pairs can't both live in an inline style, so they arrive as custom properties and
+   this media query — matching Tailwind's `md` — picks the one for the screen. */
+.bijou-slot-text {
+  position: absolute;
+  left: var(--slot-x);
+  top: var(--slot-y);
+  transform: translate(-50%, -50%);
+}
+@media (min-width: 768px) {
+  .bijou-slot-text {
+    left: var(--slot-x-md);
+    top: var(--slot-y-md);
+  }
+}

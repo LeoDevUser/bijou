@@ -60,6 +60,7 @@ public class CollectionService {
                 a.getCtaTextColor(), a.getCtaBorderColor(), a.getCtaBgColor(),
                 a.getCtaHoverTextColor(), a.getCtaHoverBorderColor(), a.getCtaHoverBgColor(),
                 a.getCtaTitleEn(), a.getCtaTitleFr(), a.getCtaTitleEs(),
+                a.getTextPosX(), a.getTextPosY(), a.getTextPosXMobile(), a.getTextPosYMobile(),
                 List.copyOf(a.getCtaCategoryIds()), List.copyOf(a.getCtaLabelIds()),
                 List.copyOf(a.getCtaCollectionIds()));
     }
@@ -326,6 +327,11 @@ public class CollectionService {
 
     // ── Asset management ─────────────────────────────────────────────────────────
 
+    /** Placement percentages arrive from a drag; keep them on the panel. Null = centred. */
+    private static Double clampPercent(Double v) {
+        return v == null ? null : Math.max(0d, Math.min(100d, v));
+    }
+
     public CollectionSiteAssetView updateAssetText(Long collectionId, String slot, CollectionAssetRequest req) {
         CollectionSiteAsset asset = findAssetOrThrow(collectionId, slot);
         asset.setHeaderEn(req.headerEn());
@@ -350,6 +356,10 @@ public class CollectionService {
         asset.setCtaTitleEn(req.ctaTitleEn());
         asset.setCtaTitleFr(req.ctaTitleFr());
         asset.setCtaTitleEs(req.ctaTitleEs());
+        asset.setTextPosX(clampPercent(req.textPosX()));
+        asset.setTextPosY(clampPercent(req.textPosY()));
+        asset.setTextPosXMobile(clampPercent(req.textPosXMobile()));
+        asset.setTextPosYMobile(clampPercent(req.textPosYMobile()));
         asset.getCtaCategoryIds().clear();
         if (req.ctaCategoryIds() != null) asset.getCtaCategoryIds().addAll(req.ctaCategoryIds());
         asset.getCtaLabelIds().clear();

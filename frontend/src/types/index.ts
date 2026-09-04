@@ -313,6 +313,14 @@ export interface CollectionSiteAssetView {
   ctaTitleEn: string | null;
   ctaTitleFr: string | null;
   ctaTitleEs: string | null;
+  /**
+   * Centre of the slot's text block as a percentage of the panel, or null for the
+   * centred default. The mobile pair falls back to the desktop one.
+   */
+  textPosX: number | null;
+  textPosY: number | null;
+  textPosXMobile: number | null;
+  textPosYMobile: number | null;
   ctaCategoryIds: number[];
   ctaLabelIds: number[];
   ctaCollectionIds: number[];
@@ -342,6 +350,10 @@ export interface CollectionAssetRequest {
   ctaTitleEn: string | null;
   ctaTitleFr: string | null;
   ctaTitleEs: string | null;
+  textPosX: number | null;
+  textPosY: number | null;
+  textPosXMobile: number | null;
+  textPosYMobile: number | null;
   ctaCategoryIds: number[];
   ctaLabelIds: number[];
   ctaCollectionIds: number[];

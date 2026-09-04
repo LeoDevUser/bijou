@@ -85,6 +85,18 @@ public class CollectionSiteAsset {
     private String ctaTitleFr;
     private String ctaTitleEs;
 
+    /**
+     * Where the slot's text block (subheader, header and CTA together) sits inside the
+     * panel, as a percentage of the panel's width and height to the block's centre.
+     * Null on both leaves the block centred the way it has always been. The mobile pair
+     * falls back to the desktop one, so a slot only needs its own mobile placement when
+     * the artwork puts the text somewhere else on a narrow screen.
+     */
+    private Double textPosX;
+    private Double textPosY;
+    private Double textPosXMobile;
+    private Double textPosYMobile;
+
     /** Categories the CTA links to (item category ids). Empty = no category filter. */
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "collection_asset_cta_categories", joinColumns = @JoinColumn(name = "asset_id"))

@@ -602,9 +602,9 @@ function SizeFields({ value, onChange, isStatic, priceIncludesTax, heading, hide
       <div className="grid grid-cols-2 gap-2">
         <div className="col-span-2 space-y-1">
           <label className="text-[11px] uppercase tracking-widest text-muted">{t('admin.sizes.name')}</label>
-          <input value={value.sizeEn} onChange={e => onChange({ ...value, sizeEn: e.target.value })} placeholder={`EN — ${t('admin.sizes.namePlaceholder')}`} className={inputClass} />
-          <input value={value.sizeFr} onChange={e => onChange({ ...value, sizeFr: e.target.value })} placeholder={`FR — ${t('admin.sizes.namePlaceholder')}`} className={inputClass} />
           <input value={value.sizeEs} onChange={e => onChange({ ...value, sizeEs: e.target.value })} placeholder={`ES — ${t('admin.sizes.namePlaceholder')}`} className={inputClass} />
+          <input value={value.sizeFr} onChange={e => onChange({ ...value, sizeFr: e.target.value })} placeholder={`FR — ${t('admin.sizes.namePlaceholder')}`} className={inputClass} />
+          <input value={value.sizeEn} onChange={e => onChange({ ...value, sizeEn: e.target.value })} placeholder={`EN — ${t('admin.sizes.namePlaceholder')}`} className={inputClass} />
         </div>
         {!hideStock && (
           <div>
@@ -630,9 +630,9 @@ function SizeFields({ value, onChange, isStatic, priceIncludesTax, heading, hide
       <details>
         <summary className="text-[11px] uppercase tracking-widest text-muted cursor-pointer">{t('admin.sizes.descOverrides')}</summary>
         <div className="space-y-2 mt-2">
-          <textarea placeholder="EN" rows={2} value={value.descriptionEn} onChange={e => onChange({ ...value, descriptionEn: e.target.value })} className={inputClass} />
-          <textarea placeholder="FR" rows={2} value={value.descriptionFr} onChange={e => onChange({ ...value, descriptionFr: e.target.value })} className={inputClass} />
           <textarea placeholder="ES" rows={2} value={value.descriptionEs} onChange={e => onChange({ ...value, descriptionEs: e.target.value })} className={inputClass} />
+          <textarea placeholder="FR" rows={2} value={value.descriptionFr} onChange={e => onChange({ ...value, descriptionFr: e.target.value })} className={inputClass} />
+          <textarea placeholder="EN" rows={2} value={value.descriptionEn} onChange={e => onChange({ ...value, descriptionEn: e.target.value })} className={inputClass} />
         </div>
       </details>
     </div>
@@ -1389,17 +1389,17 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
           <div>
             <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.name')}</label>
             <div className="space-y-2">
-              <input placeholder="EN" value={form.nameEn} onChange={e => setForm(f => ({ ...f, nameEn: e.target.value }))} className={inputClass} />
-              <input placeholder="FR" value={form.nameFr} onChange={e => setForm(f => ({ ...f, nameFr: e.target.value }))} className={inputClass} />
               <input placeholder="ES" value={form.nameEs} onChange={e => setForm(f => ({ ...f, nameEs: e.target.value }))} className={inputClass} />
+              <input placeholder="FR" value={form.nameFr} onChange={e => setForm(f => ({ ...f, nameFr: e.target.value }))} className={inputClass} />
+              <input placeholder="EN" value={form.nameEn} onChange={e => setForm(f => ({ ...f, nameEn: e.target.value }))} className={inputClass} />
             </div>
           </div>
           <div>
             <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.description')}</label>
             <div className="space-y-2">
-              <textarea placeholder="EN" value={form.descriptionEn} onChange={e => setForm(f => ({ ...f, descriptionEn: e.target.value }))} rows={2} className={inputClass} />
-              <textarea placeholder="FR" value={form.descriptionFr} onChange={e => setForm(f => ({ ...f, descriptionFr: e.target.value }))} rows={2} className={inputClass} />
               <textarea placeholder="ES" value={form.descriptionEs} onChange={e => setForm(f => ({ ...f, descriptionEs: e.target.value }))} rows={2} className={inputClass} />
+              <textarea placeholder="FR" value={form.descriptionFr} onChange={e => setForm(f => ({ ...f, descriptionFr: e.target.value }))} rows={2} className={inputClass} />
+              <textarea placeholder="EN" value={form.descriptionEn} onChange={e => setForm(f => ({ ...f, descriptionEn: e.target.value }))} rows={2} className={inputClass} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -2305,31 +2305,31 @@ function CollectionFormModal({
 
         <div className="grid grid-cols-3 gap-2">
           <div>
-            <label className="text-xs text-muted block mb-1">EN</label>
-            <input value={form.headerEn} onChange={e => set('headerEn', e.target.value)} placeholder={t('admin.modal.name')} className={inputClass} />
+            <label className="text-xs text-muted block mb-1">ES</label>
+            <input value={form.headerEs} onChange={e => set('headerEs', e.target.value)} placeholder={t('admin.modal.name')} className={inputClass} />
           </div>
           <div>
             <label className="text-xs text-muted block mb-1">FR</label>
             <input value={form.headerFr} onChange={e => set('headerFr', e.target.value)} placeholder={t('admin.modal.name')} className={inputClass} />
           </div>
           <div>
-            <label className="text-xs text-muted block mb-1">ES</label>
-            <input value={form.headerEs} onChange={e => set('headerEs', e.target.value)} placeholder={t('admin.modal.name')} className={inputClass} />
+            <label className="text-xs text-muted block mb-1">EN</label>
+            <input value={form.headerEn} onChange={e => set('headerEn', e.target.value)} placeholder={t('admin.modal.name')} className={inputClass} />
           </div>
         </div>
 
         <div className="grid grid-cols-3 gap-2">
           <div>
-            <label className="text-xs text-muted block mb-1">EN</label>
-            <input value={form.subheaderEn} onChange={e => set('subheaderEn', e.target.value)} placeholder={t('admin.site.subheaderPlaceholder')} className={inputClass} />
+            <label className="text-xs text-muted block mb-1">ES</label>
+            <input value={form.subheaderEs} onChange={e => set('subheaderEs', e.target.value)} placeholder={t('admin.site.subheaderPlaceholder')} className={inputClass} />
           </div>
           <div>
             <label className="text-xs text-muted block mb-1">FR</label>
             <input value={form.subheaderFr} onChange={e => set('subheaderFr', e.target.value)} placeholder={t('admin.site.subheaderPlaceholder')} className={inputClass} />
           </div>
           <div>
-            <label className="text-xs text-muted block mb-1">ES</label>
-            <input value={form.subheaderEs} onChange={e => set('subheaderEs', e.target.value)} placeholder={t('admin.site.subheaderPlaceholder')} className={inputClass} />
+            <label className="text-xs text-muted block mb-1">EN</label>
+            <input value={form.subheaderEn} onChange={e => set('subheaderEn', e.target.value)} placeholder={t('admin.site.subheaderPlaceholder')} className={inputClass} />
           </div>
         </div>
 
@@ -2609,6 +2609,189 @@ function CloudinaryBrowserModal({ onSelect, onClose, selected = [], numbered = t
   );
 }
 
+type AssetTextForm = {
+  headerEn: string; headerFr: string; headerEs: string;
+  subheaderEn: string; subheaderFr: string; subheaderEs: string;
+  taglineEn: string; taglineFr: string; taglineEs: string;
+  baseTextColor: string; headerTextColor: string; subheaderTextColor: string; taglineTextColor: string;
+  ctaTextColor: string; ctaBorderColor: string; ctaBgColor: string;
+  ctaHoverTextColor: string; ctaHoverBorderColor: string; ctaHoverBgColor: string;
+  ctaTitleEn: string; ctaTitleFr: string; ctaTitleEs: string;
+  textPosX: number | null; textPosY: number | null;
+  textPosXMobile: number | null; textPosYMobile: number | null;
+  ctaCategoryIds: number[]; ctaLabelIds: number[]; ctaCollectionIds: number[];
+};
+
+const EMPTY_ASSET_TEXT_FORM: AssetTextForm = {
+  headerEn: '', headerFr: '', headerEs: '',
+  subheaderEn: '', subheaderFr: '', subheaderEs: '',
+  taglineEn: '', taglineFr: '', taglineEs: '',
+  baseTextColor: '', headerTextColor: '', subheaderTextColor: '', taglineTextColor: '',
+  ctaTextColor: '', ctaBorderColor: '', ctaBgColor: '',
+  ctaHoverTextColor: '', ctaHoverBorderColor: '', ctaHoverBgColor: '',
+  ctaTitleEn: '', ctaTitleFr: '', ctaTitleEs: '',
+  textPosX: null, textPosY: null, textPosXMobile: null, textPosYMobile: null,
+  ctaCategoryIds: [], ctaLabelIds: [], ctaCollectionIds: [],
+};
+
+// Roughly the shape each panel takes on screen: an editorial is half the viewport by
+// 440px tall on desktop and full width by the same 440px on a phone, while the hero
+// runs the full width at 85vh / 55vh. The block's own cap mirrors max-w-lg / max-w-xs.
+const PLACER_FRAMES = {
+  hero:      { desktop: { ratio: '16 / 9',  width: '40%' }, mobile: { ratio: '39 / 45', width: '85%' } },
+  editorial: { desktop: { ratio: '16 / 10', width: '45%' }, mobile: { ratio: '39 / 44', width: '80%' } },
+} as const;
+
+/**
+ * Drag surface for a slot's text block. The frame stands in for the slot's panel
+ * and the block is dragged over the slot's own media, so the admin places the text
+ * against the artwork instead of guessing coordinates. Each screen keeps its own
+ * placement; an unset one follows the other, which is what the public page does too.
+ */
+function SlotTextPlacer({ asset, form, onChange }: {
+  asset: CollectionSiteAssetView;
+  form: AssetTextForm;
+  onChange: (patch: Partial<AssetTextForm>) => void;
+}) {
+  const { t, i18n } = useTranslation();
+  const [mode, setMode] = useState<'desktop' | 'mobile'>('desktop');
+  const isHero = asset.slot === 'hero';
+  const frameSpec = PLACER_FRAMES[isHero ? 'hero' : 'editorial'][mode];
+  const frameRef = useRef<HTMLDivElement>(null);
+  const blockRef = useRef<HTMLDivElement>(null);
+  // Distance from the pointer to the block's centre when the drag started — without it
+  // the block would jump so its centre snaps under the cursor on the first move.
+  const grab = useRef({ dx: 0, dy: 0 });
+  const [dragging, setDragging] = useState(false);
+
+  const savedX = mode === 'desktop' ? form.textPosX : form.textPosXMobile;
+  const savedY = mode === 'desktop' ? form.textPosY : form.textPosYMobile;
+  const inheritedX = mode === 'desktop' ? form.textPosXMobile : form.textPosX;
+  const inheritedY = mode === 'desktop' ? form.textPosYMobile : form.textPosY;
+  // 50/50 is exactly where the flow layout puts the block, so an unplaced slot previews
+  // as what it already looks like on the site.
+  const x = savedX ?? inheritedX ?? 50;
+  const y = savedY ?? inheritedY ?? 50;
+  const inheriting = savedX == null && savedY == null && (inheritedX != null || inheritedY != null);
+
+  function writePos(nx: number, ny: number) {
+    const round = (v: number) => Math.round(v * 10) / 10;
+    onChange(mode === 'desktop'
+      ? { textPosX: round(nx), textPosY: round(ny) }
+      : { textPosXMobile: round(nx), textPosYMobile: round(ny) });
+  }
+
+  function reset() {
+    onChange(mode === 'desktop'
+      ? { textPosX: null, textPosY: null }
+      : { textPosXMobile: null, textPosYMobile: null });
+  }
+
+  function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    const block = blockRef.current;
+    if (!block) return;
+    const b = block.getBoundingClientRect();
+    grab.current = { dx: e.clientX - (b.left + b.width / 2), dy: e.clientY - (b.top + b.height / 2) };
+    block.setPointerCapture(e.pointerId);
+    setDragging(true);
+  }
+
+  function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (!dragging) return;
+    const frame = frameRef.current, block = blockRef.current;
+    if (!frame || !block) return;
+    const f = frame.getBoundingClientRect(), b = block.getBoundingClientRect();
+    // Keep the whole block on the panel: its centre can only travel as far as half its
+    // own size from each edge. A block wider than the frame just stays centred.
+    const clamp = (v: number, half: number) => half * 2 >= 100 ? 50 : Math.max(half, Math.min(100 - half, v));
+    writePos(
+      clamp(((e.clientX - grab.current.dx - f.left) / f.width) * 100, (b.width / 2) / f.width * 100),
+      clamp(((e.clientY - grab.current.dy - f.top) / f.height) * 100, (b.height / 2) / f.height * 100),
+    );
+  }
+
+  function handlePointerUp(e: React.PointerEvent<HTMLDivElement>) {
+    blockRef.current?.releasePointerCapture(e.pointerId);
+    setDragging(false);
+  }
+
+  const header = pickLocale(form.headerEn, form.headerFr, form.headerEs, i18n.language);
+  const subheader = pickLocale(form.subheaderEn, form.subheaderFr, form.subheaderEs, i18n.language);
+  const tagline = pickLocale(form.taglineEn, form.taglineFr, form.taglineEs, i18n.language);
+  const fallbackColor = asset.imageUrl ? '#FFFFFF' : '#1C1C1C';
+  const ctaColor = isHero
+    ? (form.baseTextColor || '#1C1C1C')
+    : (form.taglineTextColor || form.baseTextColor || fallbackColor);
+  const hasCta = form.ctaCategoryIds.length > 0 || form.ctaLabelIds.length > 0 || form.ctaCollectionIds.length > 0;
+  const empty = !header && !subheader && !tagline;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        {(['desktop', 'mobile'] as const).map(m => (
+          <button
+            key={m}
+            onClick={() => setMode(m)}
+            className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${mode === m ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
+          >
+            {t(m === 'desktop' ? 'admin.site.placementDesktop' : 'admin.site.placementMobile')}
+          </button>
+        ))}
+        <button
+          onClick={reset}
+          disabled={savedX == null && savedY == null}
+          className="text-xs uppercase tracking-widest border border-border px-3 py-1 hover:border-dark transition-colors disabled:opacity-40"
+        >
+          {t('admin.site.placementReset')}
+        </button>
+      </div>
+      <div
+        ref={frameRef}
+        className={`relative overflow-hidden bg-[#F0EDE8] w-full ${mode === 'desktop' ? 'max-w-sm' : 'max-w-[220px]'}`}
+        style={{ aspectRatio: frameSpec.ratio }}
+      >
+        {asset.imageUrl && (asset.resourceType === 'video'
+          ? <video src={asset.imageUrl} className="absolute inset-0 w-full h-full object-cover" autoPlay muted loop playsInline />
+          : <img src={asset.imageUrl} alt={asset.slot} className="absolute inset-0 w-full h-full object-cover" />)}
+        <div
+          ref={blockRef}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          className={`absolute z-10 select-none touch-none px-2 ${isHero ? 'text-left' : 'text-center'} ${dragging ? 'cursor-grabbing outline outline-1 outline-gold' : 'cursor-grab'}`}
+          style={{
+            left: `${x}%`, top: `${y}%`, transform: 'translate(-50%, -50%)',
+            maxWidth: frameSpec.width,
+            color: form.baseTextColor || fallbackColor,
+          }}
+        >
+          {empty ? (
+            <span className="text-[9px] uppercase tracking-widest">{t('admin.site.placementEmpty')}</span>
+          ) : (
+            <>
+              {subheader && <p className="text-[8px] uppercase tracking-widest mb-1" style={{ color: form.subheaderTextColor || undefined }}>{subheader}</p>}
+              {header && <p className="font-serif italic text-base leading-tight mb-1.5" style={{ color: form.headerTextColor || undefined }}>{header}</p>}
+              {isHero && tagline && <p className="text-[8px] mb-1.5 opacity-80" style={{ color: form.taglineTextColor || undefined }}>{tagline}</p>}
+              {hasCta && (
+                <span
+                  className={`inline-block text-[8px] uppercase tracking-widest ${isHero ? 'border px-3 py-1' : 'border-b pb-px'}`}
+                  style={{ color: form.ctaTextColor || ctaColor, borderColor: form.ctaBorderColor || ctaColor, backgroundColor: form.ctaBgColor || undefined }}
+                >
+                  {isHero ? t('home.hero.cta') : (tagline || t('home.editorial1.cta'))}
+                </span>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+      <p className="text-xs text-muted">
+        {inheriting ? t('admin.site.placementFollows') : t('admin.site.placementHint')}
+      </p>
+    </div>
+  );
+}
+
 function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, collections, onUpdate }: {
   collectionId: number;
   siteAssets: CollectionSiteAssetView[];
@@ -2636,7 +2819,7 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, c
       return true;
     });
   }, [collections]);
-  const [textForm, setTextForm] = useState<{ headerEn: string; headerFr: string; headerEs: string; subheaderEn: string; subheaderFr: string; subheaderEs: string; taglineEn: string; taglineFr: string; taglineEs: string; baseTextColor: string; headerTextColor: string; subheaderTextColor: string; taglineTextColor: string; ctaTextColor: string; ctaBorderColor: string; ctaBgColor: string; ctaHoverTextColor: string; ctaHoverBorderColor: string; ctaHoverBgColor: string; ctaTitleEn: string; ctaTitleFr: string; ctaTitleEs: string; ctaCategoryIds: number[]; ctaLabelIds: number[]; ctaCollectionIds: number[] }>({ headerEn: '', headerFr: '', headerEs: '', subheaderEn: '', subheaderFr: '', subheaderEs: '', taglineEn: '', taglineFr: '', taglineEs: '', baseTextColor: '', headerTextColor: '', subheaderTextColor: '', taglineTextColor: '', ctaTextColor: '', ctaBorderColor: '', ctaBgColor: '', ctaHoverTextColor: '', ctaHoverBorderColor: '', ctaHoverBgColor: '', ctaTitleEn: '', ctaTitleFr: '', ctaTitleEs: '', ctaCategoryIds: [], ctaLabelIds: [], ctaCollectionIds: [] });
+  const [textForm, setTextForm] = useState<AssetTextForm>(EMPTY_ASSET_TEXT_FORM);
 
   function openEdit(asset: CollectionSiteAssetView) {
     setEditing(asset.slot);
@@ -2663,6 +2846,8 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, c
       ctaTitleEn: asset.ctaTitleEn ?? '',
       ctaTitleFr: asset.ctaTitleFr ?? '',
       ctaTitleEs: asset.ctaTitleEs ?? '',
+      textPosX: asset.textPosX, textPosY: asset.textPosY,
+      textPosXMobile: asset.textPosXMobile, textPosYMobile: asset.textPosYMobile,
       ctaCategoryIds: asset.ctaCategoryIds ?? [],
       ctaLabelIds: asset.ctaLabelIds ?? [],
       ctaCollectionIds: asset.ctaCollectionIds ?? [],
@@ -2695,6 +2880,10 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, c
         ctaTitleEn: textForm.ctaTitleEn || null,
         ctaTitleFr: textForm.ctaTitleFr || null,
         ctaTitleEs: textForm.ctaTitleEs || null,
+        textPosX: textForm.textPosX,
+        textPosY: textForm.textPosY,
+        textPosXMobile: textForm.textPosXMobile,
+        textPosYMobile: textForm.textPosYMobile,
         ctaCategoryIds: textForm.ctaCategoryIds,
         ctaLabelIds: textForm.ctaLabelIds,
         ctaCollectionIds: textForm.ctaCollectionIds,
@@ -2811,22 +3000,28 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, c
               <div className="border-t border-border p-3 space-y-2">
                 <div className="space-y-1">
                   <p className="text-xs text-muted uppercase tracking-widest">{t('admin.site.headerPlaceholder')}</p>
-                  <input value={textForm.headerEn} onChange={e => setTextForm(f => ({ ...f, headerEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
-                  <input value={textForm.headerFr} onChange={e => setTextForm(f => ({ ...f, headerFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                   <input value={textForm.headerEs} onChange={e => setTextForm(f => ({ ...f, headerEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={textForm.headerFr} onChange={e => setTextForm(f => ({ ...f, headerFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={textForm.headerEn} onChange={e => setTextForm(f => ({ ...f, headerEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                 </div>
                 <div className="space-y-1">
                   <p className="text-xs text-muted uppercase tracking-widest">{t('admin.site.subheaderPlaceholder')}</p>
-                  <input value={textForm.subheaderEn} onChange={e => setTextForm(f => ({ ...f, subheaderEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
-                  <input value={textForm.subheaderFr} onChange={e => setTextForm(f => ({ ...f, subheaderFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                   <input value={textForm.subheaderEs} onChange={e => setTextForm(f => ({ ...f, subheaderEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={textForm.subheaderFr} onChange={e => setTextForm(f => ({ ...f, subheaderFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={textForm.subheaderEn} onChange={e => setTextForm(f => ({ ...f, subheaderEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                 </div>
                 <div className="space-y-1">
                   <p className="text-xs text-muted uppercase tracking-widest">{t('admin.site.taglinePlaceholder')}</p>
-                  <input value={textForm.taglineEn} onChange={e => setTextForm(f => ({ ...f, taglineEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
-                  <input value={textForm.taglineFr} onChange={e => setTextForm(f => ({ ...f, taglineFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                   <input value={textForm.taglineEs} onChange={e => setTextForm(f => ({ ...f, taglineEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={textForm.taglineFr} onChange={e => setTextForm(f => ({ ...f, taglineFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={textForm.taglineEn} onChange={e => setTextForm(f => ({ ...f, taglineEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                 </div>
+                <p className="text-xs uppercase tracking-widest mt-3">{t('admin.site.placement')}</p>
+                <SlotTextPlacer
+                  asset={asset}
+                  form={textForm}
+                  onChange={patch => setTextForm(f => ({ ...f, ...patch }))}
+                />
                 <p className="text-xs uppercase tracking-widest mt-3">{t('admin.site.textColors')}</p>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
@@ -2876,9 +3071,9 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, c
                 </div>
                 <div className="space-y-1">
                   <p className="text-xs text-muted uppercase tracking-widest">{t('admin.site.ctaTitle')}</p>
-                  <input value={textForm.ctaTitleEn} onChange={e => setTextForm(f => ({ ...f, ctaTitleEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
-                  <input value={textForm.ctaTitleFr} onChange={e => setTextForm(f => ({ ...f, ctaTitleFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                   <input value={textForm.ctaTitleEs} onChange={e => setTextForm(f => ({ ...f, ctaTitleEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={textForm.ctaTitleFr} onChange={e => setTextForm(f => ({ ...f, ctaTitleFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={textForm.ctaTitleEn} onChange={e => setTextForm(f => ({ ...f, ctaTitleEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
@@ -3790,9 +3985,9 @@ function AdminSite() {
             <div key={a.id} className={`border p-4 ${a.active ? 'border-border' : 'border-border opacity-50'}`}>
               {editing === a.id ? (
                 <div className="space-y-2">
-                  <input value={editForm.textEn} onChange={e => setEditForm(f => ({ ...f, textEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
-                  <input value={editForm.textFr} onChange={e => setEditForm(f => ({ ...f, textFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                   <input value={editForm.textEs} onChange={e => setEditForm(f => ({ ...f, textEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={editForm.textFr} onChange={e => setEditForm(f => ({ ...f, textFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={editForm.textEn} onChange={e => setEditForm(f => ({ ...f, textEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                   <AnnouncementCtaFields form={editForm} setForm={setEditForm} categories={categories} labels={labels} collections={collections} />
                   <div className="flex items-center gap-4 pt-1">
                     <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
@@ -3828,9 +4023,9 @@ function AdminSite() {
 
       <h3 className="text-xs uppercase tracking-widest text-muted mb-3">{t('admin.site.addTitle')}</h3>
       <form onSubmit={handleAdd} className="space-y-2">
-        <input value={newForm.textEn} onChange={e => setNewForm(f => ({ ...f, textEn: e.target.value }))} placeholder={`${t('admin.site.textPlaceholder')} (EN)`} className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
-        <input value={newForm.textFr} onChange={e => setNewForm(f => ({ ...f, textFr: e.target.value }))} placeholder={`${t('admin.site.textPlaceholder')} (FR)`} className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
         <input value={newForm.textEs} onChange={e => setNewForm(f => ({ ...f, textEs: e.target.value }))} placeholder={`${t('admin.site.textPlaceholder')} (ES)`} className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+        <input value={newForm.textFr} onChange={e => setNewForm(f => ({ ...f, textFr: e.target.value }))} placeholder={`${t('admin.site.textPlaceholder')} (FR)`} className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+        <input value={newForm.textEn} onChange={e => setNewForm(f => ({ ...f, textEn: e.target.value }))} placeholder={`${t('admin.site.textPlaceholder')} (EN)`} className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
         <AnnouncementCtaFields form={newForm} setForm={setNewForm} categories={categories} labels={labels} collections={collections} />
         <button type="submit" className="text-xs uppercase tracking-widest border border-dark bg-dark text-white px-4 py-2 hover:bg-gold transition-colors">{t('admin.site.add')}</button>
       </form>

@@ -21,6 +21,8 @@ type AssetEntry = {
   ctaTextColor: string | null; ctaBorderColor: string | null; ctaBgColor: string | null;
   ctaHoverTextColor: string | null; ctaHoverBorderColor: string | null; ctaHoverBgColor: string | null;
   ctaCategoryIds: number[]; ctaLabelIds: number[]; ctaCollectionIds: number[];
+  textPosX: number | null; textPosY: number | null;
+  textPosXMobile: number | null; textPosYMobile: number | null;
   slot: string; namesShopHeading: boolean;
 };
 
@@ -37,6 +39,8 @@ function fromSiteAsset(a: CollectionSiteAssetView | undefined): AssetEntry | und
     ctaHoverTextColor: a.ctaHoverTextColor, ctaHoverBorderColor: a.ctaHoverBorderColor, ctaHoverBgColor: a.ctaHoverBgColor,
     ctaCategoryIds: a.ctaCategoryIds, ctaLabelIds: a.ctaLabelIds,
     ctaCollectionIds: a.ctaCollectionIds ?? [],
+    textPosX: a.textPosX, textPosY: a.textPosY,
+    textPosXMobile: a.textPosXMobile, textPosYMobile: a.textPosYMobile,
     slot: a.slot,
     namesShopHeading: !!(a.ctaTitleEn || a.ctaTitleFr || a.ctaTitleEs),
   };
@@ -82,6 +86,24 @@ function ctaStyles(entry: AssetEntry | undefined, fallback: CtaFallback) {
     ? { color: hoverText ?? text, borderColor: hoverBorder ?? border, backgroundColor: hoverBg ?? bg }
     : null;
   return { rest, hover };
+}
+
+/**
+ * Where a slot's text block sits. With no placement saved it keeps the centred flow
+ * layout it has always had; with either pair set it is positioned by percentage, each
+ * breakpoint falling back to the other pair so one drag can cover both screens.
+ */
+function textPlacement(entry: AssetEntry | undefined): { className: string; style: React.CSSProperties } {
+  const { textPosX: x, textPosY: y, textPosXMobile: mx, textPosYMobile: my } = entry ?? {};
+  if (x == null && y == null && mx == null && my == null) return { className: 'relative', style: {} };
+  const pct = (v: number | null | undefined, fallback: number | null | undefined) => `${v ?? fallback ?? 50}%`;
+  return {
+    className: 'bijou-slot-text',
+    style: {
+      '--slot-x': pct(mx, x), '--slot-y': pct(my, y),
+      '--slot-x-md': pct(x, mx), '--slot-y-md': pct(y, my),
+    } as React.CSSProperties,
+  };
 }
 
 /**
@@ -187,6 +209,7 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
   if (!collection) return null;
 
   const collectionName = pickLocale(collection.headerEn, collection.headerFr, collection.headerEs, i18n.language);
+  const heroPlacement = textPlacement(hero);
   const subcollections = collection.children ?? [];
 
   return (
@@ -201,7 +224,10 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
               </div>
           }
         </div>
-        <div className="relative z-10 p-10 md:p-16 max-w-lg">
+        <div
+          className={`${heroPlacement.className} z-10 p-10 md:p-16 max-w-lg`}
+          style={heroPlacement.style}
+        >
           <h1
             className="font-serif text-5xl md:text-6xl italic font-light leading-tight mb-6"
             style={{ color: hero?.headerTextColor ?? hero?.baseTextColor ?? undefined }}
@@ -272,6 +298,7 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
           const fallbackColor = ed?.url ? '#FFFFFF' : '#1C1C1C';
           const ctaColor  = ed?.taglineTextColor ?? ed?.baseTextColor ?? fallbackColor;
           const ctaStyle  = ctaStyles(ed, { text: ctaColor, border: ctaColor });
+          const placement = textPlacement(ed);
           return (
             <div
               key={i}
@@ -282,7 +309,10 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
                 <SlotMedia entry={ed} alt={`Editorial ${i + 1}`} className="absolute inset-0 w-full h-full object-cover" />
               )}
               {hasText && (
-                <div className="relative z-10 text-center max-w-xs p-8 md:p-12" style={{ color: ed?.baseTextColor ?? fallbackColor }}>
+                <div
+                  className={`${placement.className} z-10 text-center max-w-xs p-8 md:p-12`}
+                  style={{ color: ed?.baseTextColor ?? fallbackColor, ...placement.style }}
+                >
                   {subheader && (
                     <p className="text-xs uppercase tracking-widest mb-4">{subheader}</p>
                   )}

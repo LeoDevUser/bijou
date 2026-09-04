@@ -30,6 +30,10 @@ public record CollectionSiteAssetView(
         String ctaTitleEn,
         String ctaTitleFr,
         String ctaTitleEs,
+        Double textPosX,
+        Double textPosY,
+        Double textPosXMobile,
+        Double textPosYMobile,
         List<Long> ctaCategoryIds,
         List<Long> ctaLabelIds,
         List<Long> ctaCollectionIds) {
