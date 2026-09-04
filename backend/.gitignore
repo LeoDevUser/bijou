@@ -2,3 +2,9 @@ target/
 .env
 !.env.example
 .restart
+
+# Eclipse / STS project metadata — generated per developer machine
+.classpath
+.project
+.settings/
+.factorypath
