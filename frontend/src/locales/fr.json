@@ -440,6 +440,9 @@
     "site": {
       "assetsTitle": "Ressources de la Page d'Accueil",
       "upload": "Téléverser",
+      "mediaDesktop": "Média ordinateur",
+      "mediaMobile": "Média mobile",
+      "mediaMobileFollows": "Reprend le média ordinateur à défaut.",
       "remove": "Supprimer",
       "noImage": "Aucune image",
       "headerPlaceholder": "En-tête",

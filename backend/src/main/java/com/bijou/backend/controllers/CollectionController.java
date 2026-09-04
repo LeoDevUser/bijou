@@ -123,21 +123,32 @@ public class CollectionController {
         return ResponseEntity.ok(collectionService.updateAssetText(id, slot, req));
     }
 
+    /**
+     * Each slot carries desktop media and, optionally, its own mobile media: {@code variant}
+     * says which one the call is for, and anything but "mobile" means the desktop one — so
+     * a caller that never heard of the split keeps editing the desktop media as before.
+     */
     @PatchMapping(value = "/${ADMIN_PAGE}/collections/{id}/assets/{slot}/image",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CollectionSiteAssetView> uploadAssetImage(
             @PathVariable Long id,
             @PathVariable String slot,
             @RequestPart("file") MultipartFile file,
-            @RequestParam(value = "name", required = false) String name) {
-        return ResponseEntity.ok(collectionService.uploadAssetMedia(id, slot, file, name));
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "variant", required = false) String variant) {
+        return ResponseEntity.ok(collectionService.uploadAssetMedia(id, slot, file, name, isMobile(variant)));
     }
 
     @DeleteMapping("/${ADMIN_PAGE}/collections/{id}/assets/{slot}/image")
     public ResponseEntity<CollectionSiteAssetView> deleteAssetImage(
             @PathVariable Long id,
-            @PathVariable String slot) {
-        return ResponseEntity.ok(collectionService.deleteAssetMedia(id, slot));
+            @PathVariable String slot,
+            @RequestParam(value = "variant", required = false) String variant) {
+        return ResponseEntity.ok(collectionService.deleteAssetMedia(id, slot, isMobile(variant)));
+    }
+
+    private static boolean isMobile(String variant) {
+        return "mobile".equalsIgnoreCase(variant);
     }
 
     @PatchMapping("/${ADMIN_PAGE}/collections/{id}/pick")
@@ -151,8 +162,9 @@ public class CollectionController {
     public ResponseEntity<CollectionSiteAssetView> pickAssetMedia(
             @PathVariable Long id,
             @PathVariable String slot,
-            @RequestBody PickMediaRequest req) {
-        return ResponseEntity.ok(collectionService.pickAssetMedia(id, slot, req));
+            @RequestBody PickMediaRequest req,
+            @RequestParam(value = "variant", required = false) String variant) {
+        return ResponseEntity.ok(collectionService.pickAssetMedia(id, slot, req, isMobile(variant)));
     }
 
     // ── Admin: per-collection theme ───────────────────────────────────────────────

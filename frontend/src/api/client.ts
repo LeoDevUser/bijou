@@ -1,4 +1,4 @@
-import type { ItemView, ItemViewVerbose, ItemRequest, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionRequest, CollectionAssetRequest, CollectionSiteAssetView, CollectionThemeView, SalesStats, MaterialSalesStats, ThemeConfig, TaxPreview, AppSettings, PublicSettings, StripeConfig, BrevoQuota, CloudinaryResourcesPage, FiscalCatalog } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionRequest, CollectionAssetRequest, CollectionSiteAssetView, SlotMediaVariant, CollectionThemeView, SalesStats, MaterialSalesStats, ThemeConfig, TaxPreview, AppSettings, PublicSettings, StripeConfig, BrevoQuota, CloudinaryResourcesPage, FiscalCatalog } from '../types';
 import { getToken, setToken } from './tokenStore';
 
 interface LabelRequest { nameEn: string; nameFr: string; nameEs: string; }
@@ -318,11 +318,13 @@ export const api = {
         request<void>(`/${ADMIN}/collections/${id}`, { method: 'DELETE' }),
       updateAsset: (id: number, slot: string, data: CollectionAssetRequest) =>
         request<CollectionSiteAssetView>(`/${ADMIN}/collections/${id}/assets/${slot}`, { method: 'PATCH', body: JSON.stringify(data) }),
-      uploadAssetImage: async (id: number, slot: string, file: File, name?: string): Promise<CollectionSiteAssetView> => {
+      // A slot holds desktop media and, optionally, its own mobile media; `variant` says
+      // which of the two the call edits, and omitting it means the desktop one.
+      uploadAssetImage: async (id: number, slot: string, file: File, name?: string, variant: SlotMediaVariant = 'desktop'): Promise<CollectionSiteAssetView> => {
         const form = new FormData();
         form.append('file', file);
         if (name) form.append('name', name);
-        const res = await fetch(`${BASE_URL}/${ADMIN}/collections/${id}/assets/${slot}/image`, {
+        const res = await fetch(`${BASE_URL}/${ADMIN}/collections/${id}/assets/${slot}/image?variant=${variant}`, {
           method: 'PATCH',
           credentials: 'include',
           headers: authHeaders(),
@@ -331,12 +333,12 @@ export const api = {
         if (!res.ok) { const body = await res.json().catch(() => ({})); throw { status: res.status, ...body }; }
         return res.json();
       },
-      deleteAssetImage: (id: number, slot: string) =>
-        request<CollectionSiteAssetView>(`/${ADMIN}/collections/${id}/assets/${slot}/image`, { method: 'DELETE' }),
+      deleteAssetImage: (id: number, slot: string, variant: SlotMediaVariant = 'desktop') =>
+        request<CollectionSiteAssetView>(`/${ADMIN}/collections/${id}/assets/${slot}/image?variant=${variant}`, { method: 'DELETE' }),
       pickMedia: (id: number, data: { publicId: string; resourceType: string; secureUrl: string }) =>
         request<CollectionView>(`/${ADMIN}/collections/${id}/pick`, { method: 'PATCH', body: JSON.stringify(data) }),
-      pickAsset: (id: number, slot: string, data: { publicId: string; resourceType: string; secureUrl: string }) =>
-        request<CollectionSiteAssetView>(`/${ADMIN}/collections/${id}/assets/${slot}/pick`, { method: 'PATCH', body: JSON.stringify(data) }),
+      pickAsset: (id: number, slot: string, data: { publicId: string; resourceType: string; secureUrl: string }, variant: SlotMediaVariant = 'desktop') =>
+        request<CollectionSiteAssetView>(`/${ADMIN}/collections/${id}/assets/${slot}/pick?variant=${variant}`, { method: 'PATCH', body: JSON.stringify(data) }),
       updateTheme: (id: number, data: CollectionThemeView) =>
         request<CollectionThemeView>(`/${ADMIN}/collections/${id}/theme`, { method: 'PATCH', body: JSON.stringify(data) }),
       resetTheme: (id: number) =>

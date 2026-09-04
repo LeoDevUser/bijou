@@ -10,4 +10,6 @@ public interface CollectionSiteAssetRepository extends JpaRepository<CollectionS
     Optional<CollectionSiteAsset> findByCollection_IdAndSlot(Long collectionId, String slot);
     boolean existsByImageIdAndIdNot(String imageId, Long excludeId);
     boolean existsByImageId(String imageId);
+    boolean existsByImageIdMobileAndIdNot(String imageId, Long excludeId);
+    boolean existsByImageIdMobile(String imageId);
 }

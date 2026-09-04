@@ -440,6 +440,9 @@
     "site": {
       "assetsTitle": "Recursos de la Página de Inicio",
       "upload": "Subir",
+      "mediaDesktop": "Medio de escritorio",
+      "mediaMobile": "Medio móvil",
+      "mediaMobileFollows": "Usa el medio de escritorio si no hay uno propio.",
       "remove": "Eliminar",
       "noImage": "Sin imagen",
       "headerPlaceholder": "Encabezado",

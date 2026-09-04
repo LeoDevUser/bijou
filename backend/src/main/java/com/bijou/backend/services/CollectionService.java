@@ -53,6 +53,7 @@ public class CollectionService {
         return new CollectionSiteAssetView(
                 a.getId(), a.getSlot(),
                 a.getImageUrl(), a.getImageId(), a.getResourceType(),
+                a.getImageUrlMobile(), a.getImageIdMobile(), a.getResourceTypeMobile(),
                 a.getHeaderEn(), a.getHeaderFr(), a.getHeaderEs(),
                 a.getSubheaderEn(), a.getSubheaderFr(), a.getSubheaderEs(),
                 a.getTaglineEn(), a.getTaglineFr(), a.getTaglineEs(),
@@ -318,6 +319,7 @@ public class CollectionService {
         // delete cloudinary media for all site-asset slots (only if not referenced elsewhere)
         for (CollectionSiteAsset asset : collection.getSiteAssets()) {
             safeDelete(asset.getImageId(), asset.getResourceType(), asset.getId(), null);
+            safeDelete(asset.getImageIdMobile(), asset.getResourceTypeMobile(), asset.getId(), null);
         }
         collectionRepository.delete(collection);
         collectionRepository.flush();
@@ -371,18 +373,16 @@ public class CollectionService {
     }
 
     @Transactional
-    public CollectionSiteAssetView uploadAssetMedia(Long collectionId, String slot, MultipartFile file, String name) {
+    public CollectionSiteAssetView uploadAssetMedia(Long collectionId, String slot, MultipartFile file, String name, boolean mobile) {
         CollectionSiteAsset asset = findAssetOrThrow(collectionId, slot);
-        String oldImageId = asset.getImageId();
-        String oldResourceType = asset.getResourceType();
+        String oldImageId = imageIdOf(asset, mobile);
+        String oldResourceType = resourceTypeOf(asset, mobile);
         boolean isVideo = VIDEO_TYPES.contains(file.getContentType());
         CloudinaryResponse res = isVideo ? cloudinaryService.uploadVideo(file, name) : cloudinaryService.upload(file, name);
-        asset.setImageUrl(res.url());
-        asset.setImageId(res.imageId());
-        asset.setResourceType(isVideo ? "video" : "image");
+        setMedia(asset, mobile, res.url(), res.imageId(), isVideo ? "video" : "image");
         CollectionSiteAssetView view = toAssetView(collectionSiteAssetRepository.saveAndFlush(asset));
-        safeDelete(oldImageId, oldResourceType, asset.getId(), null);
-        log.info("uploaded {} for collection #{} slot {}", asset.getResourceType(), collectionId, slot);
+        safeDeleteVariant(oldImageId, oldResourceType, asset, mobile);
+        log.info("uploaded {} for collection #{} slot {} ({})", resourceTypeOf(asset, mobile), collectionId, slot, variantName(mobile));
         return view;
     }
 
@@ -403,33 +403,72 @@ public class CollectionService {
     }
 
     @Transactional
-    public CollectionSiteAssetView pickAssetMedia(Long collectionId, String slot, PickMediaRequest req) {
+    public CollectionSiteAssetView pickAssetMedia(Long collectionId, String slot, PickMediaRequest req, boolean mobile) {
         CollectionSiteAsset asset = findAssetOrThrow(collectionId, slot);
-        String oldImageId = asset.getImageId();
-        String oldResourceType = asset.getResourceType();
-        asset.setImageUrl(req.secureUrl());
-        asset.setImageId(req.publicId());
-        asset.setResourceType(req.resourceType());
+        String oldImageId = imageIdOf(asset, mobile);
+        String oldResourceType = resourceTypeOf(asset, mobile);
+        setMedia(asset, mobile, req.secureUrl(), req.publicId(), req.resourceType());
         CollectionSiteAssetView view = toAssetView(collectionSiteAssetRepository.saveAndFlush(asset));
         if (oldImageId != null && !oldImageId.isEmpty() && !oldImageId.equals(req.publicId())) {
-            safeDelete(oldImageId, oldResourceType, asset.getId(), null);
+            safeDeleteVariant(oldImageId, oldResourceType, asset, mobile);
         }
-        log.info("picked {} '{}' for collection #{} slot {}", req.resourceType(), req.publicId(), collectionId, slot);
+        log.info("picked {} '{}' for collection #{} slot {} ({})", req.resourceType(), req.publicId(), collectionId, slot, variantName(mobile));
         return view;
     }
 
     @Transactional
-    public CollectionSiteAssetView deleteAssetMedia(Long collectionId, String slot) {
+    public CollectionSiteAssetView deleteAssetMedia(Long collectionId, String slot, boolean mobile) {
         CollectionSiteAsset asset = findAssetOrThrow(collectionId, slot);
-        String oldImageId = asset.getImageId();
-        String oldResourceType = asset.getResourceType();
-        asset.setImageUrl(null);
-        asset.setImageId(null);
-        asset.setResourceType("image");
+        String oldImageId = imageIdOf(asset, mobile);
+        String oldResourceType = resourceTypeOf(asset, mobile);
+        setMedia(asset, mobile, null, null, "image");
         CollectionSiteAssetView view = toAssetView(collectionSiteAssetRepository.saveAndFlush(asset));
-        safeDelete(oldImageId, oldResourceType, asset.getId(), null);
-        log.info("deleted media for collection #{} slot {}", collectionId, slot);
+        safeDeleteVariant(oldImageId, oldResourceType, asset, mobile);
+        log.info("deleted {} media for collection #{} slot {}", variantName(mobile), collectionId, slot);
         return view;
+    }
+
+    // ── Slot media variants ──────────────────────────────────────────────────────
+    // A slot holds two pieces of media: the desktop one it has always had, and an
+    // optional mobile one the public pages swap in on narrow screens. Both live on the
+    // same row, so every media operation names the variant it is acting on.
+
+    private static String variantName(boolean mobile) {
+        return mobile ? "mobile" : "desktop";
+    }
+
+    private static String imageIdOf(CollectionSiteAsset a, boolean mobile) {
+        return mobile ? a.getImageIdMobile() : a.getImageId();
+    }
+
+    private static String resourceTypeOf(CollectionSiteAsset a, boolean mobile) {
+        return mobile ? a.getResourceTypeMobile() : a.getResourceType();
+    }
+
+    private static void setMedia(CollectionSiteAsset a, boolean mobile, String url, String imageId, String resourceType) {
+        if (mobile) {
+            a.setImageUrlMobile(url);
+            a.setImageIdMobile(imageId);
+            a.setResourceTypeMobile(resourceType);
+        } else {
+            a.setImageUrl(url);
+            a.setImageId(imageId);
+            a.setResourceType(resourceType);
+        }
+    }
+
+    /**
+     * Drops the media a slot variant just let go of, unless the row's other variant still
+     * points at the same file — the same artwork on both screens is one upload, and losing
+     * the mobile copy must not take the desktop one with it.
+     */
+    private void safeDeleteVariant(String imageId, String resourceType, CollectionSiteAsset asset, boolean mobile) {
+        if (imageId == null || imageId.isEmpty()) return;
+        if (imageId.equals(imageIdOf(asset, !mobile))) {
+            log.info("skipping cloudinary delete of '{}' — still on the slot's {} media", imageId, variantName(!mobile));
+            return;
+        }
+        safeDelete(imageId, resourceType, asset.getId(), null);
     }
 
     // ── Theme management ─────────────────────────────────────────────────────────
@@ -535,7 +574,9 @@ public class CollectionService {
         if (imageId == null || imageId.isEmpty()) return false;
         boolean usedBySlot = excludeAssetId != null
                 ? collectionSiteAssetRepository.existsByImageIdAndIdNot(imageId, excludeAssetId)
-                : collectionSiteAssetRepository.existsByImageId(imageId);
+                    || collectionSiteAssetRepository.existsByImageIdMobileAndIdNot(imageId, excludeAssetId)
+                : collectionSiteAssetRepository.existsByImageId(imageId)
+                    || collectionSiteAssetRepository.existsByImageIdMobile(imageId);
         boolean usedByCard = excludeCollectionId != null
                 ? collectionRepository.existsByImageIdAndIdNot(imageId, excludeCollectionId)
                 : collectionRepository.existsByImageId(imageId);

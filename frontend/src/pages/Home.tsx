@@ -18,6 +18,8 @@ const CATEGORIES = [
 
 type AssetEntry = {
   url: string | null; resourceType: string;
+  /** Optional narrow-screen artwork; null keeps the desktop media on every screen. */
+  urlMobile: string | null; resourceTypeMobile: string | null;
   headerEn: string | null; headerFr: string | null; headerEs: string | null;
   subheaderEn: string | null; subheaderFr: string | null; subheaderEs: string | null;
   baseTextColor: string | null;
@@ -33,12 +35,35 @@ function ctaHref(entry: AssetEntry | undefined): string {
   return qs ? `/shop?${qs}` : '/shop';
 }
 
-function SlotMedia({ entry, alt, className }: { entry: AssetEntry; alt: string; className: string }) {
-  if (!entry.url) return null;
-  if (entry.resourceType === 'video') {
-    return <AutoplayVideo src={entry.url} className={`${className} object-top md:object-center`} />;
+function Media({ url, resourceType, alt, className }: {
+  url: string; resourceType: string | null; alt: string; className: string;
+}) {
+  if (resourceType === 'video') {
+    return <AutoplayVideo src={url} className={`${className} object-top md:object-center`} />;
   }
-  return <img src={optimizedImageUrl(entry.url)} alt={alt} className={className} />;
+  return <img src={optimizedImageUrl(url)} alt={alt} className={className} />;
+}
+
+/** Both pieces of artwork go in the markup when the slot has them; the breakpoint picks. */
+function SlotMedia({ entry, alt, className }: { entry: AssetEntry; alt: string; className: string }) {
+  if (!entry.url && !entry.urlMobile) return null;
+  if (entry.url && entry.urlMobile) {
+    return (
+      <>
+        <Media url={entry.urlMobile} resourceType={entry.resourceTypeMobile} alt={alt} className={`${className} md:hidden`} />
+        <Media url={entry.url} resourceType={entry.resourceType} alt={alt} className={`${className} hidden md:block`} />
+      </>
+    );
+  }
+  const only = entry.url
+    ? { url: entry.url, resourceType: entry.resourceType }
+    : { url: entry.urlMobile!, resourceType: entry.resourceTypeMobile };
+  return <Media url={only.url} resourceType={only.resourceType} alt={alt} className={className} />;
+}
+
+/** True when the slot has artwork for either screen. */
+function hasMedia(entry: AssetEntry | undefined): entry is AssetEntry {
+  return !!(entry && (entry.url || entry.urlMobile));
 }
 
 export default function Home() {
@@ -79,7 +104,7 @@ export default function Home() {
       {/* Hero */}
       <section className="relative w-full h-[55vh] md:h-[85vh] bg-[#D8D4CC] flex items-end overflow-hidden">
         <div className="absolute inset-0">
-          {hero?.url
+          {hasMedia(hero)
             ? <SlotMedia entry={hero} alt="Hero" className="w-full h-full object-cover" />
             : <div className="w-full h-full flex items-center justify-center"><p className="text-muted text-sm uppercase tracking-widest">{t('home.hero.imagePlaceholder')}</p></div>
           }
@@ -114,7 +139,7 @@ export default function Home() {
             return (
               <Link key={cat.key} to={href} className="group block">
                 <div className="bg-[#F0EDE8] aspect-square mb-3 overflow-hidden group-hover:bg-[#E8E4DC] transition-colors">
-                  {entry?.url
+                  {hasMedia(entry)
                     ? <SlotMedia entry={entry} alt={t(cat.key)} className="w-full h-full object-cover" />
                     : <div className="w-full h-full flex items-center justify-center"><span className="text-muted text-xs uppercase tracking-widest">{t(cat.key)}</span></div>
                   }
@@ -149,7 +174,7 @@ export default function Home() {
       {/* Editorial 1 */}
       <section className="grid md:grid-cols-2">
         <div className="bg-[#E0DDD8] min-h-[440px] overflow-hidden">
-          {ed1?.url
+          {hasMedia(ed1)
             ? <SlotMedia entry={ed1} alt="Editorial 1" className="w-full h-full object-cover" />
             : <div className="w-full h-full min-h-[440px] flex items-center justify-center"><p className="text-muted text-xs uppercase tracking-widest">{t('home.editorial1.imagePlaceholder')}</p></div>
           }
@@ -189,7 +214,7 @@ export default function Home() {
           </div>
         </div>
         <div className="bg-[#D0CCC8] min-h-[440px] overflow-hidden order-1 md:order-2">
-          {ed2?.url
+          {hasMedia(ed2)
             ? <SlotMedia entry={ed2} alt="Editorial 2" className="w-full h-full object-cover" />
             : <div className="w-full h-full min-h-[440px] flex items-center justify-center"><p className="text-muted text-xs uppercase tracking-widest">{t('home.editorial2.imagePlaceholder')}</p></div>
           }

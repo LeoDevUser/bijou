@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
-import type { ItemView, ItemViewVerbose, ItemRequest, ItemAssetView, ItemSizeView, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, CollectionThemeView, SalesStats, MaterialSalesStats, ThemeConfig, AppSettings, BrevoQuota, CloudinaryResource, CloudinaryResourcesPage, JewelryMaterial, PricingFormula } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, ItemAssetView, ItemSizeView, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, SlotMediaVariant, CollectionThemeView, SalesStats, MaterialSalesStats, ThemeConfig, AppSettings, BrevoQuota, CloudinaryResource, CloudinaryResourcesPage, JewelryMaterial, PricingFormula } from '../types';
 import { pickLocale, isItemIncomplete, isLabelIncomplete, formatMoney } from '../types';
 import { useTheme, THEME_DEFAULTS, mergeCollectionTheme } from '../context/ThemeContext';
 import { invalidatePublicSettings } from '../hooks/usePublicSettings';
@@ -603,8 +603,8 @@ function SizeFields({ value, onChange, isStatic, priceIncludesTax, heading, hide
         <div className="col-span-2 space-y-1">
           <label className="text-[11px] uppercase tracking-widest text-muted">{t('admin.sizes.name')}</label>
           <input value={value.sizeEs} onChange={e => onChange({ ...value, sizeEs: e.target.value })} placeholder={`ES — ${t('admin.sizes.namePlaceholder')}`} className={inputClass} />
-          <input value={value.sizeFr} onChange={e => onChange({ ...value, sizeFr: e.target.value })} placeholder={`FR — ${t('admin.sizes.namePlaceholder')}`} className={inputClass} />
           <input value={value.sizeEn} onChange={e => onChange({ ...value, sizeEn: e.target.value })} placeholder={`EN — ${t('admin.sizes.namePlaceholder')}`} className={inputClass} />
+          <input value={value.sizeFr} onChange={e => onChange({ ...value, sizeFr: e.target.value })} placeholder={`FR — ${t('admin.sizes.namePlaceholder')}`} className={inputClass} />
         </div>
         {!hideStock && (
           <div>
@@ -631,8 +631,8 @@ function SizeFields({ value, onChange, isStatic, priceIncludesTax, heading, hide
         <summary className="text-[11px] uppercase tracking-widest text-muted cursor-pointer">{t('admin.sizes.descOverrides')}</summary>
         <div className="space-y-2 mt-2">
           <textarea placeholder="ES" rows={2} value={value.descriptionEs} onChange={e => onChange({ ...value, descriptionEs: e.target.value })} className={inputClass} />
-          <textarea placeholder="FR" rows={2} value={value.descriptionFr} onChange={e => onChange({ ...value, descriptionFr: e.target.value })} className={inputClass} />
           <textarea placeholder="EN" rows={2} value={value.descriptionEn} onChange={e => onChange({ ...value, descriptionEn: e.target.value })} className={inputClass} />
+          <textarea placeholder="FR" rows={2} value={value.descriptionFr} onChange={e => onChange({ ...value, descriptionFr: e.target.value })} className={inputClass} />
         </div>
       </details>
     </div>
@@ -1390,16 +1390,16 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
             <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.name')}</label>
             <div className="space-y-2">
               <input placeholder="ES" value={form.nameEs} onChange={e => setForm(f => ({ ...f, nameEs: e.target.value }))} className={inputClass} />
-              <input placeholder="FR" value={form.nameFr} onChange={e => setForm(f => ({ ...f, nameFr: e.target.value }))} className={inputClass} />
               <input placeholder="EN" value={form.nameEn} onChange={e => setForm(f => ({ ...f, nameEn: e.target.value }))} className={inputClass} />
+              <input placeholder="FR" value={form.nameFr} onChange={e => setForm(f => ({ ...f, nameFr: e.target.value }))} className={inputClass} />
             </div>
           </div>
           <div>
             <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.description')}</label>
             <div className="space-y-2">
               <textarea placeholder="ES" value={form.descriptionEs} onChange={e => setForm(f => ({ ...f, descriptionEs: e.target.value }))} rows={2} className={inputClass} />
-              <textarea placeholder="FR" value={form.descriptionFr} onChange={e => setForm(f => ({ ...f, descriptionFr: e.target.value }))} rows={2} className={inputClass} />
               <textarea placeholder="EN" value={form.descriptionEn} onChange={e => setForm(f => ({ ...f, descriptionEn: e.target.value }))} rows={2} className={inputClass} />
+              <textarea placeholder="FR" value={form.descriptionFr} onChange={e => setForm(f => ({ ...f, descriptionFr: e.target.value }))} rows={2} className={inputClass} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -2309,12 +2309,12 @@ function CollectionFormModal({
             <input value={form.headerEs} onChange={e => set('headerEs', e.target.value)} placeholder={t('admin.modal.name')} className={inputClass} />
           </div>
           <div>
-            <label className="text-xs text-muted block mb-1">FR</label>
-            <input value={form.headerFr} onChange={e => set('headerFr', e.target.value)} placeholder={t('admin.modal.name')} className={inputClass} />
-          </div>
-          <div>
             <label className="text-xs text-muted block mb-1">EN</label>
             <input value={form.headerEn} onChange={e => set('headerEn', e.target.value)} placeholder={t('admin.modal.name')} className={inputClass} />
+          </div>
+          <div>
+            <label className="text-xs text-muted block mb-1">FR</label>
+            <input value={form.headerFr} onChange={e => set('headerFr', e.target.value)} placeholder={t('admin.modal.name')} className={inputClass} />
           </div>
         </div>
 
@@ -2324,12 +2324,12 @@ function CollectionFormModal({
             <input value={form.subheaderEs} onChange={e => set('subheaderEs', e.target.value)} placeholder={t('admin.site.subheaderPlaceholder')} className={inputClass} />
           </div>
           <div>
-            <label className="text-xs text-muted block mb-1">FR</label>
-            <input value={form.subheaderFr} onChange={e => set('subheaderFr', e.target.value)} placeholder={t('admin.site.subheaderPlaceholder')} className={inputClass} />
-          </div>
-          <div>
             <label className="text-xs text-muted block mb-1">EN</label>
             <input value={form.subheaderEn} onChange={e => set('subheaderEn', e.target.value)} placeholder={t('admin.site.subheaderPlaceholder')} className={inputClass} />
+          </div>
+          <div>
+            <label className="text-xs text-muted block mb-1">FR</label>
+            <input value={form.subheaderFr} onChange={e => set('subheaderFr', e.target.value)} placeholder={t('admin.site.subheaderPlaceholder')} className={inputClass} />
           </div>
         </div>
 
@@ -2657,6 +2657,10 @@ function SlotTextPlacer({ asset, form, onChange }: {
   const [mode, setMode] = useState<'desktop' | 'mobile'>('desktop');
   const isHero = asset.slot === 'hero';
   const frameSpec = PLACER_FRAMES[isHero ? 'hero' : 'editorial'][mode];
+  // Place the text over the artwork that screen actually shows: mobile media when the
+  // slot has its own, and the desktop media it falls back to when it doesn't.
+  const frameUrl = mode === 'mobile' ? (asset.imageUrlMobile ?? asset.imageUrl) : asset.imageUrl;
+  const frameResourceType = mode === 'mobile' && asset.imageUrlMobile ? asset.resourceTypeMobile : asset.resourceType;
   const frameRef = useRef<HTMLDivElement>(null);
   const blockRef = useRef<HTMLDivElement>(null);
   // Distance from the pointer to the block's centre when the drag started — without it
@@ -2718,7 +2722,7 @@ function SlotTextPlacer({ asset, form, onChange }: {
   const header = pickLocale(form.headerEn, form.headerFr, form.headerEs, i18n.language);
   const subheader = pickLocale(form.subheaderEn, form.subheaderFr, form.subheaderEs, i18n.language);
   const tagline = pickLocale(form.taglineEn, form.taglineFr, form.taglineEs, i18n.language);
-  const fallbackColor = asset.imageUrl ? '#FFFFFF' : '#1C1C1C';
+  const fallbackColor = (asset.imageUrl || asset.imageUrlMobile) ? '#FFFFFF' : '#1C1C1C';
   const ctaColor = isHero
     ? (form.baseTextColor || '#1C1C1C')
     : (form.taglineTextColor || form.baseTextColor || fallbackColor);
@@ -2750,9 +2754,9 @@ function SlotTextPlacer({ asset, form, onChange }: {
         className={`relative overflow-hidden bg-[#F0EDE8] w-full ${mode === 'desktop' ? 'max-w-sm' : 'max-w-[220px]'}`}
         style={{ aspectRatio: frameSpec.ratio }}
       >
-        {asset.imageUrl && (asset.resourceType === 'video'
-          ? <video src={asset.imageUrl} className="absolute inset-0 w-full h-full object-cover" autoPlay muted loop playsInline />
-          : <img src={asset.imageUrl} alt={asset.slot} className="absolute inset-0 w-full h-full object-cover" />)}
+        {frameUrl && (frameResourceType === 'video'
+          ? <video src={frameUrl} className="absolute inset-0 w-full h-full object-cover" autoPlay muted loop playsInline />
+          : <img src={frameUrl} alt={asset.slot} className="absolute inset-0 w-full h-full object-cover" />)}
         <div
           ref={blockRef}
           onPointerDown={handlePointerDown}
@@ -2792,6 +2796,82 @@ function SlotTextPlacer({ asset, form, onChange }: {
   );
 }
 
+/** One busy flag covers every slot, so it has to name the variant it is busy with. */
+function busyKey(slot: string, variant: SlotMediaVariant): string {
+  return `${slot}:${variant}`;
+}
+
+/** The media a slot holds for one screen, plus the controls that change it. */
+function SlotMediaRow({ asset, variant, busy, onUpload, onBrowse, onRemove }: {
+  asset: CollectionSiteAssetView;
+  variant: SlotMediaVariant;
+  busy: boolean;
+  onUpload: (file: File, name: string) => void;
+  onBrowse: () => void;
+  onRemove: () => void;
+}) {
+  const { t } = useTranslation();
+  const mobile = variant === 'mobile';
+  const url = mobile ? asset.imageUrlMobile : asset.imageUrl;
+  const imageId = mobile ? asset.imageIdMobile : asset.imageId;
+  const resourceType = mobile ? asset.resourceTypeMobile : asset.resourceType;
+
+  return (
+    <div className="flex items-center gap-3">
+      <div className={`${mobile ? 'w-10 h-14' : 'w-20 h-14'} bg-[#F0EDE8] shrink-0 overflow-hidden flex items-center justify-center`}>
+        {url
+          ? resourceType === 'video'
+            ? <video src={url} className="w-full h-full object-cover" autoPlay muted loop playsInline />
+            : <img src={url} alt={`${asset.slot} ${variant}`} className="w-full h-full object-cover" />
+          : <span className="text-muted text-xs">—</span>
+        }
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs uppercase tracking-widest text-muted">
+          {t(mobile ? 'admin.site.mediaMobile' : 'admin.site.mediaDesktop')}
+        </p>
+        {mobile && !url && (
+          <p className="text-xs text-muted mt-0.5">{t('admin.site.mediaMobileFollows')}</p>
+        )}
+        <div className="flex flex-wrap gap-2 mt-1.5">
+          <label className={`text-xs uppercase tracking-widest border border-dark bg-dark text-white px-3 py-1 cursor-pointer hover:bg-gold transition-colors ${busy ? 'opacity-50 pointer-events-none' : ''}`}>
+            {busy ? '...' : t('admin.site.upload')}
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp,video/mp4,video/webm,video/quicktime"
+              className="hidden"
+              onChange={e => {
+                const f = e.target.files?.[0];
+                e.target.value = '';
+                if (!f) return;
+                const limit = overSizeLimitMb(f);
+                if (limit) { alert(t('admin.site.fileTooLarge', { name: f.name, max: limit })); return; }
+                onUpload(f, promptMediaName(f, t('admin.site.mediaNamePrompt')));
+              }}
+            />
+          </label>
+          <button
+            onClick={onBrowse}
+            disabled={busy}
+            className="text-xs uppercase tracking-widest border border-border px-3 py-1 hover:border-dark transition-colors disabled:opacity-50"
+          >
+            {t('admin.site.browse')}
+          </button>
+          {imageId && (
+            <button
+              onClick={onRemove}
+              disabled={busy}
+              className="text-xs uppercase tracking-widest border border-red-300 text-red-500 px-3 py-1 hover:border-red-500 transition-colors disabled:opacity-50"
+            >
+              {t('admin.site.remove')}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, collections, onUpdate }: {
   collectionId: number;
   siteAssets: CollectionSiteAssetView[];
@@ -2804,7 +2884,7 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, c
   const [editing, setEditing] = useState<string | null>(null);
   const [uploading, setUploading] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [browsingSlot, setBrowsingSlot] = useState<string | null>(null);
+  const [browsing, setBrowsing] = useState<{ slot: string; variant: SlotMediaVariant } | null>(null);
   // Only collections the public tree actually exposes are worth linking to: an inactive
   // one — or one under an inactive parent — is hidden from /collections, so a CTA
   // pointing at it would land the shopper on an empty shop.
@@ -2893,10 +2973,10 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, c
     } finally { setSaving(false); }
   }
 
-  async function handleUpload(slot: string, file: File, name: string) {
-    setUploading(slot);
+  async function handleUpload(slot: string, variant: SlotMediaVariant, file: File, name: string) {
+    setUploading(busyKey(slot, variant));
     try {
-      const updated = await api.admin.collections.uploadAssetImage(collectionId, slot, file, name);
+      const updated = await api.admin.collections.uploadAssetImage(collectionId, slot, file, name, variant);
       onUpdate(updated);
     } catch (e) {
       // Cloudinary's own explanation when it has one — it names the real limit,
@@ -2905,23 +2985,23 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, c
     } finally { setUploading(null); }
   }
 
-  async function handleDeleteMedia(slot: string) {
-    setUploading(slot);
+  async function handleDeleteMedia(slot: string, variant: SlotMediaVariant) {
+    setUploading(busyKey(slot, variant));
     try {
-      const updated = await api.admin.collections.deleteAssetImage(collectionId, slot);
+      const updated = await api.admin.collections.deleteAssetImage(collectionId, slot, variant);
       onUpdate(updated);
     } finally { setUploading(null); }
   }
 
-  async function handlePickResource(slot: string, resource: CloudinaryResource) {
-    setBrowsingSlot(null);
-    setUploading(slot);
+  async function handlePickResource(slot: string, variant: SlotMediaVariant, resource: CloudinaryResource) {
+    setBrowsing(null);
+    setUploading(busyKey(slot, variant));
     try {
       const updated = await api.admin.collections.pickAsset(collectionId, slot, {
         publicId: resource.publicId,
         resourceType: resource.resourceType,
         secureUrl: resource.secureUrl,
-      });
+      }, variant);
       onUpdate(updated);
     } finally { setUploading(null); }
   }
@@ -2936,16 +3016,8 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, c
         if (!asset) return null;
         return (
           <div key={slot} className="border border-border">
-            <div className="p-3">
+            <div className="p-3 space-y-3">
               <div className="flex items-center gap-3">
-                <div className="w-16 h-11 bg-[#F0EDE8] shrink-0 overflow-hidden flex items-center justify-center">
-                  {asset.imageUrl
-                    ? asset.resourceType === 'video'
-                      ? <video src={asset.imageUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
-                      : <img src={asset.imageUrl} alt={slot} className="w-full h-full object-cover" />
-                    : <span className="text-muted text-xs">—</span>
-                  }
-                </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium uppercase tracking-widest">{t(COLLECTION_SLOT_LABELS[slot] ?? slot)}</p>
                   {(asset.headerEn || asset.subheaderEn) && (
@@ -2954,67 +3026,44 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, c
                     </p>
                   )}
                 </div>
-              </div>
-              <div className="flex flex-wrap gap-2 mt-2">
                 <button
                   onClick={() => editing === slot ? setEditing(null) : openEdit(asset)}
                   className={`text-xs uppercase tracking-widest border px-3 py-1 transition-colors ${editing === slot ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
                 >
                   {t('admin.site.edit')}
                 </button>
-                <label className={`text-xs uppercase tracking-widest border border-dark bg-dark text-white px-3 py-1 cursor-pointer hover:bg-gold transition-colors ${uploading === slot ? 'opacity-50 pointer-events-none' : ''}`}>
-                  {uploading === slot ? '...' : t('admin.site.upload')}
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp,video/mp4,video/webm,video/quicktime"
-                    className="hidden"
-                    onChange={e => {
-                      const f = e.target.files?.[0];
-                      e.target.value = '';
-                      if (!f) return;
-                      const limit = overSizeLimitMb(f);
-                      if (limit) { alert(t('admin.site.fileTooLarge', { name: f.name, max: limit })); return; }
-                      handleUpload(slot, f, promptMediaName(f, t('admin.site.mediaNamePrompt')));
-                    }}
-                  />
-                </label>
-                <button
-                  onClick={() => setBrowsingSlot(slot)}
-                  disabled={uploading === slot}
-                  className="text-xs uppercase tracking-widest border border-border px-3 py-1 hover:border-dark transition-colors disabled:opacity-50"
-                >
-                  {t('admin.site.browse')}
-                </button>
-                {asset.imageId && (
-                  <button
-                    onClick={() => handleDeleteMedia(slot)}
-                    disabled={uploading === slot}
-                    className="text-xs uppercase tracking-widest border border-red-300 text-red-500 px-3 py-1 hover:border-red-500 transition-colors disabled:opacity-50"
-                  >
-                    {t('admin.site.remove')}
-                  </button>
-                )}
               </div>
+              {(['desktop', 'mobile'] as const).map(variant => (
+                <SlotMediaRow
+                  key={variant}
+                  asset={asset}
+                  variant={variant}
+                  busy={uploading === busyKey(slot, variant)}
+                  onUpload={(f, name) => handleUpload(slot, variant, f, name)}
+                  onBrowse={() => setBrowsing({ slot, variant })}
+                  onRemove={() => handleDeleteMedia(slot, variant)}
+                />
+              ))}
             </div>
             {editing === slot && (
               <div className="border-t border-border p-3 space-y-2">
                 <div className="space-y-1">
                   <p className="text-xs text-muted uppercase tracking-widest">{t('admin.site.headerPlaceholder')}</p>
                   <input value={textForm.headerEs} onChange={e => setTextForm(f => ({ ...f, headerEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
-                  <input value={textForm.headerFr} onChange={e => setTextForm(f => ({ ...f, headerFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                   <input value={textForm.headerEn} onChange={e => setTextForm(f => ({ ...f, headerEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={textForm.headerFr} onChange={e => setTextForm(f => ({ ...f, headerFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                 </div>
                 <div className="space-y-1">
                   <p className="text-xs text-muted uppercase tracking-widest">{t('admin.site.subheaderPlaceholder')}</p>
                   <input value={textForm.subheaderEs} onChange={e => setTextForm(f => ({ ...f, subheaderEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
-                  <input value={textForm.subheaderFr} onChange={e => setTextForm(f => ({ ...f, subheaderFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                   <input value={textForm.subheaderEn} onChange={e => setTextForm(f => ({ ...f, subheaderEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={textForm.subheaderFr} onChange={e => setTextForm(f => ({ ...f, subheaderFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                 </div>
                 <div className="space-y-1">
                   <p className="text-xs text-muted uppercase tracking-widest">{t('admin.site.taglinePlaceholder')}</p>
                   <input value={textForm.taglineEs} onChange={e => setTextForm(f => ({ ...f, taglineEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
-                  <input value={textForm.taglineFr} onChange={e => setTextForm(f => ({ ...f, taglineFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                   <input value={textForm.taglineEn} onChange={e => setTextForm(f => ({ ...f, taglineEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={textForm.taglineFr} onChange={e => setTextForm(f => ({ ...f, taglineFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                 </div>
                 <p className="text-xs uppercase tracking-widest mt-3">{t('admin.site.placement')}</p>
                 <SlotTextPlacer
@@ -3072,8 +3121,8 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, c
                 <div className="space-y-1">
                   <p className="text-xs text-muted uppercase tracking-widest">{t('admin.site.ctaTitle')}</p>
                   <input value={textForm.ctaTitleEs} onChange={e => setTextForm(f => ({ ...f, ctaTitleEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
-                  <input value={textForm.ctaTitleFr} onChange={e => setTextForm(f => ({ ...f, ctaTitleFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                   <input value={textForm.ctaTitleEn} onChange={e => setTextForm(f => ({ ...f, ctaTitleEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={textForm.ctaTitleFr} onChange={e => setTextForm(f => ({ ...f, ctaTitleFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
@@ -3164,12 +3213,14 @@ function CollectionAssetsPanel({ collectionId, siteAssets, labels, categories, c
           </div>
         );
       })}
-      {browsingSlot && (
+      {browsing && (
         <CloudinaryBrowserModal
-          selected={[slotMap[browsingSlot]?.imageId ?? null]}
+          selected={[browsing.variant === 'mobile'
+            ? slotMap[browsing.slot]?.imageIdMobile ?? null
+            : slotMap[browsing.slot]?.imageId ?? null]}
           numbered={false}
-          onSelect={resource => handlePickResource(browsingSlot, resource)}
-          onClose={() => setBrowsingSlot(null)}
+          onSelect={resource => handlePickResource(browsing.slot, browsing.variant, resource)}
+          onClose={() => setBrowsing(null)}
         />
       )}
     </div>
@@ -3986,8 +4037,8 @@ function AdminSite() {
               {editing === a.id ? (
                 <div className="space-y-2">
                   <input value={editForm.textEs} onChange={e => setEditForm(f => ({ ...f, textEs: e.target.value }))} placeholder="ES" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
-                  <input value={editForm.textFr} onChange={e => setEditForm(f => ({ ...f, textFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                   <input value={editForm.textEn} onChange={e => setEditForm(f => ({ ...f, textEn: e.target.value }))} placeholder="EN" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+                  <input value={editForm.textFr} onChange={e => setEditForm(f => ({ ...f, textFr: e.target.value }))} placeholder="FR" className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
                   <AnnouncementCtaFields form={editForm} setForm={setEditForm} categories={categories} labels={labels} collections={collections} />
                   <div className="flex items-center gap-4 pt-1">
                     <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
@@ -4024,8 +4075,8 @@ function AdminSite() {
       <h3 className="text-xs uppercase tracking-widest text-muted mb-3">{t('admin.site.addTitle')}</h3>
       <form onSubmit={handleAdd} className="space-y-2">
         <input value={newForm.textEs} onChange={e => setNewForm(f => ({ ...f, textEs: e.target.value }))} placeholder={`${t('admin.site.textPlaceholder')} (ES)`} className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
-        <input value={newForm.textFr} onChange={e => setNewForm(f => ({ ...f, textFr: e.target.value }))} placeholder={`${t('admin.site.textPlaceholder')} (FR)`} className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
         <input value={newForm.textEn} onChange={e => setNewForm(f => ({ ...f, textEn: e.target.value }))} placeholder={`${t('admin.site.textPlaceholder')} (EN)`} className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
+        <input value={newForm.textFr} onChange={e => setNewForm(f => ({ ...f, textFr: e.target.value }))} placeholder={`${t('admin.site.textPlaceholder')} (FR)`} className="border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors w-full" />
         <AnnouncementCtaFields form={newForm} setForm={setNewForm} categories={categories} labels={labels} collections={collections} />
         <button type="submit" className="text-xs uppercase tracking-widest border border-dark bg-dark text-white px-4 py-2 hover:bg-gold transition-colors">{t('admin.site.add')}</button>
       </form>

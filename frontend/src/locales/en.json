@@ -440,6 +440,9 @@
     "site": {
       "assetsTitle": "Landing Page Assets",
       "upload": "Upload",
+      "mediaDesktop": "Desktop media",
+      "mediaMobile": "Mobile media",
+      "mediaMobileFollows": "Falls back to the desktop media.",
       "remove": "Remove",
       "noImage": "No image",
       "headerPlaceholder": "Header",

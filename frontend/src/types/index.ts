@@ -281,12 +281,23 @@ export interface AnnouncementView {
   ctaCollectionId: number | null;
 }
 
+/** Which of a slot's two pieces of media an admin call is editing. */
+export type SlotMediaVariant = 'desktop' | 'mobile';
+
 export interface CollectionSiteAssetView {
   id: number;
   slot: string;
   imageUrl: string | null;
   imageId: string | null;
   resourceType: string;
+  /**
+   * Optional narrow-screen artwork. Null leaves the slot showing its desktop media on
+   * every screen; set, it replaces it below the md breakpoint.
+   */
+  imageUrlMobile: string | null;
+  imageIdMobile: string | null;
+  /** Null on slots that predate the split — only meaningful alongside imageUrlMobile. */
+  resourceTypeMobile: string | null;
   headerEn: string | null;
   headerFr: string | null;
   headerEs: string | null;

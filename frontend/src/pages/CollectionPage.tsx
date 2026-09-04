@@ -13,6 +13,7 @@ import { useTheme } from '../context/ThemeContext';
 
 type AssetEntry = {
   url: string | null; resourceType: string;
+  urlMobile: string | null; resourceTypeMobile: string | null;
   headerEn: string | null; headerFr: string | null; headerEs: string | null;
   subheaderEn: string | null; subheaderFr: string | null; subheaderEs: string | null;
   taglineEn: string | null; taglineFr: string | null; taglineEs: string | null;
@@ -30,6 +31,7 @@ function fromSiteAsset(a: CollectionSiteAssetView | undefined): AssetEntry | und
   if (!a) return undefined;
   return {
     url: a.imageUrl, resourceType: a.resourceType,
+    urlMobile: a.imageUrlMobile, resourceTypeMobile: a.resourceTypeMobile,
     headerEn: a.headerEn, headerFr: a.headerFr, headerEs: a.headerEs,
     subheaderEn: a.subheaderEn, subheaderFr: a.subheaderFr, subheaderEs: a.subheaderEs,
     taglineEn: a.taglineEn, taglineFr: a.taglineFr, taglineEs: a.taglineEs,
@@ -44,6 +46,11 @@ function fromSiteAsset(a: CollectionSiteAssetView | undefined): AssetEntry | und
     slot: a.slot,
     namesShopHeading: !!(a.ctaTitleEn || a.ctaTitleFr || a.ctaTitleEs),
   };
+}
+
+/** True when the slot has artwork for either screen. */
+function assetHasMedia(entry: AssetEntry | undefined): entry is AssetEntry {
+  return !!(entry && (entry.url || entry.urlMobile));
 }
 
 function assetHasCta(entry: AssetEntry | undefined): boolean {
@@ -133,12 +140,34 @@ function CtaLink({ to, className, styles, children }: {
   );
 }
 
-function SlotMedia({ entry, alt, className }: { entry: AssetEntry; alt: string; className: string }) {
-  if (!entry.url) return null;
-  if (entry.resourceType === 'video') {
-    return <AutoplayVideo src={entry.url} className={`${className} object-top md:object-center`} />;
+function Media({ url, resourceType, alt, className }: {
+  url: string; resourceType: string | null; alt: string; className: string;
+}) {
+  if (resourceType === 'video') {
+    return <AutoplayVideo src={url} className={`${className} object-top md:object-center`} />;
   }
-  return <img src={optimizedImageUrl(entry.url)} alt={alt} className={className} />;
+  return <img src={optimizedImageUrl(url)} alt={alt} className={className} />;
+}
+
+/**
+ * A slot's artwork. With mobile media of its own the two are rendered side by side and
+ * the breakpoint picks one — both are in the markup, so the swap costs no layout shift.
+ * Without it the desktop media covers every screen, as it always has.
+ */
+function SlotMedia({ entry, alt, className }: { entry: AssetEntry; alt: string; className: string }) {
+  if (!entry.url && !entry.urlMobile) return null;
+  if (entry.urlMobile && entry.url) {
+    return (
+      <>
+        <Media url={entry.urlMobile} resourceType={entry.resourceTypeMobile} alt={alt} className={`${className} md:hidden`} />
+        <Media url={entry.url} resourceType={entry.resourceType} alt={alt} className={`${className} hidden md:block`} />
+      </>
+    );
+  }
+  const only = entry.url
+    ? { url: entry.url, resourceType: entry.resourceType }
+    : { url: entry.urlMobile!, resourceType: entry.resourceTypeMobile };
+  return <Media url={only.url} resourceType={only.resourceType} alt={alt} className={className} />;
 }
 
 export default function CollectionPage({ id: propId, onError }: { id?: number; onError?: () => void } = {}) {
@@ -217,7 +246,7 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
       {/* Hero */}
       <section className="relative w-full h-[55vh] md:h-[85vh] bg-[#D8D4CC] flex items-end overflow-hidden">
         <div className="absolute inset-0">
-          {hero?.url
+          {assetHasMedia(hero)
             ? <SlotMedia entry={hero} alt={collectionName || 'Collection'} className="w-full h-full object-cover" />
             : <div className="w-full h-full flex items-center justify-center">
                 <p className="text-muted text-sm uppercase tracking-widest">{collectionName}</p>
@@ -295,7 +324,8 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
           const tagline   = pickLocale(ed?.taglineEn,   ed?.taglineFr,   ed?.taglineEs,   i18n.language);
           const hasCta    = assetHasCta(ed);
           const hasText   = header || subheader || (tagline && hasCta);
-          const fallbackColor = ed?.url ? '#FFFFFF' : '#1C1C1C';
+          const hasMedia  = assetHasMedia(ed);
+          const fallbackColor = hasMedia ? '#FFFFFF' : '#1C1C1C';
           const ctaColor  = ed?.taglineTextColor ?? ed?.baseTextColor ?? fallbackColor;
           const ctaStyle  = ctaStyles(ed, { text: ctaColor, border: ctaColor });
           const placement = textPlacement(ed);
@@ -303,9 +333,9 @@ export default function CollectionPage({ id: propId, onError }: { id?: number; o
             <div
               key={i}
               className="relative min-h-[440px] overflow-hidden flex items-center justify-center"
-              style={{ background: ed?.url ? undefined : placeholderBg }}
+              style={{ background: hasMedia ? undefined : placeholderBg }}
             >
-              {ed?.url && (
+              {hasMedia && (
                 <SlotMedia entry={ed} alt={`Editorial ${i + 1}`} className="absolute inset-0 w-full h-full object-cover" />
               )}
               {hasText && (

@@ -48,6 +48,17 @@ public class CollectionSiteAsset {
     @Builder.Default
     private String resourceType = "image";
 
+    /**
+     * Optional narrow-screen artwork. Null leaves the slot showing its desktop media on
+     * every screen, so a slot only needs its own mobile media when the desktop crop does
+     * not survive an upright viewport.
+     */
+    private String imageUrlMobile;
+    private String imageIdMobile;
+
+    @Builder.Default
+    private String resourceTypeMobile = "image";
+
     private String headerEn;
     private String headerFr;
     private String headerEs;
