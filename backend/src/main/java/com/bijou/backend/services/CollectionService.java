@@ -95,7 +95,8 @@ public class CollectionService {
                 c.getCardTextColor(), assets, theme,
                 c.isActive(), c.isMain(),
                 c.getParent() == null ? null : c.getParent().getId(),
-                c.getSortOrder() == null ? 0 : c.getSortOrder(), depth, children);
+                c.getSortOrder() == null ? 0 : c.getSortOrder(),
+                List.copyOf(c.getItemOrder()), depth, children);
     }
 
     /**
@@ -168,7 +169,9 @@ public class CollectionService {
     }
 
     public List<ItemView> getItemsByCollection(Long id) {
-        return collectItems(findOrThrow(id)).stream().map(this::toItemView).toList();
+        Collection collection = findOrThrow(id);
+        return applyItemOrder(collection, collectItems(collection)).stream()
+                .map(this::toItemView).toList();
     }
 
     public List<ItemView> getTrendingByCollection(Long id) {
@@ -200,6 +203,25 @@ public class CollectionService {
             itemRepository.findByAnyCategoryIdInAndActiveTrue(categoryIds).forEach(i -> seen.putIfAbsent(i.getId(), i));
         }
         return new java.util.ArrayList<>(seen.values());
+    }
+
+    /**
+     * Reorders a collection's items by its own {@code itemOrder}, which lists item ids in
+     * the order the admin arranged them. Only this collection's list applies — a parent
+     * rolling its subcollections up arranges its own page, and a subcollection arranges
+     * its own, so neither surprises the other. Ids absent from the list sort after the
+     * listed ones and, the sort being stable, keep the order they arrived in.
+     */
+    private List<com.bijou.backend.entities.Item> applyItemOrder(
+            Collection collection, List<com.bijou.backend.entities.Item> items) {
+        List<Long> order = collection.getItemOrder();
+        if (order.isEmpty()) return items;
+        Map<Long, Integer> rank = new java.util.HashMap<>();
+        for (int i = 0; i < order.size(); i++) rank.putIfAbsent(order.get(i), i);
+        return items.stream()
+                .sorted(Comparator.comparingInt(
+                        i -> rank.getOrDefault(i.getId(), Integer.MAX_VALUE)))
+                .toList();
     }
 
     /** The collection plus every active subcollection beneath it, cycle-safe. */
@@ -531,6 +553,32 @@ public class CollectionService {
         Collection collection = findOrThrow(id);
         collection.setActive(active);
         log.info("collection #{} marked {}", id, active ? "active" : "inactive");
+        return toView(collectionRepository.save(collection));
+    }
+
+    // ── Admin: per-collection item order ─────────────────────────────────────────
+
+    /**
+     * Stores the order the admin arranged this collection's items in. Ids that no longer
+     * belong to the collection are dropped rather than rejected — a list saved before
+     * someone retagged an item, or before an item was deleted, is still worth keeping for
+     * the items it does name. Duplicates collapse to their first position, and an empty
+     * list clears the override.
+     */
+    @Transactional
+    public CollectionView updateItemOrder(Long id, List<Long> itemIds) {
+        Collection collection = findOrThrow(id);
+        Set<Long> members = collectItems(collection).stream()
+                .map(com.bijou.backend.entities.Item::getId)
+                .collect(java.util.stream.Collectors.toSet());
+        List<Long> cleaned = (itemIds == null ? List.<Long>of() : itemIds).stream()
+                .filter(java.util.Objects::nonNull)
+                .filter(members::contains)
+                .distinct()
+                .toList();
+        collection.getItemOrder().clear();
+        collection.getItemOrder().addAll(cleaned);
+        log.info("collection #{} item order set to {} of {} items", id, cleaned.size(), members.size());
         return toView(collectionRepository.save(collection));
     }
 

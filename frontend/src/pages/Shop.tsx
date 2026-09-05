@@ -99,6 +99,22 @@ export default function Shop() {
     return { labelIds, categoryIds };
   }, [activeCollections, flatCollections]);
 
+  /**
+   * Item ranks from the arranged order of the single selected collection, mirroring what
+   * /public/collections/{id}/items returns for that collection's own page. Only meaningful
+   * with one collection selected — two selections have two orders and no way to merge them
+   * — and only under the default sort, which the explicit sorts are there to override.
+   */
+  const collectionOrderRank = useMemo(() => {
+    if (activeCollections.length !== 1) return null;
+    const selected = flatCollections.find(({ c }) => String(c.id) === activeCollections[0]);
+    const order = selected?.c.itemOrder ?? [];
+    if (order.length === 0) return null;
+    const rank = new Map<number, number>();
+    order.forEach((id, i) => { if (!rank.has(id)) rank.set(id, i); });
+    return rank;
+  }, [activeCollections, flatCollections]);
+
   const items = useMemo(() => {
     let result = allItems;
     if (activeCategories.length > 0) {
@@ -112,10 +128,16 @@ export default function Shop() {
         item.labels.some(l => collectionFilter.labelIds.has(l.id)) ||
         item.categories.some(c => collectionFilter.categoryIds.has(c.id)));
     }
+    if (sort === 'default' && collectionOrderRank) {
+      const rank = collectionOrderRank;
+      // Stable sort: anything the collection never arranged keeps the order it came in.
+      result = [...result].sort((a, b) =>
+        (rank.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (rank.get(b.id) ?? Number.MAX_SAFE_INTEGER));
+    }
     if (sort === 'price_asc') result = [...result].sort((a, b) => effectivePrice(a) - effectivePrice(b));
     if (sort === 'price_desc') result = [...result].sort((a, b) => effectivePrice(b) - effectivePrice(a));
     return result;
-  }, [allItems, activeCategories, resolvedLabelIds, collectionFilter, sort]);
+  }, [allItems, activeCategories, resolvedLabelIds, collectionFilter, collectionOrderRank, sort]);
 
   // Each filter group is a repeated query param, so the current selection is shareable
   // and CTAs elsewhere can deep-link straight into it.

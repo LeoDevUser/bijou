@@ -417,6 +417,16 @@
         "reset": "Remove custom theme",
         "resetConfirm": "Remove the custom theme for this collection and revert to the global theme?"
       },
+      "order": {
+        "button": "Item Order",
+        "title": "Item Order",
+        "hint": "Drag items into the order they should appear on this collection's page. Items you don't arrange follow on behind. Subcollections keep their own order.",
+        "empty": "This collection holds no items yet.",
+        "moveUp": "Move up",
+        "moveDown": "Move down",
+        "reset": "Reset to default",
+        "resetConfirm": "Clear the custom item order for this collection and revert to the default order?"
+      },
       "parent": "Parent Collection",
       "noParent": "— None (top level) —",
       "sortOrder": "Order",

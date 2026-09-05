@@ -3331,6 +3331,151 @@ function CollectionThemePanel({ collectionId, currentTheme, onUpdate }: {
   );
 }
 
+/**
+ * Arranges a collection's items. The list arrives in the order shoppers currently see it,
+ * so what the admin drags is what the page looks like. Saving stores every id shown, which
+ * is why an item that later stops matching the collection simply drops out — the order is
+ * an overlay on membership, never a definition of it.
+ */
+function CollectionOrderPanel({ collectionId, onUpdate }: {
+  collectionId: number;
+  onUpdate: (itemOrder: number[]) => void;
+}) {
+  const { t, i18n } = useTranslation();
+  const [items, setItems] = useState<ItemView[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [dragFrom, setDragFrom] = useState<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    api.collections.items(collectionId)
+      .then(setItems)
+      .catch(() => setItems([]))
+      .finally(() => setLoading(false));
+  }, [collectionId]);
+
+  function move(from: number, to: number) {
+    if (from === to) return;
+    setItems(prev => {
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+    setDirty(true);
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      const updated = await api.admin.collections.setItemOrder(collectionId, items.map(i => i.id));
+      onUpdate(updated.itemOrder);
+      setDirty(false);
+    } finally { setSaving(false); }
+  }
+
+  async function handleReset() {
+    if (!confirm(t('admin.collections.order.resetConfirm'))) return;
+    setSaving(true);
+    try {
+      const updated = await api.admin.collections.setItemOrder(collectionId, []);
+      onUpdate(updated.itemOrder);
+      setItems(await api.collections.items(collectionId));
+      setDirty(false);
+    } finally { setSaving(false); }
+  }
+
+  return (
+    <div className="border-t border-border bg-[#FAF9F7] p-4 space-y-3">
+      <div>
+        <p className="text-xs uppercase tracking-widest text-muted">{t('admin.collections.order.title')}</p>
+        <p className="text-xs text-muted mt-1">{t('admin.collections.order.hint')}</p>
+      </div>
+
+      {loading ? (
+        <p className="text-xs text-muted">...</p>
+      ) : items.length === 0 ? (
+        <p className="text-xs text-muted">{t('admin.collections.order.empty')}</p>
+      ) : (
+        <ul className="space-y-1">
+          {items.map((item, index) => {
+            const thumb = item.assets[0];
+            return (
+              <li
+                key={item.id}
+                draggable
+                onDragStart={() => setDragFrom(index)}
+                onDragEnter={() => setDragOver(index)}
+                onDragOver={e => e.preventDefault()}
+                onDrop={e => {
+                  e.preventDefault();
+                  if (dragFrom !== null) move(dragFrom, index);
+                  setDragFrom(null);
+                  setDragOver(null);
+                }}
+                onDragEnd={() => { setDragFrom(null); setDragOver(null); }}
+                className={`flex items-center gap-3 border bg-cream px-2 py-1.5 cursor-grab active:cursor-grabbing transition-colors ${
+                  dragOver === index && dragFrom !== index ? 'border-dark' : 'border-border'
+                } ${dragFrom === index ? 'opacity-40' : ''}`}
+              >
+                <span className="text-xs text-muted w-6 tabular-nums select-none">{index + 1}</span>
+                {thumb?.imageUrl
+                  ? (thumb.resourceType === 'video'
+                      ? <video src={thumb.imageUrl} className="w-10 h-10 object-cover shrink-0" muted playsInline />
+                      : <img src={thumb.imageUrl} alt="" className="w-10 h-10 object-cover shrink-0" />)
+                  : <div className="w-10 h-10 bg-border shrink-0" />}
+                <span className="text-sm truncate flex-1">
+                  {pickLocale(item.nameEn, item.nameFr, item.nameEs, i18n.language) || `#${item.id}`}
+                </span>
+                <span className="flex gap-1 shrink-0">
+                  <button
+                    onClick={() => move(index, index - 1)}
+                    disabled={index === 0}
+                    aria-label={t('admin.collections.order.moveUp')}
+                    className="text-xs border border-border px-2 py-0.5 hover:border-dark transition-colors disabled:opacity-30"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    onClick={() => move(index, index + 1)}
+                    disabled={index === items.length - 1}
+                    aria-label={t('admin.collections.order.moveDown')}
+                    className="text-xs border border-border px-2 py-0.5 hover:border-dark transition-colors disabled:opacity-30"
+                  >
+                    ↓
+                  </button>
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {items.length > 0 && (
+        <div className="flex gap-2 pt-1">
+          <button
+            onClick={handleSave}
+            disabled={saving || !dirty}
+            className="text-xs uppercase tracking-widest border border-dark bg-dark text-white px-4 py-1.5 hover:bg-gold transition-colors disabled:opacity-50"
+          >
+            {saving ? '...' : t('admin.theme.save')}
+          </button>
+          <button
+            onClick={handleReset}
+            disabled={saving}
+            className="text-xs uppercase tracking-widest border border-border px-4 py-1.5 hover:border-dark transition-colors disabled:opacity-50"
+          >
+            {t('admin.collections.order.reset')}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AdminCollections() {
   const { t, i18n } = useTranslation();
   const [collections, setCollections] = useState<CollectionView[]>([]);
@@ -3339,6 +3484,7 @@ function AdminCollections() {
   const [modal, setModal] = useState<CollectionModal | null>(null);
   const [expandedAssets, setExpandedAssets] = useState<number | null>(null);
   const [expandedTheme, setExpandedTheme] = useState<number | null>(null);
+  const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
   const [togglingActive, setTogglingActive] = useState<number | null>(null);
   const [settingMain, setSettingMain] = useState<number | null>(null);
 
@@ -3358,6 +3504,7 @@ function AdminCollections() {
     await api.admin.collections.delete(id);
     setExpandedAssets(prev => prev === id ? null : prev);
     setExpandedTheme(prev => prev === id ? null : prev);
+    setExpandedOrder(prev => prev === id ? null : prev);
     loadCollections();
   }
 
@@ -3394,6 +3541,10 @@ function AdminCollections() {
     setCollections(prev => prev.map(c => c.id === collectionId ? { ...c, theme } : c));
   }
 
+  function handleOrderUpdate(collectionId: number, itemOrder: number[]) {
+    setCollections(prev => prev.map(c => c.id === collectionId ? { ...c, itemOrder } : c));
+  }
+
   return (
     <div className="mt-10 pt-8 border-t border-border">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
@@ -3418,6 +3569,7 @@ function AdminCollections() {
             const header = pickLocale(c.headerEn, c.headerFr, c.headerEs, i18n.language);
             const assetsOpen = expandedAssets === c.id;
             const themeOpen = expandedTheme === c.id;
+            const orderOpen = expandedOrder === c.id;
             return (
               <div
                 key={c.id}
@@ -3467,16 +3619,22 @@ function AdminCollections() {
                       {t('admin.collections.editCard')}
                     </button>
                     <button
-                      onClick={() => { setExpandedAssets(assetsOpen ? null : c.id); setExpandedTheme(null); }}
+                      onClick={() => { setExpandedAssets(assetsOpen ? null : c.id); setExpandedTheme(null); setExpandedOrder(null); }}
                       className={`text-xs uppercase tracking-widest border px-3 py-1.5 transition-colors ${assetsOpen ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
                     >
                       {t('admin.collections.assets')}
                     </button>
                     <button
-                      onClick={() => { setExpandedTheme(themeOpen ? null : c.id); setExpandedAssets(null); }}
+                      onClick={() => { setExpandedTheme(themeOpen ? null : c.id); setExpandedAssets(null); setExpandedOrder(null); }}
                       className={`text-xs uppercase tracking-widest border px-3 py-1.5 transition-colors ${themeOpen ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
                     >
                       {t('admin.collections.theme.button')}
+                    </button>
+                    <button
+                      onClick={() => { setExpandedOrder(orderOpen ? null : c.id); setExpandedAssets(null); setExpandedTheme(null); }}
+                      className={`text-xs uppercase tracking-widest border px-3 py-1.5 transition-colors ${orderOpen ? 'border-dark bg-dark text-white' : 'border-border hover:border-dark'}`}
+                    >
+                      {t('admin.collections.order.button')}
                     </button>
 
                     {/* Set as main / main indicator */}
@@ -3540,6 +3698,12 @@ function AdminCollections() {
                     collectionId={c.id}
                     currentTheme={c.theme}
                     onUpdate={theme => handleThemeUpdate(c.id, theme)}
+                  />
+                )}
+                {orderOpen && (
+                  <CollectionOrderPanel
+                    collectionId={c.id}
+                    onUpdate={itemOrder => handleOrderUpdate(c.id, itemOrder)}
                   />
                 )}
               </div>

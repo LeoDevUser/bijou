@@ -417,6 +417,16 @@
         "reset": "Supprimer le thème personnalisé",
         "resetConfirm": "Supprimer le thème personnalisé de cette collection et revenir au thème global ?"
       },
+      "order": {
+        "button": "Ordre des articles",
+        "title": "Ordre des articles",
+        "hint": "Faites glisser les articles dans l'ordre où ils doivent apparaître sur la page de cette collection. Ceux que vous ne classez pas suivent ensuite. Les sous-collections conservent leur propre ordre.",
+        "empty": "Cette collection ne contient encore aucun article.",
+        "moveUp": "Monter",
+        "moveDown": "Descendre",
+        "reset": "Réinitialiser",
+        "resetConfirm": "Effacer l'ordre personnalisé des articles de cette collection et revenir à l'ordre par défaut ?"
+      },
       "parent": "Collection parente",
       "noParent": "— Aucune (niveau principal) —",
       "sortOrder": "Ordre",

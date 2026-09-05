@@ -5,6 +5,8 @@ import java.util.List;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -15,6 +17,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
@@ -51,6 +54,21 @@ public class Collection {
     @Builder.Default
     @Column(columnDefinition = "integer default 0")
     private Integer sortOrder = 0;
+
+    /**
+     * Explicit display order for this collection's items, as item ids. Membership stays
+     * derived from labels and categories — this only says where a listed item sits on the
+     * page. Items that match the collection but are absent here fall in after the listed
+     * ones, keeping the order the query hands back, so a partial list is a valid list.
+     * Ids are matched against the items actually collected, so an id left behind by a
+     * deleted item simply never lands.
+     */
+    @Builder.Default
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "collection_item_order", joinColumns = @JoinColumn(name = "collection_id"))
+    @Column(name = "item_id")
+    @OrderColumn(name = "position")
+    private List<Long> itemOrder = new ArrayList<>();
 
     @Builder.Default
     @ManyToMany(fetch = FetchType.EAGER)

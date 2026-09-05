@@ -22,6 +22,7 @@ public record CollectionView(
         boolean isMain,
         Long parentId,
         Integer sortOrder,
+        List<Long> itemOrder,
         int depth,
         List<CollectionView> children) {
 }

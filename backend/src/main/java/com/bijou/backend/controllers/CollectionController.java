@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.bijou.backend.services.CollectionAssetRequest;
+import com.bijou.backend.services.CollectionItemOrderRequest;
 import com.bijou.backend.services.CollectionRequest;
 import com.bijou.backend.services.CollectionService;
 import com.bijou.backend.services.CollectionSiteAssetView;
@@ -105,6 +106,18 @@ public class CollectionController {
     @PatchMapping("/${ADMIN_PAGE}/collections/{id}/active")
     public ResponseEntity<CollectionView> setActive(@PathVariable Long id, @RequestBody Map<String, Boolean> body) {
         return ResponseEntity.ok(collectionService.setActive(id, Boolean.TRUE.equals(body.get("active"))));
+    }
+
+    /**
+     * Arranges this collection's items. Membership still follows the collection's labels
+     * and categories — this only fixes where the named items sit; anything unlisted keeps
+     * following on behind them.
+     */
+    @PatchMapping("/${ADMIN_PAGE}/collections/{id}/item-order")
+    public ResponseEntity<CollectionView> updateItemOrder(
+            @PathVariable Long id,
+            @RequestBody CollectionItemOrderRequest req) {
+        return ResponseEntity.ok(collectionService.updateItemOrder(id, req.itemIds()));
     }
 
     @DeleteMapping("/${ADMIN_PAGE}/collections/{id}")

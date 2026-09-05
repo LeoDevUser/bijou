@@ -341,6 +341,8 @@ export const api = {
         request<CollectionSiteAssetView>(`/${ADMIN}/collections/${id}/assets/${slot}/pick?variant=${variant}`, { method: 'PATCH', body: JSON.stringify(data) }),
       updateTheme: (id: number, data: CollectionThemeView) =>
         request<CollectionThemeView>(`/${ADMIN}/collections/${id}/theme`, { method: 'PATCH', body: JSON.stringify(data) }),
+      setItemOrder: (id: number, itemIds: number[]) =>
+        request<CollectionView>(`/${ADMIN}/collections/${id}/item-order`, { method: 'PATCH', body: JSON.stringify({ itemIds }) }),
       resetTheme: (id: number) =>
         request<void>(`/${ADMIN}/collections/${id}/theme`, { method: 'DELETE' }),
     },

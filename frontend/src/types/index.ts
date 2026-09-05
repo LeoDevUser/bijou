@@ -411,6 +411,11 @@ export interface CollectionView {
   parentId: number | null;
   /** Display order among siblings. */
   sortOrder: number;
+  /**
+   * Item ids in the order the admin arranged them for this collection's page. Membership
+   * still comes from labels and categories — unlisted items follow on behind these.
+   */
+  itemOrder: number[];
   /** Nesting level — 0 for top-level. Only meaningful in the flat admin listing. */
   depth: number;
   /** Direct, active subcollections. Populated on single-collection reads and the public index. */
