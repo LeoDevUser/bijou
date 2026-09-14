@@ -142,6 +142,20 @@ public class ItemController {
         return ResponseEntity.ok(itemService.pickAsset(itemId, req));
     }
 
+    /**
+     * Uploads the small image standing in for a variant's style in the picker. Only
+     * uploads need an endpoint of their own — a swatch picked from the media library
+     * rides along on the variant's own save.
+     */
+    @PostMapping(value = "/${ADMIN_PAGE}/items/{itemId}/sizes/{sizeId}/swatch", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ItemView> setSizeSwatch(
+            @PathVariable Long itemId,
+            @PathVariable Long sizeId,
+            @RequestPart("file") MultipartFile file,
+            @RequestParam(value = "name", required = false) String name) {
+        return ResponseEntity.ok(itemService.setSizeSwatch(itemId, sizeId, cloudinaryService.upload(file, name)));
+    }
+
     @PatchMapping("/${ADMIN_PAGE}/items/{itemId}/sizes/{sizeId}/assets/pick")
     public ResponseEntity<ItemView> pickSizeAsset(
             @PathVariable Long itemId, @PathVariable Long sizeId, @RequestBody PickMediaRequest req) {

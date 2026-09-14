@@ -4,15 +4,20 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * @param assets media scoped to this size. Empty means the size shows the item's
+ * @param assets media scoped to this variant. Empty means it shows the item's
  *               own gallery instead — clients apply that fallback, so this field
- *               always reports what is actually assigned to the size.
+ *               always reports what is actually assigned to the variant.
  */
 public record ItemSizeView(
         Long id,
         String sizeEn,
         String sizeFr,
         String sizeEs,
+        String styleEn,
+        String styleFr,
+        String styleEs,
+        String swatchImageUrl,
+        String swatchImageId,
         Integer stock,
         Long version,
         float weightGrams,

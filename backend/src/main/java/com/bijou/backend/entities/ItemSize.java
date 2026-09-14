@@ -25,8 +25,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * A purchasable size of an {@link Item}. When an item has any sizes, its own
- * stock/weight/price/description become inert and the per-size values below are
+ * A purchasable variant of an {@link Item} — a style, a size, or a style in a
+ * given size. When an item has any variants, its own
+ * stock/weight/price/description become inert and the per-variant values below are
  * used instead. The pricing formula and margin stay on the parent item; a size
  * only supplies the weight (which drives the dynamic price) and, for static
  * items, its own price. Descriptions are optional overrides that fall back to
@@ -50,14 +51,41 @@ public class ItemSize {
     private Item item;
 
     /**
-     * Free-text size label per language, e.g. "60 cm", "Size 7", "Chica". At least one
-     * is always filled; the others fall back through {@code pickLocale} on the client.
-     * Replaces the single {@code size} column, which {@code ItemSizeLocaleBackfill}
-     * copies across and drops.
+     * Free-text size label per language, e.g. "60 cm", "Size 7", "Chica". The others
+     * fall back through {@code pickLocale} on the client. Replaces the single
+     * {@code size} column, which {@code ItemSizeLocaleBackfill} copies across and drops.
+     * May be blank on a style-only item, but a row is always named by at least one of
+     * size or style.
      */
     private String sizeEn;
     private String sizeFr;
     private String sizeEs;
+
+    /**
+     * Free-text style label per language, e.g. "Cafe", "Azul", "Broche negro" — the
+     * second axis of the picker, shown above sizes and rendered as a swatch. Blank on
+     * items that only vary by size, which is every row predating styles.
+     *
+     * <p>Rows sharing a style are one style offered in several sizes: the storefront
+     * groups by these three fields, so the swatch and label below are repeated
+     * identically on each row of the group and read from the first of them.</p>
+     */
+    private String styleEn;
+    private String styleFr;
+    private String styleEs;
+
+    /** Small image standing in for this style in the picker; null renders the label alone. */
+    private String swatchImageUrl;
+    private String swatchImageId;
+
+    /**
+     * true = the swatch was uploaded by us, so its Cloudinary file goes when the swatch
+     * is replaced or the variant deleted; false = picked from the existing library and
+     * left alone. Mirrors {@link ItemAsset#isOwned()}.
+     */
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "boolean not null default false")
+    private boolean swatchOwned = false;
 
     @Column(nullable = false)
     private Integer stock;
@@ -101,11 +129,20 @@ public class ItemSize {
     /**
      * The label for contexts that carry no language of their own — server logs, and the
      * snapshot written onto an order line. English first, then whatever is filled in.
+     * Both axes are joined so an order line records the full variant that was bought.
      */
     public String label() {
-        if (sizeEn != null && !sizeEn.isBlank()) return sizeEn;
-        if (sizeFr != null && !sizeFr.isBlank()) return sizeFr;
-        if (sizeEs != null && !sizeEs.isBlank()) return sizeEs;
+        String style = pick(styleEn, styleFr, styleEs);
+        String size = pick(sizeEn, sizeFr, sizeEs);
+        if (style.isEmpty()) return size;
+        if (size.isEmpty()) return style;
+        return style + " \u00b7 " + size;
+    }
+
+    private static String pick(String en, String fr, String es) {
+        if (en != null && !en.isBlank()) return en;
+        if (fr != null && !fr.isBlank()) return fr;
+        if (es != null && !es.isBlank()) return es;
         return "";
     }
 }

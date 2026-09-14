@@ -202,6 +202,21 @@ export const api = {
       },
       deleteAsset: (itemId: number, assetId: number) =>
         request<ItemView>(`/${ADMIN}/items/${itemId}/assets/${assetId}`, { method: 'DELETE' }),
+      /** Uploads the small image that stands in for a variant's style in the picker. */
+      setSizeSwatch: async (itemId: number, sizeId: number, file: File, name?: string): Promise<ItemView> => {
+        const form = new FormData();
+        form.append('file', file);
+        if (name) form.append('name', name);
+        const res = await fetch(`${BASE_URL}/${ADMIN}/items/${itemId}/sizes/${sizeId}/swatch`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: authHeaders(),
+          body: form,
+        });
+        if (!res.ok) { const body = await res.json().catch(() => ({})); throw { status: res.status, ...body }; }
+        return res.json();
+      },
+
       /** Give a size its own copy of an image the item already has; the source keeps it. */
       copyAsset: (itemId: number, assetId: number, sizeId: number | null) =>
         request<ItemView>(`/${ADMIN}/items/${itemId}/assets/${assetId}/copy`, { method: 'POST', body: JSON.stringify({ sizeId }) }),

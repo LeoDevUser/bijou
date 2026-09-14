@@ -84,7 +84,9 @@ public class ItemService {
         if (sizes == null) return List.of();
         return sizes.stream()
             .map(s -> new ItemSizeView(
-                s.getId(), s.getSizeEn(), s.getSizeFr(), s.getSizeEs(), s.getStock(), s.getVersion(), s.getWeightGrams(), s.getPrice(), s.getPricingWork(),
+                s.getId(), s.getSizeEn(), s.getSizeFr(), s.getSizeEs(),
+                s.getStyleEn(), s.getStyleFr(), s.getStyleEs(), s.getSwatchImageUrl(), s.getSwatchImageId(),
+                s.getStock(), s.getVersion(), s.getWeightGrams(), s.getPrice(), s.getPricingWork(),
                 s.getDescriptionEn(), s.getDescriptionFr(), s.getDescriptionEs(), s.getSortOrder(), s.isActive(),
                 toAssetViews(s.getAssets())))
             .toList();
@@ -410,21 +412,29 @@ public class ItemService {
     // ── Sizes ───────────────────────────────────────────────────────────────
 
     /**
-     * Append one or more sizes. When adding the first size(s) the admin also
-     * submits a size representing the item's original configuration, so an item
-     * with sizes always has its original captured as a named size.
+     * Append one or more variants. When adding the first one(s) the admin also
+     * submits a variant representing the item's original configuration, so an item
+     * with variants always has its original captured as a named one.
      */
     @Transactional
     public ItemView addSizes(Long itemId, List<ItemSizeRequest> reqs) {
         Item item = findAnyItemOrThrow(itemId);
         int nextOrder = item.getSizes().size();
-        reqs.forEach(ItemService::requireSizeName);
+        reqs.forEach(ItemService::requireVariantName);
         for (ItemSizeRequest req : reqs) {
             ItemSize size = ItemSize.builder()
                 .item(item)
                 .sizeEn(req.sizeEn())
                 .sizeFr(req.sizeFr())
                 .sizeEs(req.sizeEs())
+                .styleEn(req.styleEn())
+                .styleFr(req.styleFr())
+                .styleEs(req.styleEs())
+                // Only a library pick can reach a variant this early — an upload needs
+                // the id this insert is about to mint, and comes through setSizeSwatch.
+                .swatchImageUrl(req.swatchImageUrl())
+                .swatchImageId(req.swatchImageId())
+                .swatchOwned(false)
                 .stock(req.stock())
                 .weightGrams(req.weightGrams())
                 .price(resolveSizePrice(item, req))
@@ -445,10 +455,13 @@ public class ItemService {
     public ItemView updateSize(Long itemId, Long sizeId, ItemSizeRequest req) {
         Item item = findAnyItemOrThrow(itemId);
         ItemSize size = findSizeOrThrow(item, sizeId);
-        requireSizeName(req);
+        requireVariantName(req);
         size.setSizeEn(req.sizeEn());
         size.setSizeFr(req.sizeFr());
         size.setSizeEs(req.sizeEs());
+        size.setStyleEn(req.styleEn());
+        size.setStyleFr(req.styleFr());
+        size.setStyleEs(req.styleEs());
         // Stock intentionally not written here — see updateItem. Managed via
         // adjustSizeStock / setSizeStock only.
         size.setWeightGrams(req.weightGrams());
@@ -457,19 +470,65 @@ public class ItemService {
         size.setDescriptionEn(req.descriptionEn());
         size.setDescriptionFr(req.descriptionFr());
         size.setDescriptionEs(req.descriptionEs());
-        itemRepository.save(item);
-        log.info("updated size #{} of item #{}", sizeId, itemId);
+        // The form round-trips whatever swatch the variant already had, so an
+        // unchanged id leaves ownership alone; a changed one always names a library
+        // pick (uploads go through setSizeSwatch) and retires the file it replaced.
+        String previousId = size.getSwatchImageId();
+        boolean previousOwned = size.isSwatchOwned();
+        boolean swatchChanged = !java.util.Objects.equals(previousId, req.swatchImageId());
+        if (swatchChanged) {
+            size.setSwatchImageUrl(req.swatchImageUrl());
+            size.setSwatchImageId(req.swatchImageId());
+            size.setSwatchOwned(false);
+        }
+        itemRepository.saveAndFlush(item);
+        if (swatchChanged) deleteSwatchIfUnused(item, previousId, previousOwned);
+        log.info("updated variant #{} of item #{}", sizeId, itemId);
         return toItemView(item);
     }
 
     /**
-     * A size must be named in at least one language. Bean validation cannot carry this:
-     * the bulk add takes a {@code List<ItemSizeRequest>}, and {@code @Valid} on a list
-     * body does not cascade to its elements — so the check lives here, where both the
-     * bulk add and the single update go through it.
+     * Point a variant's swatch at a freshly uploaded image. Separate from
+     * {@link #updateSize} because the file can only be uploaded once the variant has
+     * an id, and because what it replaces is ours to clean up.
      */
-    private static void requireSizeName(ItemSizeRequest req) {
-        boolean named = Stream.of(req.sizeEn(), req.sizeFr(), req.sizeEs())
+    @Transactional
+    public ItemView setSizeSwatch(Long itemId, Long sizeId, CloudinaryResponse res) {
+        Item item = findAnyItemOrThrow(itemId);
+        ItemSize size = findSizeOrThrow(item, sizeId);
+        String previousId = size.getSwatchImageId();
+        boolean previousOwned = size.isSwatchOwned();
+        size.setSwatchImageUrl(res.url());
+        size.setSwatchImageId(res.imageId());
+        size.setSwatchOwned(true);
+        itemRepository.saveAndFlush(item);
+        deleteSwatchIfUnused(item, previousId, previousOwned);
+        log.info("set swatch of variant #{} (item #{})", sizeId, itemId);
+        return toItemView(item);
+    }
+
+    /**
+     * Drops a swatch file we uploaded once nothing points at it any more. Variants of
+     * the same style carry the same swatch, so the file survives until the last of
+     * them lets go of it; library picks are never ours to delete.
+     */
+    private void deleteSwatchIfUnused(Item item, String imageId, boolean owned) {
+        if (!owned || imageId == null) return;
+        boolean stillUsed = item.getSizes().stream().anyMatch(s -> imageId.equals(s.getSwatchImageId()));
+        if (!stillUsed) cloudinaryService.delete(imageId, "image");
+    }
+
+    /**
+     * A variant must be named in at least one language, on either axis — a style-only
+     * item names no size and a size-only item names no style, but a row with neither
+     * would be unpickable. Bean validation cannot carry this: the bulk add takes a
+     * {@code List<ItemSizeRequest>}, and {@code @Valid} on a list body does not cascade
+     * to its elements — so the check lives here, where both the bulk add and the single
+     * update go through it.
+     */
+    private static void requireVariantName(ItemSizeRequest req) {
+        boolean named = Stream.of(req.sizeEn(), req.sizeFr(), req.sizeEs(),
+                                  req.styleEn(), req.styleFr(), req.styleEs())
                 .anyMatch(v -> v != null && !v.isBlank());
         if (!named) throw new AppException(HttpStatus.BAD_REQUEST, "SIZE_NAME_REQUIRED");
     }
@@ -532,13 +591,16 @@ public class ItemService {
         // Media scoped to this size goes with it; the item's shared gallery, which
         // the size may only have been borrowing, is untouched.
         List<ItemAsset> assets = List.copyOf(size.getAssets());
+        String swatchId = size.getSwatchImageId();
+        boolean swatchOwned = size.isSwatchOwned();
         item.getSizes().remove(size);
         for (int i = 0; i < item.getSizes().size(); i++) {
             item.getSizes().get(i).setSortOrder(i);
         }
         itemRepository.saveAndFlush(item);
         deleteFilesNoLongerUsed(item, assets);
-        log.info("deleted size #{} from item #{}", sizeId, itemId);
+        deleteSwatchIfUnused(item, swatchId, swatchOwned);
+        log.info("deleted variant #{} from item #{}", sizeId, itemId);
         return toItemView(item);
     }
 

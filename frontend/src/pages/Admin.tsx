@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import type { ItemView, ItemViewVerbose, ItemRequest, ItemAssetView, ItemSizeView, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, SlotMediaVariant, CollectionThemeView, SalesStats, MaterialSalesStats, ThemeConfig, AppSettings, BrevoQuota, CloudinaryResource, CloudinaryResourcesPage, JewelryMaterial, PricingFormula } from '../types';
-import { pickLocale, isItemIncomplete, isLabelIncomplete, formatMoney } from '../types';
+import { pickLocale, variantLabel, isItemIncomplete, isLabelIncomplete, formatMoney } from '../types';
 import { useTheme, THEME_DEFAULTS, mergeCollectionTheme } from '../context/ThemeContext';
 import { invalidatePublicSettings } from '../hooks/usePublicSettings';
 
@@ -584,9 +584,100 @@ const PRICING_FACTORS: Record<Exclude<PricingFormula, 'NONE'>, { factor: number;
 
 // ── Item sizes ──────────────────────────────────────────────────────────────
 
-type SizeForm = { sizeEn: string; sizeFr: string; sizeEs: string; stock: string; weightGrams: string; price: string; descriptionEn: string; descriptionFr: string; descriptionEs: string };
+type SizeForm = {
+  sizeEn: string; sizeFr: string; sizeEs: string;
+  styleEn: string; styleFr: string; styleEs: string;
+  /** Swatch picked from the media library, or one already saved on the variant. */
+  swatchImageUrl: string | null; swatchImageId: string | null;
+  /**
+   * A swatch being uploaded. It can only be sent once the variant has an id, so it
+   * waits here and goes up right after the save — in the add flow and the edit flow
+   * alike, which keeps one code path for both. {@code swatchFileUrl} previews it.
+   */
+  swatchFile: File | null; swatchFileUrl: string | null;
+  stock: string; weightGrams: string; price: string;
+  descriptionEn: string; descriptionFr: string; descriptionEs: string;
+};
 
-const emptySizeForm: SizeForm = { sizeEn: '', sizeFr: '', sizeEs: '', stock: '', weightGrams: '', price: '', descriptionEn: '', descriptionFr: '', descriptionEs: '' };
+const emptySizeForm: SizeForm = {
+  sizeEn: '', sizeFr: '', sizeEs: '',
+  styleEn: '', styleFr: '', styleEs: '',
+  swatchImageUrl: null, swatchImageId: null, swatchFile: null, swatchFileUrl: null,
+  stock: '', weightGrams: '', price: '', descriptionEn: '', descriptionFr: '', descriptionEs: '',
+};
+
+/** Uploads a variant's queued swatch, once it has the id the upload needs. */
+async function flushPendingSwatch(itemId: number, sizeId: number, f: SizeForm): Promise<ItemView | null> {
+  if (!f.swatchFile) return null;
+  return api.admin.items.setSizeSwatch(itemId, sizeId, f.swatchFile, f.swatchFile.name.replace(/\.[^.]+$/, ''));
+}
+
+/**
+ * The small image standing in for a style in the storefront picker. One image, so
+ * choosing another replaces what was there; an upload and a library pick are
+ * mutually exclusive and each clears the other.
+ */
+function SwatchField({ value, onChange }: { value: SizeForm; onChange: (f: SizeForm) => void }) {
+  const { t } = useTranslation();
+  const [browsing, setBrowsing] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const preview = value.swatchFileUrl ?? value.swatchImageUrl;
+  const btn = 'text-[11px] uppercase tracking-widest border border-border px-2 py-1 hover:border-dark transition-colors disabled:opacity-50';
+
+  // Mirrors the queued-media cleanup: revoke whatever preview is still ours on unmount.
+  const urlRef = useRef(value.swatchFileUrl);
+  useEffect(() => { urlRef.current = value.swatchFileUrl; }, [value.swatchFileUrl]);
+  useEffect(() => () => { if (urlRef.current) URL.revokeObjectURL(urlRef.current); }, []);
+
+  function replace(next: Partial<SizeForm>) {
+    if (value.swatchFileUrl) URL.revokeObjectURL(value.swatchFileUrl);
+    onChange({ ...value, swatchImageUrl: null, swatchImageId: null, swatchFile: null, swatchFileUrl: null, ...next });
+  }
+
+  function pickFile(file: File | undefined) {
+    if (!file) return;
+    const limit = overSizeLimitMb(file);
+    if (limit) { alert(t('admin.site.fileTooLarge', { name: file.name, max: limit })); return; }
+    replace({ swatchFile: file, swatchFileUrl: URL.createObjectURL(file) });
+  }
+
+  return (
+    <div className="col-span-2 space-y-1">
+      <label className="text-[11px] uppercase tracking-widest text-muted">{t('admin.sizes.swatch')}</label>
+      <div className="flex items-center gap-2 flex-wrap">
+        {preview ? (
+          <img src={preview} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-border" />
+        ) : (
+          <span className="w-10 h-10 rounded-full bg-[#F0EDE8] border border-border flex-shrink-0" />
+        )}
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={e => { pickFile(e.target.files?.[0]); e.target.value = ''; }}
+        />
+        <button type="button" onClick={() => fileRef.current?.click()} className={btn}>{t('admin.modal.addMedia')}</button>
+        <button type="button" onClick={() => setBrowsing(true)} className={btn}>{t('admin.site.browse')}</button>
+        {preview && (
+          <button type="button" onClick={() => replace({})} className={btn}>{t('admin.products.delete')}</button>
+        )}
+      </div>
+      <p className="text-[11px] text-muted">{t('admin.sizes.swatchHint')}</p>
+      {browsing && (
+        <CloudinaryBrowserModal
+          numbered={false}
+          selected={value.swatchImageId ? [value.swatchImageId] : []}
+          onClose={() => setBrowsing(false)}
+          onSelect={resource => {
+            setBrowsing(false);
+            replace({ swatchImageUrl: resource.secureUrl, swatchImageId: resource.publicId });
+          }}
+        />
+      )}
+    </div>
+  );
+}
 
 // Module-scope so it isn't recreated each render (which would remount the inputs
 // and drop focus on every keystroke).
@@ -600,12 +691,22 @@ function SizeFields({ value, onChange, isStatic, priceIncludesTax, heading, hide
     <div className="border border-border p-3 space-y-2">
       {heading && <p className="text-[11px] uppercase tracking-widest text-muted">{heading}</p>}
       <div className="grid grid-cols-2 gap-2">
+        {/* Two axes, either of which may be left blank — a product can vary by style
+            only, by size only, or by a style offered in several sizes. */}
+        <div className="col-span-2 space-y-1">
+          <label className="text-[11px] uppercase tracking-widest text-muted">{t('admin.sizes.style')}</label>
+          <input value={value.styleEs} onChange={e => onChange({ ...value, styleEs: e.target.value })} placeholder={`ES — ${t('admin.sizes.stylePlaceholder')}`} className={inputClass} />
+          <input value={value.styleEn} onChange={e => onChange({ ...value, styleEn: e.target.value })} placeholder={`EN — ${t('admin.sizes.stylePlaceholder')}`} className={inputClass} />
+          <input value={value.styleFr} onChange={e => onChange({ ...value, styleFr: e.target.value })} placeholder={`FR — ${t('admin.sizes.stylePlaceholder')}`} className={inputClass} />
+        </div>
+        <SwatchField value={value} onChange={onChange} />
         <div className="col-span-2 space-y-1">
           <label className="text-[11px] uppercase tracking-widest text-muted">{t('admin.sizes.name')}</label>
           <input value={value.sizeEs} onChange={e => onChange({ ...value, sizeEs: e.target.value })} placeholder={`ES — ${t('admin.sizes.namePlaceholder')}`} className={inputClass} />
           <input value={value.sizeEn} onChange={e => onChange({ ...value, sizeEn: e.target.value })} placeholder={`EN — ${t('admin.sizes.namePlaceholder')}`} className={inputClass} />
           <input value={value.sizeFr} onChange={e => onChange({ ...value, sizeFr: e.target.value })} placeholder={`FR — ${t('admin.sizes.namePlaceholder')}`} className={inputClass} />
         </div>
+        <p className="col-span-2 text-[11px] text-muted">{t('admin.sizes.axesHint')}</p>
         {!hideStock && (
           <div>
             <label className="text-[11px] uppercase tracking-widest text-muted">{t('admin.modal.stock')}</label>
@@ -1021,6 +1122,12 @@ function ItemSizesPanel({ item, pricingFormula, itemAssets, onSizesChanged, onIt
       sizeEn: f.sizeEn.trim() || null,
       sizeFr: f.sizeFr.trim() || null,
       sizeEs: f.sizeEs.trim() || null,
+      styleEn: f.styleEn.trim() || null,
+      styleFr: f.styleFr.trim() || null,
+      styleEs: f.styleEs.trim() || null,
+      // A queued upload has no URL yet; it overwrites these right after the save.
+      swatchImageUrl: f.swatchImageUrl,
+      swatchImageId: f.swatchImageId,
       stock: parseInt(f.stock) || 0,
       weightGrams: parseFloat(f.weightGrams) || 0,
       price: isStatic ? (f.price ? parseFloat(f.price) : null) : null,
@@ -1039,7 +1146,7 @@ function ItemSizesPanel({ item, pricingFormula, itemAssets, onSizesChanged, onIt
     if (sizes.length === 0) {
       // First size: prefill the "original" row from the item's current values.
       setOrigForm({
-        sizeEn: '', sizeFr: '', sizeEs: '',
+        ...emptySizeForm,
         stock: String(item.stock),
         weightGrams: String(item.weightGrams),
         price: isStatic ? showPrice(item.price) : '',
@@ -1056,9 +1163,15 @@ function ItemSizesPanel({ item, pricingFormula, itemAssets, onSizesChanged, onIt
   function startEdit(s: ItemSizeView) {
     setError(null);
     setForm({
+      ...emptySizeForm,
       sizeEn: s.sizeEn ?? '',
       sizeFr: s.sizeFr ?? '',
       sizeEs: s.sizeEs ?? '',
+      styleEn: s.styleEn ?? '',
+      styleFr: s.styleFr ?? '',
+      styleEs: s.styleEs ?? '',
+      swatchImageUrl: s.swatchImageUrl,
+      swatchImageId: s.swatchImageId,
       stock: String(s.stock),
       weightGrams: String(s.weightGrams),
       price: isStatic ? showPrice(s.price) : '',
@@ -1069,16 +1182,17 @@ function ItemSizesPanel({ item, pricingFormula, itemAssets, onSizesChanged, onIt
     setMode(s.id);
   }
 
-  async function submitAdd(reqs: ItemSizeRequest[], queued: PendingMedia[]) {
+  async function submitAdd(forms: SizeForm[], queued: PendingMedia[]) {
     setBusy(true);
     setError(null);
     try {
       const knownIds = new Set(sizes.map(s => s.id));
-      let latest = await api.admin.items.addSizes(item.id, reqs);
+      let latest = await api.admin.items.addSizes(item.id, forms.map(toReq));
       // addSizes appends in request order, so the sizes that weren't there before
       // line up one-to-one with `reqs` — and so with their queued media.
       const created = latest.sizes.filter(s => !knownIds.has(s.id));
       for (let i = 0; i < created.length; i++) {
+        latest = (await flushPendingSwatch(item.id, created[i].id, forms[i])) ?? latest;
         if (!hasPendingMedia(queued[i])) continue;
         latest = (await flushPendingMedia(item.id, created[i].id, queued[i])) ?? latest;
       }
@@ -1098,7 +1212,8 @@ function ItemSizesPanel({ item, pricingFormula, itemAssets, onSizesChanged, onIt
     setError(null);
     try {
       const updated = await api.admin.items.updateSize(item.id, sizeId, toReq(form));
-      apply(updated);
+      // The upload goes last so it wins over whatever swatch the form round-tripped.
+      apply((await flushPendingSwatch(item.id, sizeId, form)) ?? updated);
       setMode('list');
     } catch {
       setError(t('admin.products.saveError'));
@@ -1147,7 +1262,9 @@ function ItemSizesPanel({ item, pricingFormula, itemAssets, onSizesChanged, onIt
   }
 
   const fieldsValid = (f: SizeForm) =>
-    (f.sizeEn.trim() || f.sizeFr.trim() || f.sizeEs.trim()) && f.weightGrams && f.stock !== '' && (!isStatic || f.price);
+    // Named on either axis: style-only and size-only variants are both legitimate.
+    (f.sizeEn.trim() || f.sizeFr.trim() || f.sizeEs.trim() || f.styleEn.trim() || f.styleFr.trim() || f.styleEs.trim())
+    && f.weightGrams && f.stock !== '' && (!isStatic || f.price);
 
   const btn = 'text-xs uppercase tracking-widest px-3 py-1.5 border transition-colors disabled:opacity-50';
 
@@ -1171,7 +1288,8 @@ function ItemSizesPanel({ item, pricingFormula, itemAssets, onSizesChanged, onIt
                   <button type="button" onClick={() => move(s.id, 'up')} disabled={busy || idx === 0} className="text-xs border border-border px-1.5 py-0.5 hover:border-dark transition-colors disabled:opacity-30">↑</button>
                   <button type="button" onClick={() => move(s.id, 'down')} disabled={busy || idx === sizes.length - 1} className="text-xs border border-border px-1.5 py-0.5 hover:border-dark transition-colors disabled:opacity-30">↓</button>
                 </div>
-                <span className="font-medium">{pickLocale(s.sizeEn, s.sizeFr, s.sizeEs, i18n.language)}</span>
+                {s.swatchImageUrl && <img src={s.swatchImageUrl} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0" />}
+                <span className="font-medium">{variantLabel(s, i18n.language)}</span>
                 <span className="text-muted text-xs">· {s.stock} {t('admin.modal.stock').toLowerCase()} · {s.weightGrams} g · ${formatMoney(withTax ? toGross(s.price) : s.price)}{withTax ? ` ${t('admin.sizes.withTaxSuffix')}` : ''}</span>
                 <div className="ml-auto flex gap-2">
                   <button type="button" onClick={() => startEdit(s)} className="text-xs uppercase tracking-widest text-muted hover:text-dark">{t('admin.products.edit')}</button>
@@ -1208,7 +1326,7 @@ function ItemSizesPanel({ item, pricingFormula, itemAssets, onSizesChanged, onIt
           <SizeFields value={form} onChange={setForm} isStatic={isStatic} priceIncludesTax={withTax} heading={t('admin.sizes.newHeading')} />
           <SizeMediaQueue media={media} onChange={setMedia} />
           <div className="flex gap-2">
-            <button type="button" disabled={busy || !fieldsValid(form)} onClick={() => submitAdd([toReq(form)], [media])} className={`${btn} border-dark bg-dark text-white hover:bg-gold`}>{t('admin.modal.save')}</button>
+            <button type="button" disabled={busy || !fieldsValid(form)} onClick={() => submitAdd([form], [media])} className={`${btn} border-dark bg-dark text-white hover:bg-gold`}>{t('admin.modal.save')}</button>
             <button type="button" onClick={() => setMode('list')} className={`${btn} border-border hover:border-dark`}>{t('admin.modal.cancel')}</button>
           </div>
         </div>
@@ -1225,7 +1343,7 @@ function ItemSizesPanel({ item, pricingFormula, itemAssets, onSizesChanged, onIt
             <button
               type="button"
               disabled={busy || !fieldsValid(origForm) || !fieldsValid(form)}
-              onClick={() => submitAdd([toReq(origForm), toReq(form)], [origMedia, media])}
+              onClick={() => submitAdd([origForm, form], [origMedia, media])}
               className={`${btn} border-dark bg-dark text-white hover:bg-gold`}
             >{t('admin.modal.save')}</button>
             <button type="button" onClick={() => setMode('list')} className={`${btn} border-border hover:border-dark`}>{t('admin.modal.cancel')}</button>

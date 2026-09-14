@@ -21,10 +21,21 @@ export interface CategoryView {
 
 export interface ItemSizeView {
   id: number;
-  /** Label per language; at least one is filled, the rest fall back via pickLocale. */
+  /** Size label per language; blank on a style-only product, falls back via pickLocale. */
   sizeEn: string | null;
   sizeFr: string | null;
   sizeEs: string | null;
+  /**
+   * Style label per language — the second axis of the picker. Blank on a product that
+   * only varies by size. Variants sharing these three values are one style in several
+   * sizes, and the storefront groups them on that.
+   */
+  styleEn: string | null;
+  styleFr: string | null;
+  styleEs: string | null;
+  /** Small image standing in for the style; null renders the label alone. */
+  swatchImageUrl: string | null;
+  swatchImageId: string | null;
   stock: number;
   version: number;
   weightGrams: number;
@@ -212,6 +223,12 @@ export interface ItemSizeRequest {
   sizeEn: string | null;
   sizeFr: string | null;
   sizeEs: string | null;
+  styleEn: string | null;
+  styleFr: string | null;
+  styleEs: string | null;
+  /** A swatch picked from the media library; an uploaded one goes through setSizeSwatch. */
+  swatchImageUrl: string | null;
+  swatchImageId: string | null;
   stock: number;
   weightGrams: number;
   price: number | null;
@@ -518,6 +535,19 @@ export function pickLocale(
   if (lang === 'fr') return fr || en || es || '';
   if (lang === 'es') return es || en || fr || '';
   return en || fr || es || '';
+}
+
+/**
+ * A variant's two axes joined — the style and the size, either of which may be blank.
+ * Mirrors {@code ItemSize#label()} on the server, which writes the same string onto
+ * the order line, so the cart and the order history read the same.
+ */
+export function variantLabel(v: ItemSizeView, lang: string): string {
+  const style = pickLocale(v.styleEn, v.styleFr, v.styleEs, lang);
+  const size = pickLocale(v.sizeEn, v.sizeFr, v.sizeEs, lang);
+  if (!style) return size;
+  if (!size) return style;
+  return `${style} \u00b7 ${size}`;
 }
 
 /** Returns true if any language variant is missing for an item. */

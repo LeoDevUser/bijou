@@ -6,8 +6,23 @@ import { useCart } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
 import AutoplayVideo from '../components/ui/AutoplayVideo';
 import { optimizedVideoUrl, optimizedImageUrl } from '../utils/cloudinary';
-import type { ItemView } from '../types';
-import { pickLocale } from '../types';
+import type { ItemSizeView, ItemView } from '../types';
+import { pickLocale, variantLabel } from '../types';
+
+/**
+ * A variant is one point on two axes — a style (shown as a swatch) and a size — and
+ * either may be blank. These keys identify a variant's position on one axis across
+ * languages, so grouping never depends on which languages the admin filled in.
+ */
+function axisKey(en: string | null, fr: string | null, es: string | null): string | null {
+  const parts = [en, fr, es].map(v => (v ?? '').trim());
+  return parts.some(Boolean) ? parts.join('\u0000') : null;
+}
+
+const styleKey = (v: ItemSizeView) => axisKey(v.styleEn, v.styleFr, v.styleEs);
+const sizeKey = (v: ItemSizeView) => axisKey(v.sizeEn, v.sizeFr, v.sizeEs);
+
+type StyleGroup = { key: string; label: string; swatchUrl: string | null; variants: ItemSizeView[] };
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -51,6 +66,48 @@ export default function ProductDetail() {
   const hasSizes = activeSizes.length > 0;
   const selectedSize = hasSizes ? (activeSizes.find(s => s.id === selectedSizeId) ?? null) : null;
 
+  // Variants that name a style are that style in one size, so the picker groups on
+  // the style first and then offers the sizes the chosen style comes in. Grouping is
+  // only worth it when every variant is styled — a half-styled product would leave
+  // the unstyled rows in no group and therefore unpickable, so it falls back to the
+  // flat list, where each option is labelled with both axes.
+  const styleGroups: StyleGroup[] = [];
+  for (const v of activeSizes) {
+    const key = styleKey(v);
+    if (key === null) continue;
+    const group = styleGroups.find(g => g.key === key);
+    if (group) {
+      // The swatch is repeated on every row of a style; the first one to carry it wins.
+      if (!group.swatchUrl) group.swatchUrl = v.swatchImageUrl;
+      group.variants.push(v);
+    } else {
+      styleGroups.push({
+        key,
+        label: pickLocale(v.styleEn, v.styleFr, v.styleEs, i18n.language),
+        swatchUrl: v.swatchImageUrl,
+        variants: [v],
+      });
+    }
+  }
+  const hasStyles = hasSizes && styleGroups.length > 0 && activeSizes.every(v => styleKey(v) !== null);
+  const currentGroup = hasStyles
+    ? (styleGroups.find(g => g.key === (selectedSize ? styleKey(selectedSize) : null)) ?? styleGroups[0])
+    : null;
+  // The size row lists the whole group so a variant is never stranded, but it is only
+  // worth showing when at least one of them is actually named on the size axis.
+  const sizeOptions = currentGroup ? currentGroup.variants : activeSizes;
+  const showSizes = sizeOptions.some(v => sizeKey(v) !== null);
+
+  /** Switching style keeps the size that was chosen, when the new style comes in it. */
+  function selectStyle(group: StyleGroup) {
+    const wanted = selectedSize ? sizeKey(selectedSize) : null;
+    const pick = group.variants.find(v => sizeKey(v) === wanted && v.stock > 0)
+      ?? group.variants.find(v => sizeKey(v) === wanted)
+      ?? group.variants.find(v => v.stock > 0)
+      ?? group.variants[0];
+    setSelectedSizeId(pick.id);
+  }
+
   // A size with media of its own replaces the gallery entirely; one without falls
   // back to the item's — the shots it had before the product was split into sizes.
   const assets = (selectedSize?.assets?.length ? selectedSize.assets : item?.assets) ?? [];
@@ -91,9 +148,8 @@ export default function ProductDetail() {
         i18n.language,
       )
     : '';
-  const selectedSizeLabel = selectedSize
-    ? pickLocale(selectedSize.sizeEn, selectedSize.sizeFr, selectedSize.sizeEs, i18n.language)
-    : null;
+  // Both axes, so the cart line and the sticky bar name the exact variant.
+  const selectedSizeLabel = selectedSize ? variantLabel(selectedSize, i18n.language) : null;
   const basePrice = selectedSize ? Number(selectedSize.price) : Number(item?.price ?? 0);
   const effectiveStock = selectedSize ? selectedSize.stock : (item?.stock ?? 0);
 
@@ -327,13 +383,56 @@ export default function ProductDetail() {
               <p className="text-xl mb-6">{format(basePrice)}</p>
             )}
 
-            {hasSizes && (
+            {hasStyles && (
+              <div className="mb-5">
+                <div className="flex items-baseline justify-between gap-4 mb-2">
+                  <p className="text-xs uppercase tracking-widest text-muted">{t('product.style')}</p>
+                  {currentGroup && <p className="text-xs text-muted truncate">{currentGroup.label}</p>}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {styleGroups.map(g => {
+                    const soldOut = g.variants.every(v => v.stock <= 0);
+                    const selected = g.key === currentGroup?.key;
+                    return (
+                      <button
+                        key={g.key}
+                        type="button"
+                        disabled={soldOut}
+                        title={g.label}
+                        onClick={() => selectStyle(g)}
+                        className={`w-20 flex flex-col items-center gap-1.5 px-1.5 py-2 border transition-colors ${selected ? 'border-dark' : 'border-border hover:border-dark'} ${soldOut ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
+                      >
+                        {g.swatchUrl ? (
+                          <img
+                            src={optimizedImageUrl(g.swatchUrl)}
+                            alt=""
+                            className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+                          />
+                        ) : (
+                          <span className="w-7 h-7 rounded-full bg-[#F0EDE8] border border-border flex-shrink-0" />
+                        )}
+                        <span className="text-[10px] leading-tight uppercase tracking-wider text-center break-words">
+                          {g.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {hasSizes && showSizes && (
               <div className="mb-6">
                 <p className="text-xs uppercase tracking-widest text-muted mb-2">{t('product.size')}</p>
                 <div className="flex flex-wrap gap-2">
-                  {activeSizes.map(s => {
+                  {sizeOptions.map(s => {
                     const soldOut = s.stock <= 0;
                     const selected = s.id === selectedSizeId;
+                    // Inside a style the size alone identifies the option; without
+                    // styles the flat list has to spell out both axes.
+                    const label = hasStyles
+                      ? (pickLocale(s.sizeEn, s.sizeFr, s.sizeEs, i18n.language) || variantLabel(s, i18n.language))
+                      : variantLabel(s, i18n.language);
                     return (
                       <button
                         key={s.id}
@@ -342,7 +441,7 @@ export default function ProductDetail() {
                         onClick={() => setSelectedSizeId(s.id)}
                         className={`text-xs uppercase tracking-widest px-4 py-2 border transition-colors ${selected ? 'bg-dark text-white border-dark' : 'border-border hover:border-dark'} ${soldOut ? 'opacity-40 line-through cursor-not-allowed' : 'cursor-pointer'}`}
                       >
-                        {pickLocale(s.sizeEn, s.sizeFr, s.sizeEs, i18n.language)}
+                        {label}
                       </button>
                     );
                   })}
