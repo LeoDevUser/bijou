@@ -585,6 +585,13 @@ const PRICING_FACTORS: Record<Exclude<PricingFormula, 'NONE'>, { factor: number;
 // ── Item sizes ──────────────────────────────────────────────────────────────
 
 type SizeForm = {
+  /**
+   * Which axis names this variant. Off (the default) it is a size and the style
+   * fields stay hidden and are sent blank; on it is a style, with a swatch, and may
+   * additionally name the size it comes in — one row per style-and-size combination,
+   * each with its own stock.
+   */
+  isStyle: boolean;
   sizeEn: string; sizeFr: string; sizeEs: string;
   styleEn: string; styleFr: string; styleEs: string;
   /** Swatch picked from the media library, or one already saved on the variant. */
@@ -600,6 +607,7 @@ type SizeForm = {
 };
 
 const emptySizeForm: SizeForm = {
+  isStyle: false,
   sizeEn: '', sizeFr: '', sizeEs: '',
   styleEn: '', styleFr: '', styleEs: '',
   swatchImageUrl: null, swatchImageId: null, swatchFile: null, swatchFileUrl: null,
@@ -608,7 +616,7 @@ const emptySizeForm: SizeForm = {
 
 /** Uploads a variant's queued swatch, once it has the id the upload needs. */
 async function flushPendingSwatch(itemId: number, sizeId: number, f: SizeForm): Promise<ItemView | null> {
-  if (!f.swatchFile) return null;
+  if (!f.isStyle || !f.swatchFile) return null;
   return api.admin.items.setSizeSwatch(itemId, sizeId, f.swatchFile, f.swatchFile.name.replace(/\.[^.]+$/, ''));
 }
 
@@ -691,22 +699,30 @@ function SizeFields({ value, onChange, isStatic, priceIncludesTax, heading, hide
     <div className="border border-border p-3 space-y-2">
       {heading && <p className="text-[11px] uppercase tracking-widest text-muted">{heading}</p>}
       <div className="grid grid-cols-2 gap-2">
-        {/* Two axes, either of which may be left blank — a product can vary by style
-            only, by size only, or by a style offered in several sizes. */}
+        <label className="col-span-2 flex items-center gap-2 text-xs cursor-pointer">
+          <input type="checkbox" checked={value.isStyle} onChange={e => onChange({ ...value, isStyle: e.target.checked })} />
+          {t('admin.sizes.isStyle')}
+        </label>
+        {value.isStyle && (
+          <>
+            <div className="col-span-2 space-y-1">
+              <label className="text-[11px] uppercase tracking-widest text-muted">{t('admin.sizes.style')}</label>
+              <input value={value.styleEs} onChange={e => onChange({ ...value, styleEs: e.target.value })} placeholder={`ES — ${t('admin.sizes.stylePlaceholder')}`} className={inputClass} />
+              <input value={value.styleEn} onChange={e => onChange({ ...value, styleEn: e.target.value })} placeholder={`EN — ${t('admin.sizes.stylePlaceholder')}`} className={inputClass} />
+              <input value={value.styleFr} onChange={e => onChange({ ...value, styleFr: e.target.value })} placeholder={`FR — ${t('admin.sizes.stylePlaceholder')}`} className={inputClass} />
+            </div>
+            <SwatchField value={value} onChange={onChange} />
+          </>
+        )}
         <div className="col-span-2 space-y-1">
-          <label className="text-[11px] uppercase tracking-widest text-muted">{t('admin.sizes.style')}</label>
-          <input value={value.styleEs} onChange={e => onChange({ ...value, styleEs: e.target.value })} placeholder={`ES — ${t('admin.sizes.stylePlaceholder')}`} className={inputClass} />
-          <input value={value.styleEn} onChange={e => onChange({ ...value, styleEn: e.target.value })} placeholder={`EN — ${t('admin.sizes.stylePlaceholder')}`} className={inputClass} />
-          <input value={value.styleFr} onChange={e => onChange({ ...value, styleFr: e.target.value })} placeholder={`FR — ${t('admin.sizes.stylePlaceholder')}`} className={inputClass} />
-        </div>
-        <SwatchField value={value} onChange={onChange} />
-        <div className="col-span-2 space-y-1">
-          <label className="text-[11px] uppercase tracking-widest text-muted">{t('admin.sizes.name')}</label>
+          <label className="text-[11px] uppercase tracking-widest text-muted">
+            {t('admin.sizes.name')}{value.isStyle && <span className="normal-case tracking-normal"> — {t('admin.sizes.optional')}</span>}
+          </label>
           <input value={value.sizeEs} onChange={e => onChange({ ...value, sizeEs: e.target.value })} placeholder={`ES — ${t('admin.sizes.namePlaceholder')}`} className={inputClass} />
           <input value={value.sizeEn} onChange={e => onChange({ ...value, sizeEn: e.target.value })} placeholder={`EN — ${t('admin.sizes.namePlaceholder')}`} className={inputClass} />
           <input value={value.sizeFr} onChange={e => onChange({ ...value, sizeFr: e.target.value })} placeholder={`FR — ${t('admin.sizes.namePlaceholder')}`} className={inputClass} />
+          {value.isStyle && <p className="text-[11px] text-muted">{t('admin.sizes.styleSizeHint')}</p>}
         </div>
-        <p className="col-span-2 text-[11px] text-muted">{t('admin.sizes.axesHint')}</p>
         {!hideStock && (
           <div>
             <label className="text-[11px] uppercase tracking-widest text-muted">{t('admin.modal.stock')}</label>
@@ -1122,12 +1138,12 @@ function ItemSizesPanel({ item, pricingFormula, itemAssets, onSizesChanged, onIt
       sizeEn: f.sizeEn.trim() || null,
       sizeFr: f.sizeFr.trim() || null,
       sizeEs: f.sizeEs.trim() || null,
-      styleEn: f.styleEn.trim() || null,
-      styleFr: f.styleFr.trim() || null,
-      styleEs: f.styleEs.trim() || null,
+      styleEn: f.isStyle ? f.styleEn.trim() || null : null,
+      styleFr: f.isStyle ? f.styleFr.trim() || null : null,
+      styleEs: f.isStyle ? f.styleEs.trim() || null : null,
       // A queued upload has no URL yet; it overwrites these right after the save.
-      swatchImageUrl: f.swatchImageUrl,
-      swatchImageId: f.swatchImageId,
+      swatchImageUrl: f.isStyle ? f.swatchImageUrl : null,
+      swatchImageId: f.isStyle ? f.swatchImageId : null,
       stock: parseInt(f.stock) || 0,
       weightGrams: parseFloat(f.weightGrams) || 0,
       price: isStatic ? (f.price ? parseFloat(f.price) : null) : null,
@@ -1164,6 +1180,7 @@ function ItemSizesPanel({ item, pricingFormula, itemAssets, onSizesChanged, onIt
     setError(null);
     setForm({
       ...emptySizeForm,
+      isStyle: !!(s.styleEn || s.styleFr || s.styleEs),
       sizeEn: s.sizeEn ?? '',
       sizeFr: s.sizeFr ?? '',
       sizeEs: s.sizeEs ?? '',
@@ -1262,8 +1279,10 @@ function ItemSizesPanel({ item, pricingFormula, itemAssets, onSizesChanged, onIt
   }
 
   const fieldsValid = (f: SizeForm) =>
-    // Named on either axis: style-only and size-only variants are both legitimate.
-    (f.sizeEn.trim() || f.sizeFr.trim() || f.sizeEs.trim() || f.styleEn.trim() || f.styleFr.trim() || f.styleEs.trim())
+    // Named on the axis the checkbox picked; a style's size is optional.
+    (f.isStyle
+      ? (f.styleEn.trim() || f.styleFr.trim() || f.styleEs.trim())
+      : (f.sizeEn.trim() || f.sizeFr.trim() || f.sizeEs.trim()))
     && f.weightGrams && f.stock !== '' && (!isStatic || f.price);
 
   const btn = 'text-xs uppercase tracking-widest px-3 py-1.5 border transition-colors disabled:opacity-50';
