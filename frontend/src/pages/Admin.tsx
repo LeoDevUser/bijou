@@ -614,6 +614,24 @@ const emptySizeForm: SizeForm = {
   stock: '', weightGrams: '', price: '', descriptionEn: '', descriptionFr: '', descriptionEs: '',
 };
 
+/**
+ * Flips a variant between the two axes. Ticking "style" on a row that only has a
+ * size name is the admin converting that row — a colour that was entered as a size
+ * before styles existed — so the name moves across rather than being left behind
+ * to show up twice ("Brown · Brown"). Names already on the target axis are kept.
+ */
+function toggleAxis(f: SizeForm, isStyle: boolean): SizeForm {
+  const hasStyle = !!(f.styleEn.trim() || f.styleFr.trim() || f.styleEs.trim());
+  const hasSize = !!(f.sizeEn.trim() || f.sizeFr.trim() || f.sizeEs.trim());
+  if (isStyle && !hasStyle && hasSize) {
+    return { ...f, isStyle, styleEn: f.sizeEn, styleFr: f.sizeFr, styleEs: f.sizeEs, sizeEn: '', sizeFr: '', sizeEs: '' };
+  }
+  if (!isStyle && !hasSize && hasStyle) {
+    return { ...f, isStyle, sizeEn: f.styleEn, sizeFr: f.styleFr, sizeEs: f.styleEs, styleEn: '', styleFr: '', styleEs: '' };
+  }
+  return { ...f, isStyle };
+}
+
 /** Uploads a variant's queued swatch, once it has the id the upload needs. */
 async function flushPendingSwatch(itemId: number, sizeId: number, f: SizeForm): Promise<ItemView | null> {
   if (!f.isStyle || !f.swatchFile) return null;
@@ -700,7 +718,7 @@ function SizeFields({ value, onChange, isStatic, priceIncludesTax, heading, hide
       {heading && <p className="text-[11px] uppercase tracking-widest text-muted">{heading}</p>}
       <div className="grid grid-cols-2 gap-2">
         <label className="col-span-2 flex items-center gap-2 text-xs cursor-pointer">
-          <input type="checkbox" checked={value.isStyle} onChange={e => onChange({ ...value, isStyle: e.target.checked })} />
+          <input type="checkbox" checked={value.isStyle} onChange={e => onChange(toggleAxis(value, e.target.checked))} />
           {t('admin.sizes.isStyle')}
         </label>
         {value.isStyle && (

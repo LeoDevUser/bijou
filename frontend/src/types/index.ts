@@ -546,7 +546,7 @@ export function variantLabel(v: ItemSizeView, lang: string): string {
   const style = pickLocale(v.styleEn, v.styleFr, v.styleEs, lang);
   const size = pickLocale(v.sizeEn, v.sizeFr, v.sizeEs, lang);
   if (!style) return size;
-  if (!size) return style;
+  if (!size || size === style) return style;
   return `${style} \u00b7 ${size}`;
 }
 
