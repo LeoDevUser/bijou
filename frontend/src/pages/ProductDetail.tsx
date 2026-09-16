@@ -102,12 +102,12 @@ export default function ProductDetail() {
   const currentGroup = hasStyles && selectedSize
     ? (styleGroups.find(g => g.variants.some(v => v.id === selectedSize.id)) ?? styleGroups[0])
     : null;
-  // The size row lists the whole group so a variant is never stranded, but only for a
-  // real style that is actually named on the size axis — a lone unstyled tile already
-  // is its size, and repeating it below would say nothing.
+  // The size row is a choice between the sizes a style comes in, so it only appears
+  // when there is more than one to choose from — a lone unstyled tile already is its
+  // size, and a style in a single size has nothing to pick.
   const sizeOptions = currentGroup ? currentGroup.variants : activeSizes;
   const showSizes = currentGroup
-    ? currentGroup.styled && sizeOptions.some(v => sizeKey(v) !== null)
+    ? currentGroup.styled && sizeOptions.length > 1
     : sizeOptions.length > 0;
 
   /** Switching style keeps the size that was chosen, when the new style comes in it. */
@@ -397,14 +397,13 @@ export default function ProductDetail() {
 
             {hasStyles && (
               <div className="mb-5">
-                <div className="flex items-baseline justify-between gap-4 mb-2">
-                  <p className="text-xs uppercase tracking-widest text-muted">{t('product.style')}</p>
-                  {currentGroup && <p className="text-xs text-muted truncate">{currentGroup.label}</p>}
-                </div>
+                <p className="text-xs uppercase tracking-widest text-muted mb-2">{t('product.style')}</p>
                 <div className="flex flex-wrap gap-2">
                   {styleGroups.map(g => {
                     const soldOut = g.variants.every(v => v.stock <= 0);
                     const selected = g.key === currentGroup?.key;
+                    // Fixed-size tiles so a row of them lines up whether or not each has
+                    // a swatch; the selection reads as a heavier frame, not a colour change.
                     return (
                       <button
                         key={g.key}
@@ -412,16 +411,16 @@ export default function ProductDetail() {
                         disabled={soldOut}
                         title={g.label}
                         onClick={() => selectStyle(g)}
-                        className={`w-20 flex flex-col items-center justify-center gap-1.5 px-1.5 py-2 border transition-colors ${selected ? 'border-dark' : 'border-border hover:border-dark'} ${soldOut ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
+                        className={`w-[5.5rem] h-20 flex flex-col items-center justify-center gap-1.5 px-1.5 border transition-colors ${selected ? 'border-dark ring-1 ring-dark' : 'border-border hover:border-dark'} ${soldOut ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
                       >
                         {g.swatchUrl && (
                           <img
                             src={optimizedImageUrl(g.swatchUrl)}
                             alt=""
-                            className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+                            className="w-8 h-8 rounded-full object-cover flex-shrink-0"
                           />
                         )}
-                        <span className="text-[10px] leading-tight uppercase tracking-wider text-center break-words">
+                        <span className="text-[11px] leading-tight text-center line-clamp-2">
                           {g.label}
                         </span>
                       </button>
