@@ -22,7 +22,12 @@ function axisKey(en: string | null, fr: string | null, es: string | null): strin
 const styleKey = (v: ItemSizeView) => axisKey(v.styleEn, v.styleFr, v.styleEs);
 const sizeKey = (v: ItemSizeView) => axisKey(v.sizeEn, v.sizeFr, v.sizeEs);
 
-type StyleGroup = { key: string; label: string; swatchUrl: string | null; variants: ItemSizeView[] };
+/**
+ * One tile in the style row. A real style groups every variant that names it; a
+ * variant with no style stands alone as a tile of its own so a product that is only
+ * partly converted to styles still shows every option — and the swatches it has.
+ */
+type StyleGroup = { key: string; label: string; swatchUrl: string | null; styled: boolean; variants: ItemSizeView[] };
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -67,15 +72,18 @@ export default function ProductDetail() {
   const selectedSize = hasSizes ? (activeSizes.find(s => s.id === selectedSizeId) ?? null) : null;
 
   // Variants that name a style are that style in one size, so the picker groups on
-  // the style first and then offers the sizes the chosen style comes in. Grouping is
-  // only worth it when every variant is styled — a half-styled product would leave
-  // the unstyled rows in no group and therefore unpickable, so it falls back to the
-  // flat list, where each option is labelled with both axes.
+  // the style first and then offers the sizes the chosen style comes in. As soon as
+  // one variant is a style the row is shown; the ones that aren't get a tile each,
+  // labelled by their size, so nothing is hidden while a product is being converted.
+  // A product with no styles at all keeps the plain size list.
   const styleGroups: StyleGroup[] = [];
   for (const v of activeSizes) {
     const key = styleKey(v);
-    if (key === null) continue;
-    const group = styleGroups.find(g => g.key === key);
+    if (key === null) {
+      styleGroups.push({ key: `variant:${v.id}`, label: variantLabel(v, i18n.language), swatchUrl: null, styled: false, variants: [v] });
+      continue;
+    }
+    const group = styleGroups.find(g => g.styled && g.key === key);
     if (group) {
       // The swatch is repeated on every row of a style; the first one to carry it wins.
       if (!group.swatchUrl) group.swatchUrl = v.swatchImageUrl;
@@ -85,18 +93,22 @@ export default function ProductDetail() {
         key,
         label: pickLocale(v.styleEn, v.styleFr, v.styleEs, i18n.language),
         swatchUrl: v.swatchImageUrl,
+        styled: true,
         variants: [v],
       });
     }
   }
-  const hasStyles = hasSizes && styleGroups.length > 0 && activeSizes.every(v => styleKey(v) !== null);
-  const currentGroup = hasStyles
-    ? (styleGroups.find(g => g.key === (selectedSize ? styleKey(selectedSize) : null)) ?? styleGroups[0])
+  const hasStyles = styleGroups.some(g => g.styled);
+  const currentGroup = hasStyles && selectedSize
+    ? (styleGroups.find(g => g.variants.some(v => v.id === selectedSize.id)) ?? styleGroups[0])
     : null;
-  // The size row lists the whole group so a variant is never stranded, but it is only
-  // worth showing when at least one of them is actually named on the size axis.
+  // The size row lists the whole group so a variant is never stranded, but only for a
+  // real style that is actually named on the size axis — a lone unstyled tile already
+  // is its size, and repeating it below would say nothing.
   const sizeOptions = currentGroup ? currentGroup.variants : activeSizes;
-  const showSizes = sizeOptions.some(v => sizeKey(v) !== null);
+  const showSizes = currentGroup
+    ? currentGroup.styled && sizeOptions.some(v => sizeKey(v) !== null)
+    : sizeOptions.length > 0;
 
   /** Switching style keeps the size that was chosen, when the new style comes in it. */
   function selectStyle(group: StyleGroup) {
@@ -400,16 +412,14 @@ export default function ProductDetail() {
                         disabled={soldOut}
                         title={g.label}
                         onClick={() => selectStyle(g)}
-                        className={`w-20 flex flex-col items-center gap-1.5 px-1.5 py-2 border transition-colors ${selected ? 'border-dark' : 'border-border hover:border-dark'} ${soldOut ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
+                        className={`w-20 flex flex-col items-center justify-center gap-1.5 px-1.5 py-2 border transition-colors ${selected ? 'border-dark' : 'border-border hover:border-dark'} ${soldOut ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
                       >
-                        {g.swatchUrl ? (
+                        {g.swatchUrl && (
                           <img
                             src={optimizedImageUrl(g.swatchUrl)}
                             alt=""
                             className="w-7 h-7 rounded-full object-cover flex-shrink-0"
                           />
-                        ) : (
-                          <span className="w-7 h-7 rounded-full bg-[#F0EDE8] border border-border flex-shrink-0" />
                         )}
                         <span className="text-[10px] leading-tight uppercase tracking-wider text-center break-words">
                           {g.label}
