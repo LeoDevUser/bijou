@@ -39,7 +39,7 @@ public class AuthService {
         //returns true if meets the char requirements
         boolean hasSpecial = false; boolean hasUpper = false; boolean hasLower = false; boolean hasDigit = false;
         for(char c: str.toCharArray()) {
-            if ("!@#$%^&*()[]{}|~`".indexOf(c) >= 0) hasSpecial = true;
+            if ("!@#$%^&*()[]{}|~`_".indexOf(c) >= 0) hasSpecial = true;
             else if (Character.isUpperCase(c)) hasUpper = true;
             else if (Character.isLowerCase(c)) hasLower = true;
             else if (Character.isDigit(c)) hasDigit = true;
