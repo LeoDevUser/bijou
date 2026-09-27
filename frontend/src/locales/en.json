@@ -595,6 +595,25 @@
       "conflict": "Stock changed since you opened this (a sale came in). Use Adjust, or reopen to set an exact value.",
       "negative": "Stock can't go below zero.",
       "managedPerSize": "Stock is managed per size in the Sizes section below."
+    },
+    "store": {
+      "mine": "Mine ({{store}})",
+      "all": "All stores",
+      "badge": "Store {{store}}",
+      "mixed": "Mixed",
+      "splitTitle": "Store split",
+      "splitRow": "{{store}} · {{percent}}% · items ${{subtotal}} · fees ${{fees}} · tax ${{tax}}",
+      "foreignTitle": "Store {{store}} product",
+      "foreignBody": "This product belongs to store {{store}}, not yours. Do you want to {{action}} it anyway?",
+      "foreignConfirm": "Yes, continue",
+      "cancel": "Cancel",
+      "notSet": "Your admin account has no store assigned, so store-scoped data can't load.",
+      "action": {
+        "edit": "edit",
+        "activate": "activate",
+        "deactivate": "deactivate",
+        "delete": "permanently delete"
+      }
     }
   },
   "account": {

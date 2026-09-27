@@ -2,6 +2,8 @@ package com.bijou.backend.services;
 
 import java.math.BigDecimal;
 
+import com.bijou.backend.entities.Store;
+
 public record OrderItemView(
     Long itemId,
     String sizeLabel,
@@ -12,5 +14,7 @@ public record OrderItemView(
     String nameEs,
     String imageUrl,
     String resourceType,
-    boolean active
+    boolean active,
+    // Admin-only: the item's owning store. Null on customer-facing views.
+    Store store
 ) {}

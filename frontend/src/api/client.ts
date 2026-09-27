@@ -1,4 +1,4 @@
-import type { ItemView, ItemViewVerbose, ItemRequest, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionRequest, CollectionAssetRequest, CollectionSiteAssetView, SlotMediaVariant, CollectionThemeView, SalesStats, MaterialSalesStats, ThemeConfig, TaxPreview, AppSettings, PublicSettings, StripeConfig, BrevoQuota, CloudinaryResourcesPage, FiscalCatalog } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionRequest, CollectionAssetRequest, CollectionSiteAssetView, SlotMediaVariant, CollectionThemeView, SalesStats, MaterialSalesStats, ThemeConfig, TaxPreview, AppSettings, PublicSettings, StripeConfig, BrevoQuota, CloudinaryResourcesPage, FiscalCatalog, Store } from '../types';
 import { getToken, setToken } from './tokenStore';
 
 interface LabelRequest { nameEn: string; nameFr: string; nameEs: string; }
@@ -159,10 +159,11 @@ export const api = {
       request<void>(`/account/phone?phoneNumber=${encodeURIComponent(phoneNumber)}`, { method: 'PATCH' }),
   },
   admin: {
+    store: () => request<{ store: Store }>(`/${ADMIN}/store`),
     items: {
       listVerbose: () => request<ItemViewVerbose[]>(`/${ADMIN}/items`),
-      salesStats: () => request<SalesStats>(`/${ADMIN}/items/salesstats`),
-      materialSalesStats: () => request<MaterialSalesStats>(`/${ADMIN}/items/materialsalesstats`),
+      salesStats: (mine: boolean) => request<SalesStats>(`/${ADMIN}/items/salesstats?mine=${mine}`),
+      materialSalesStats: (mine: boolean) => request<MaterialSalesStats>(`/${ADMIN}/items/materialsalesstats?mine=${mine}`),
       create: (data: ItemRequest) =>
         request<ItemView>(`/${ADMIN}/items`, { method: 'POST', body: JSON.stringify(data) }),
       update: (id: number, data: ItemRequest) =>

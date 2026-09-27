@@ -3,6 +3,7 @@ package com.bijou.backend.services;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,6 +25,7 @@ import com.bijou.backend.entities.Order;
 import com.bijou.backend.entities.OrderItem;
 import com.bijou.backend.entities.Role;
 import com.bijou.backend.entities.Status;
+import com.bijou.backend.entities.Store;
 import com.bijou.backend.repositories.ClientRepository;
 import com.bijou.backend.repositories.ItemRepository;
 import com.bijou.backend.repositories.OrderRepository;
@@ -330,7 +332,17 @@ public class OrderService {
         );
     }
 
+    /** Customer-facing view — carries no store information. */
     public OrderView toOrderView(Order order) {
+        return toOrderView(order, false);
+    }
+
+    /** Admin view — adds each item's store and the order's per-store split. */
+    public OrderView toAdminOrderView(Order order) {
+        return toOrderView(order, true);
+    }
+
+    private OrderView toOrderView(Order order, boolean admin) {
         Client client = order.getClient();
         return new OrderView(
                 order.getAddressLine1(),
@@ -355,7 +367,8 @@ public class OrderService {
                         item.getNameEs(),
                         item.getAssets().isEmpty() ? null : item.getAssets().get(0).getImageUrl(),
                         item.getAssets().isEmpty() ? "image" : item.getAssets().get(0).getResourceType(),
-                        item.isActive()
+                        item.isActive(),
+                        admin ? item.getStore() : null
                     );
                 }).toList(),
                 order.getTrackingNumber(),
@@ -375,7 +388,46 @@ public class OrderService {
                 order.isFacturaRequested(),
                 order.getCfdiUso(),
                 order.getRfc(),
-                order.getRegimenFiscal());
+                order.getRegimenFiscal(),
+                admin ? storeShares(order) : null);
+    }
+
+    /**
+     * Splits an order between the stores whose items it contains, pro rata to each
+     * store's item subtotal. Shipping, handling and duty are pooled as fees. The
+     * last store takes the rounding remainder so the parts add up to the order's
+     * amounts exactly.
+     */
+    private List<StoreShareView> storeShares(Order order) {
+        Map<Store, BigDecimal> subtotals = new EnumMap<>(Store.class);
+        for (OrderItem oi : order.getOrderItems()) {
+            BigDecimal line = oi.getUnitPrice().multiply(BigDecimal.valueOf(oi.getQuantity()));
+            subtotals.merge(oi.getItem().getStore(), line, BigDecimal::add);
+        }
+        BigDecimal total = subtotals.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal fees = nz(order.getShippingFee()).add(nz(order.getHandlingFee())).add(nz(order.getDutyAmount()));
+        BigDecimal tax = nz(order.getTaxAmount());
+
+        List<StoreShareView> shares = new ArrayList<>();
+        BigDecimal feesLeft = fees;
+        BigDecimal taxLeft = tax;
+        int i = 0;
+        for (Map.Entry<Store, BigDecimal> e : subtotals.entrySet()) {
+            boolean last = ++i == subtotals.size();
+            BigDecimal ratio = total.signum() == 0
+                ? BigDecimal.ONE.divide(BigDecimal.valueOf(subtotals.size()), 4, RoundingMode.HALF_UP)
+                : e.getValue().divide(total, 4, RoundingMode.HALF_UP);
+            BigDecimal storeFees = last ? feesLeft : fees.multiply(ratio).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal storeTax = last ? taxLeft : tax.multiply(ratio).setScale(2, RoundingMode.HALF_UP);
+            feesLeft = feesLeft.subtract(storeFees);
+            taxLeft = taxLeft.subtract(storeTax);
+            shares.add(new StoreShareView(e.getKey(), e.getValue(), ratio, storeFees, storeTax));
+        }
+        return shares;
+    }
+
+    private static BigDecimal nz(BigDecimal v) {
+        return v == null ? BigDecimal.ZERO : v;
     }
 
     @Transactional
@@ -395,7 +447,7 @@ public class OrderService {
         if (client.getRole() != Role.ADMIN) {
             throw new AppException(HttpStatus.FORBIDDEN, "ADMIN_ONLY");
         } 
-        return toOrderView(order);
+        return toAdminOrderView(order);
     }
 
     @Transactional
@@ -405,7 +457,7 @@ public class OrderService {
         }
         return orderRepository.findAll()
             .stream()
-            .map(order -> toOrderView(order))
+            .map(order -> toAdminOrderView(order))
             .toList();
     }
 
@@ -416,7 +468,7 @@ public class OrderService {
         }
         return orderRepository.findByStatus(status)
             .stream()
-            .map(order -> toOrderView(order))
+            .map(order -> toAdminOrderView(order))
             .toList();
     }
 
@@ -424,7 +476,7 @@ public class OrderService {
     public List<OrderView> getOrdersByCountry(Country country) {
         return orderRepository.findByCountry(country)
             .stream()
-            .map(order -> toOrderView(order))
+            .map(order -> toAdminOrderView(order))
             .toList();
     }
     
@@ -517,6 +569,6 @@ public class OrderService {
         order.setFacturaUrl(uploaded.url());
         orderRepository.save(order);
         log.info("uploaded factura for order {}", id);
-        return toOrderView(order);
+        return toAdminOrderView(order);
     }
 }

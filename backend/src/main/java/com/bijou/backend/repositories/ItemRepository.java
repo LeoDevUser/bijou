@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import com.bijou.backend.entities.Category;
 import com.bijou.backend.entities.Item;
+import com.bijou.backend.entities.Store;
 
 import jakarta.persistence.LockModeType;
 
@@ -103,6 +104,6 @@ public interface ItemRepository extends JpaRepository<Item, Long>{
        "COALESCE(SUM(i.totalSalesMonth), 0), " +
        "COALESCE(SUM(i.totalSalesQuarter), 0), " +
        "COALESCE(SUM(i.totalSalesYear), 0)) " +
-       "FROM Item i")
-    RevenueStats getRevenueTotals();
+       "FROM Item i WHERE i.store IN :stores")
+    RevenueStats getRevenueTotals(@Param("stores") Collection<Store> stores);
 }

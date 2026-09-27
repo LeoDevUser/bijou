@@ -1,10 +1,12 @@
 package com.bijou.backend.controllers;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -16,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.bijou.backend.entities.Client;
+import com.bijou.backend.entities.Store;
 import com.bijou.backend.repositories.MaterialSalesStats;
 import com.bijou.backend.repositories.SalesStats;
 import com.bijou.backend.services.AssetSizeRequest;
@@ -71,16 +75,17 @@ public class ItemController {
     }
 
     @PostMapping("/${ADMIN_PAGE}/items")
-    public ResponseEntity<ItemView> createItem(@Valid @RequestBody ItemRequest req) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(itemService.createItem(req));
+    public ResponseEntity<ItemView> createItem(@AuthenticationPrincipal Client admin, @Valid @RequestBody ItemRequest req) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(itemService.createItem(admin, req));
     }
 
     @PostMapping(value = "/${ADMIN_PAGE}/items", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ItemView> createItemWithImage(
+            @AuthenticationPrincipal Client admin,
             @RequestPart("item") @Valid ItemRequest req,
             @RequestPart(value = "file", required = false) MultipartFile file,
             @RequestParam(value = "name", required = false) String name) {
-        ItemView view = itemService.createItem(req);
+        ItemView view = itemService.createItem(admin, req);
         if (file != null && !file.isEmpty()) {
             view = itemService.addAsset(view.id(), cloudinaryService.upload(file, name), "image");
         }
@@ -256,13 +261,23 @@ public class ItemController {
         return ResponseEntity.ok(itemService.getItemsVerbose());
     }
 
+    /** The logged-in admin's own store, so the dashboard can tell owned items apart. */
+    @GetMapping("/${ADMIN_PAGE}/store")
+    public ResponseEntity<Map<String, Store>> getStore(@AuthenticationPrincipal Client admin) {
+        return ResponseEntity.ok(Map.of("store", itemService.getStore(admin)));
+    }
+
     @GetMapping("/${ADMIN_PAGE}/items/salesstats")
-    public ResponseEntity<SalesStats> getSalesStats() {
-        return ResponseEntity.ok(itemService.getSalesStats());
+    public ResponseEntity<SalesStats> getSalesStats(
+            @AuthenticationPrincipal Client admin,
+            @RequestParam(defaultValue = "true") boolean mine) {
+        return ResponseEntity.ok(itemService.getSalesStats(admin, mine));
     }
 
     @GetMapping("/${ADMIN_PAGE}/items/materialsalesstats")
-    public ResponseEntity<MaterialSalesStats> getMaterialSalesStats() {
-        return ResponseEntity.ok(itemService.getMaterialSalesStats());
+    public ResponseEntity<MaterialSalesStats> getMaterialSalesStats(
+            @AuthenticationPrincipal Client admin,
+            @RequestParam(defaultValue = "true") boolean mine) {
+        return ResponseEntity.ok(itemService.getMaterialSalesStats(admin, mine));
     }
 }

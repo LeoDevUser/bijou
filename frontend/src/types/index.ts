@@ -86,6 +86,19 @@ export interface ItemViewVerbose extends ItemView {
   totalSalesQuarter: number;
   totalSalesYear: number;
   active: boolean;
+  store: Store;
+}
+
+/** Internal owner of a product. Admin-only; never shown to customers. */
+export type Store = 'K' | 'J';
+
+/** One store's part of an order: its item subtotal, ratio (0–1) and pro-rata fees and tax. */
+export interface StoreShare {
+  store: Store;
+  subtotal: number;
+  ratio: number;
+  fees: number;
+  tax: number;
 }
 
 export interface SalesStats {
@@ -131,6 +144,8 @@ export interface OrderItemView {
   imageUrl: string | null;
   resourceType: string;
   active: boolean;
+  /** Admin views only. */
+  store: Store | null;
 }
 
 export type OrderStatus =
@@ -172,6 +187,8 @@ export interface OrderView {
   cfdiUso: string | null;
   rfc: string | null;
   regimenFiscal: string | null;
+  /** Admin views only. */
+  storeShares: StoreShare[] | null;
 }
 
 export interface CfdiUsoOption {

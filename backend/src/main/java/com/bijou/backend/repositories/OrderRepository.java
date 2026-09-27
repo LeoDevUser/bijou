@@ -1,6 +1,7 @@
 package com.bijou.backend.repositories;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,6 +14,7 @@ import com.bijou.backend.entities.Client;
 import com.bijou.backend.entities.Country;
 import com.bijou.backend.entities.Order;
 import com.bijou.backend.entities.Status;
+import com.bijou.backend.entities.Store;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
@@ -28,24 +30,25 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     boolean existsByOrderItems_Item_Id(Long itemId);
 
-    @Query("SELECT COUNT(o) FROM Order o WHERE o.status NOT IN (com.bijou.backend.entities.Status.AWAITING_PAYMENT, com.bijou.backend.entities.Status.CANCELLED)")
-    long countSuccessful();
-
-    @Query("SELECT COUNT(o) FROM Order o WHERE o.status NOT IN (com.bijou.backend.entities.Status.AWAITING_PAYMENT, com.bijou.backend.entities.Status.CANCELLED) AND o.createdAt >= :since")
-    long countSuccessfulSince(@Param("since") LocalDateTime since);
-
-    @Query("SELECT COALESCE(SUM(o.taxAmount), 0) FROM Order o WHERE o.status NOT IN (com.bijou.backend.entities.Status.AWAITING_PAYMENT, com.bijou.backend.entities.Status.CANCELLED)")
-    java.math.BigDecimal sumTaxTotal();
-
-    @Query("SELECT COALESCE(SUM(o.taxAmount), 0) FROM Order o WHERE o.status NOT IN (com.bijou.backend.entities.Status.AWAITING_PAYMENT, com.bijou.backend.entities.Status.CANCELLED) AND o.createdAt >= :since")
-    java.math.BigDecimal sumTaxSince(@Param("since") LocalDateTime since);
+    /**
+     * Item subtotal per (order, store) across successful orders — one row per
+     * store present in the order. Each row: [orderId, createdAt, taxAmount, store,
+     * subtotal]. The service turns these into per-store shares so a mixed order's
+     * count and tax can be split by the value of the items each store sold.
+     */
+    @Query("SELECT o.id, o.createdAt, o.taxAmount, i.store, SUM(oi.unitPrice * oi.quantity) " +
+        "FROM Order o JOIN o.orderItems oi JOIN oi.item i " +
+        "WHERE o.status NOT IN (com.bijou.backend.entities.Status.AWAITING_PAYMENT, com.bijou.backend.entities.Status.CANCELLED) " +
+        "GROUP BY o.id, o.createdAt, o.taxAmount, i.store")
+    List<Object[]> successfulOrderStoreSubtotals();
 
     /**
      * All-time sales per (material, pricing formula), across successful orders.
      * Each row: [material, pricingFormula, grams, money, units] where grams uses
      * the purchased size's weight when present (else the item's own weight) and
      * money is quantity × unit price. Bucketed into metal categories by the
-     * service. Rows with no matching order items simply don't appear.
+     * service. Only items owned by one of {@code stores} are counted. Rows with
+     * no matching order items simply don't appear.
      */
     @Query("SELECT i.material, i.pricingFormula, " +
         "COALESCE(SUM(oi.quantity * (CASE WHEN oi.itemSize IS NOT NULL THEN oi.itemSize.weightGrams ELSE i.weightGrams END)), 0), " +
@@ -53,6 +56,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         "COALESCE(SUM(oi.quantity), 0) " +
         "FROM Order o JOIN o.orderItems oi JOIN oi.item i " +
         "WHERE o.status NOT IN (com.bijou.backend.entities.Status.AWAITING_PAYMENT, com.bijou.backend.entities.Status.CANCELLED) " +
+        "AND i.store IN :stores " +
         "GROUP BY i.material, i.pricingFormula")
-    List<Object[]> materialSalesTotals();
+    List<Object[]> materialSalesTotals(@Param("stores") Collection<Store> stores);
 }

@@ -37,5 +37,7 @@ public record OrderView(
     boolean facturaRequested,
     CfdiUso cfdiUso,
     String rfc,
-    RegimenFiscal regimenFiscal
+    RegimenFiscal regimenFiscal,
+    // Admin-only: how the order splits between stores. Null on customer-facing views.
+    List<StoreShareView> storeShares
 ){}

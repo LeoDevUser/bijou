@@ -94,6 +94,13 @@ public class Item {
     private BigDecimal totalSales = BigDecimal.ZERO;
     @Builder.Default
     private boolean active = true;
+    /**
+     * Which store owns this item — set from the creating admin and never changed
+     * by edits. Default in the column so existing rows backfill to K.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 1, columnDefinition = "varchar(1) not null default 'K'")
+    private Store store;
     // Long-form descriptions — TEXT so they aren't capped at the default VARCHAR(255)
     @Column(columnDefinition = "TEXT")
     private String descriptionEn;

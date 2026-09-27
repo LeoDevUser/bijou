@@ -71,6 +71,11 @@ public class Client implements UserDetails {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Role role;
+    // The store an admin works for — stamped onto the items they create and used
+    // to scope their sales dashboard. Null for customers.
+    @Column(length = 1)
+    @Enumerated(EnumType.STRING)
+    private Store store;
     @Column(unique = true)
     private String stripeCustomerId;
     @Column(nullable = false)

@@ -595,6 +595,25 @@
       "conflict": "Las existencias cambiaron desde que abriste esto (entró una venta). Usa Ajustar o vuelve a abrir para fijar un valor exacto.",
       "negative": "Las existencias no pueden ser negativas.",
       "managedPerSize": "Las existencias se gestionan por talla en la sección de Tallas más abajo."
+    },
+    "store": {
+      "mine": "Mías ({{store}})",
+      "all": "Todas las tiendas",
+      "badge": "Tienda {{store}}",
+      "mixed": "Mixta",
+      "splitTitle": "Reparto por tienda",
+      "splitRow": "{{store}} · {{percent}}% · artículos ${{subtotal}} · cargos ${{fees}} · impuestos ${{tax}}",
+      "foreignTitle": "Producto de la tienda {{store}}",
+      "foreignBody": "Este producto pertenece a la tienda {{store}}, no a la tuya. ¿Quieres {{action}} de todos modos?",
+      "foreignConfirm": "Sí, continuar",
+      "cancel": "Cancelar",
+      "notSet": "Tu cuenta de administrador no tiene tienda asignada, así que no se pueden cargar los datos por tienda.",
+      "action": {
+        "edit": "editarlo",
+        "activate": "activarlo",
+        "deactivate": "desactivarlo",
+        "delete": "eliminarlo permanentemente"
+      }
     }
   },
   "account": {

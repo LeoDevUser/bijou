@@ -595,6 +595,25 @@
       "conflict": "Le stock a changé depuis l'ouverture (une vente est arrivée). Utilisez Ajuster, ou rouvrez pour définir une valeur exacte.",
       "negative": "Le stock ne peut pas être négatif.",
       "managedPerSize": "Le stock est géré par taille dans la section Tailles ci-dessous."
+    },
+    "store": {
+      "mine": "Les miennes ({{store}})",
+      "all": "Toutes les boutiques",
+      "badge": "Boutique {{store}}",
+      "mixed": "Mixte",
+      "splitTitle": "Répartition par boutique",
+      "splitRow": "{{store}} · {{percent}} % · articles {{subtotal}} $ · frais {{fees}} $ · taxes {{tax}} $",
+      "foreignTitle": "Produit de la boutique {{store}}",
+      "foreignBody": "Ce produit appartient à la boutique {{store}}, pas à la vôtre. Voulez-vous quand même {{action}} ?",
+      "foreignConfirm": "Oui, continuer",
+      "cancel": "Annuler",
+      "notSet": "Votre compte administrateur n'a pas de boutique assignée, les données par boutique ne peuvent pas être chargées.",
+      "action": {
+        "edit": "le modifier",
+        "activate": "l'activer",
+        "deactivate": "le désactiver",
+        "delete": "le supprimer définitivement"
+      }
     }
   },
   "account": {

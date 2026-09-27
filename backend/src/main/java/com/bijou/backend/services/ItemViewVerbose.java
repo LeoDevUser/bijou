@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.bijou.backend.entities.JewelryMaterial;
 import com.bijou.backend.entities.PricingFormula;
+import com.bijou.backend.entities.Store;
 
 public record ItemViewVerbose(
         Long id,
@@ -36,5 +37,6 @@ public record ItemViewVerbose(
         float weightGrams,
         PricingFormula pricingFormula,
         BigDecimal pricingWork,
-        BigDecimal pricingMargin
+        BigDecimal pricingMargin,
+        Store store
 ) {}

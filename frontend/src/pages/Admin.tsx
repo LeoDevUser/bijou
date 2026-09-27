@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, createContext, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
-import type { ItemView, ItemViewVerbose, ItemRequest, ItemAssetView, ItemSizeView, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, SlotMediaVariant, CollectionThemeView, SalesStats, MaterialSalesStats, ThemeConfig, AppSettings, BrevoQuota, CloudinaryResource, CloudinaryResourcesPage, JewelryMaterial, PricingFormula } from '../types';
+import type { ItemView, ItemViewVerbose, ItemRequest, ItemAssetView, ItemSizeView, ItemSizeRequest, OrderView, VerboseClient, LabelView, CategoryView, AnnouncementView, CollectionView, CollectionSiteAssetView, SlotMediaVariant, CollectionThemeView, SalesStats, MaterialSalesStats, ThemeConfig, AppSettings, BrevoQuota, CloudinaryResource, CloudinaryResourcesPage, JewelryMaterial, PricingFormula, Store } from '../types';
 import { pickLocale, variantLabel, isItemIncomplete, isLabelIncomplete, formatMoney } from '../types';
 import { useTheme, THEME_DEFAULTS, mergeCollectionTheme } from '../context/ThemeContext';
 import { invalidatePublicSettings } from '../hooks/usePublicSettings';
@@ -218,10 +218,95 @@ const STATUS_COLOR: Record<string, string> = {
 const selectClass = 'border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors';
 const searchClass = 'border border-border bg-cream px-3 py-2 text-sm outline-none focus:border-dark transition-colors';
 
+// ── Stores ────────────────────────────────────────────────────────────────────
+
+/**
+ * The logged-in admin's store and whether the orders/stats tabs show only that
+ * store ('mine') or both. Store is null until loaded, or when the account has
+ * none assigned.
+ */
+type StoreScope = 'mine' | 'all';
+type AdminStoreState = { store: Store | null; scope: StoreScope; setScope: (s: StoreScope) => void };
+const AdminStoreContext = createContext<AdminStoreState>({ store: null, scope: 'mine', setScope: () => {} });
+const useAdminStore = () => useContext(AdminStoreContext);
+
+const SCOPE_KEY = 'admin.storeScope';
+
+function readScope(): StoreScope {
+  try { return localStorage.getItem(SCOPE_KEY) === 'all' ? 'all' : 'mine'; } catch { return 'mine'; }
+}
+
+function StoreScopeToggle() {
+  const { t } = useTranslation();
+  const { store, scope, setScope } = useAdminStore();
+  if (!store) return null;
+  const btn = (value: StoreScope, label: string) => (
+    <button
+      onClick={() => setScope(value)}
+      className={`text-xs uppercase tracking-widest px-4 py-2 transition-colors ${
+        scope === value ? 'bg-dark text-white' : 'hover:bg-[#F7F5F0]'
+      }`}
+    >
+      {label}
+    </button>
+  );
+  return (
+    <div className="inline-flex self-start border border-dark">
+      {btn('mine', t('admin.store.mine', { store }))}
+      {btn('all', t('admin.store.all'))}
+    </div>
+  );
+}
+
+function StoreBadge({ store }: { store: Store }) {
+  const { t } = useTranslation();
+  const { store: mine } = useAdminStore();
+  return (
+    <span className={`text-[10px] uppercase tracking-widest border px-1.5 py-0.5 ${
+      store === mine ? 'border-border text-muted' : 'border-amber-500 text-amber-700'
+    }`}>
+      {t('admin.store.badge', { store })}
+    </span>
+  );
+}
+
+type ForeignAction = 'edit' | 'activate' | 'deactivate' | 'delete';
+
+/** Warning shown before any change to a product owned by the other store. */
+function ForeignItemModal({ store, action, onConfirm, onCancel }: {
+  store: Store; action: ForeignAction; onConfirm: () => void; onCancel: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className="fixed inset-0 bg-black/40 z-[60] flex items-center justify-center p-6" onClick={onCancel}>
+      <div className="bg-cream w-full max-w-sm border-t-4 border-amber-500 p-6" onClick={e => e.stopPropagation()}>
+        <h2 className="font-serif text-2xl font-light mb-3">{t('admin.store.foreignTitle', { store })}</h2>
+        <p className="text-sm text-muted mb-6">
+          {t('admin.store.foreignBody', { store, action: t(`admin.store.action.${action}`) })}
+        </p>
+        <div className="flex justify-end gap-2">
+          <button onClick={onCancel} className="text-xs uppercase tracking-widest border border-border px-4 py-2 hover:border-dark transition-colors">
+            {t('admin.store.cancel')}
+          </button>
+          <button
+            onClick={onConfirm}
+            className={`text-xs uppercase tracking-widest text-white px-4 py-2 transition-colors ${
+              action === 'delete' ? 'bg-red-600 hover:bg-red-700' : 'bg-dark hover:bg-gold'
+            }`}
+          >
+            {t('admin.store.foreignConfirm')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Orders ────────────────────────────────────────────────────────────────────
 
 function AdminOrders() {
   const { t, i18n } = useTranslation();
+  const { store, scope } = useAdminStore();
   const [orders, setOrders] = useState<OrderView[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
@@ -252,6 +337,7 @@ function AdminOrders() {
   }
 
   const filtered = orders.filter(o => {
+    if (scope === 'mine' && store && !o.storeShares?.some(sh => sh.store === store)) return false;
     if (search) {
       const q = search.toLowerCase();
       if (!String(o.id).includes(q) && !o.email.toLowerCase().includes(q)) return false;
@@ -266,6 +352,7 @@ function AdminOrders() {
   return (
     <div>
       <div className="flex flex-col gap-3 mb-6">
+        <StoreScopeToggle />
         <div className="flex flex-wrap gap-3">
           <select
             value={statusFilter}
@@ -320,6 +407,9 @@ function AdminOrders() {
               >
                 <span className="text-xs text-muted w-8 flex-shrink-0">#{o.id}</span>
                 <span className="text-sm truncate flex-1 min-w-0">{o.firstName} {o.lastName}</span>
+                {o.storeShares && (o.storeShares.length > 1
+                  ? <span className="text-[10px] uppercase tracking-widest border border-amber-500 text-amber-700 px-1.5 py-0.5 flex-shrink-0">{t('admin.store.mixed')}</span>
+                  : o.storeShares.length === 1 && <span className="flex-shrink-0"><StoreBadge store={o.storeShares[0].store} /></span>)}
                 <span className="text-sm text-muted hidden md:inline truncate max-w-[180px] flex-shrink-0" title={o.email}>{o.email}</span>
                 <span className={`text-xs uppercase tracking-wider flex-shrink-0 ${STATUS_COLOR[o.status]}`}>
                   {o.status.replace('_', ' ')}
@@ -380,7 +470,7 @@ function AdminOrders() {
                               }
                               <div className="min-w-0">
                                 <p className="text-sm truncate">{name}{item.sizeLabel ? ` · ${item.sizeLabel}` : ''}</p>
-                                <p className="text-xs text-muted">×{item.quantity}</p>
+                                <p className="text-xs text-muted flex items-center gap-2">×{item.quantity}{item.store && <StoreBadge store={item.store} />}</p>
                               </div>
                             </div>
                             <span className="text-sm flex-shrink-0">${formatMoney(item.unitPrice * item.quantity)}</span>
@@ -389,6 +479,22 @@ function AdminOrders() {
                       })}
                     </div>
                   </div>
+                  {o.storeShares && o.storeShares.length > 1 && (
+                    <div className="mt-4 border border-amber-500/60 bg-[#F7F5F0] px-3 py-2 text-xs space-y-0.5">
+                      <p className="uppercase tracking-widest text-muted">{t('admin.store.splitTitle')}</p>
+                      {o.storeShares.map(sh => (
+                        <p key={sh.store} className={sh.store === store ? 'font-medium' : ''}>
+                          {t('admin.store.splitRow', {
+                            store: sh.store,
+                            percent: formatMoney(sh.ratio * 100, 1),
+                            subtotal: formatMoney(sh.subtotal),
+                            fees: formatMoney(sh.fees),
+                            tax: formatMoney(sh.tax),
+                          })}
+                        </p>
+                      ))}
+                    </div>
+                  )}
                   {o.status !== 'DELIVERED' && (
                     <div className="mt-4 flex flex-wrap items-center gap-3">
                       <p className="text-xs uppercase tracking-widest text-muted">{t('admin.orders.setTracking')}</p>
@@ -2096,7 +2202,9 @@ type ProductSort = 'default' | 'sold' | 'soldMonth' | 'sales';
 
 function AdminProducts() {
   const { t, i18n } = useTranslation();
+  const { store: myStore } = useAdminStore();
   const [items, setItems] = useState<ItemViewVerbose[]>([]);
+  const [foreign, setForeign] = useState<{ item: ItemViewVerbose; action: ForeignAction; run: () => void } | null>(null);
   const [labels, setLabels] = useState<LabelView[]>([]);
   const [categories, setCategories] = useState<CategoryView[]>([]);
   const [loading, setLoading] = useState(true);
@@ -2140,8 +2248,19 @@ function AdminProducts() {
     }
   }
 
-  async function handleDelete(id: number) {
-    if (!confirm(t('admin.products.deleteConfirm'))) return;
+  /**
+   * Runs an action on a product, first asking for confirmation when the product
+   * belongs to the other store. Own products go straight through.
+   */
+  const isForeign = (item: ItemViewVerbose) => myStore !== null && item.store !== myStore;
+
+  function guarded(item: ItemViewVerbose, action: ForeignAction, run: () => void) {
+    if (isForeign(item)) setForeign({ item, action, run });
+    else run();
+  }
+
+  async function handleDelete(id: number, confirmed = false) {
+    if (!confirmed && !confirm(t('admin.products.deleteConfirm'))) return;
     try {
       await api.admin.items.delete(id);
       load();
@@ -2226,6 +2345,7 @@ function AdminProducts() {
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="text-sm font-medium">{displayName}</p>
+                    <StoreBadge store={item.store} />
                     {!item.active && <span className="text-[10px] uppercase tracking-widest border border-muted text-muted px-1.5 py-0.5">{t('admin.products.inactive')}</span>}
                     {incomplete && <span className="text-[10px] uppercase tracking-widest border border-amber-400 text-amber-600 px-1.5 py-0.5">{t('admin.products.incomplete')}</span>}
                     {!!item.discountPercent && <span className="text-[10px] uppercase tracking-widest border border-gold text-gold px-1.5 py-0.5">-{item.discountPercent}%</span>}
@@ -2239,19 +2359,20 @@ function AdminProducts() {
                 </div>
               </div>
               <div className="flex flex-wrap gap-2 mt-3">
-                <button onClick={() => setModal(item)} className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors">
+                <button onClick={() => guarded(item, 'edit', () => setModal(item))} className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors">
                   {t('admin.products.edit')}
                 </button>
                 {item.active ? (
-                  <button onClick={() => api.admin.items.deactivate(item.id).then(load)} className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors">
+                  <button onClick={() => guarded(item, 'deactivate', () => api.admin.items.deactivate(item.id).then(load))} className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors">
                     {t('admin.products.deactivate')}
                   </button>
                 ) : (
-                  <button onClick={() => api.admin.items.activate(item.id).then(load)} className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors">
+                  <button onClick={() => guarded(item, 'activate', () => api.admin.items.activate(item.id).then(load))} className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors">
                     {t('admin.products.activate')}
                   </button>
                 )}
-                <button onClick={() => handleDelete(item.id)} className="text-xs uppercase tracking-widest border border-red-300 text-red-500 px-3 py-1.5 hover:border-red-500 transition-colors">
+                {/* The foreign-store warning doubles as the delete confirmation. */}
+                <button onClick={() => guarded(item, 'delete', () => handleDelete(item.id, isForeign(item)))} className="text-xs uppercase tracking-widest border border-red-300 text-red-500 px-3 py-1.5 hover:border-red-500 transition-colors">
                   {t('admin.products.delete')}
                 </button>
               </div>
@@ -2286,6 +2407,15 @@ function AdminProducts() {
           onDelete={handleDeleteCategory}
         />
       </div>
+
+      {foreign && (
+        <ForeignItemModal
+          store={foreign.item.store}
+          action={foreign.action}
+          onCancel={() => setForeign(null)}
+          onConfirm={() => { const run = foreign.run; setForeign(null); run(); }}
+        />
+      )}
 
       {modal !== null && (
         <ItemModal
@@ -4407,21 +4537,24 @@ function AdminSite() {
 
 function AdminStats() {
   const { t, i18n } = useTranslation();
+  const { store, scope } = useAdminStore();
   const [stats, setStats] = useState<SalesStats | null>(null);
   const [materials, setMaterials] = useState<MaterialSalesStats | null>(null);
   const [items, setItems] = useState<ItemViewVerbose[]>([]);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState<'month' | 'quarter' | 'year' | 'total'>('month');
+  // "Mine" needs the admin's store; without one the backend refuses, so fall back to all.
+  const mine = scope === 'mine' && store !== null;
 
   useEffect(() => {
-    Promise.all([api.admin.items.salesStats(), api.admin.items.materialSalesStats(), api.admin.items.listVerbose()])
+    Promise.all([api.admin.items.salesStats(mine), api.admin.items.materialSalesStats(mine), api.admin.items.listVerbose()])
       .then(([s, m, i]) => { setStats(s); setMaterials(m); setItems(i); })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [mine]);
 
   const sorted = [...items]
-    .filter(i => i.active)
+    .filter(i => i.active && (!mine || i.store === store))
     .sort((a, b) => {
       if (sort === 'month') return b.totalSalesMonth - a.totalSalesMonth;
       if (sort === 'quarter') return b.totalSalesQuarter - a.totalSalesQuarter;
@@ -4465,6 +4598,7 @@ function AdminStats() {
 
   return (
     <div className="space-y-10">
+      <StoreScopeToggle />
       {/* Overall stats */}
       <div>
         <p className="text-xs uppercase tracking-widest text-muted mb-4">{t('admin.stats.overallTitle')}</p>
@@ -4538,7 +4672,7 @@ function AdminStats() {
                     : <div className="w-8 h-8 bg-[#F0EDE8] flex-shrink-0" />
                   }
                   <div className="min-w-0">
-                    <p className="truncate">{name}</p>
+                    <p className="truncate">{name}{!mine && <> <StoreBadge store={item.store} /></>}</p>
                     <p className="text-xs text-muted">{item.nbSoldMonth} {t('admin.stats.unitsSoldMonth')} · {item.nbSold} {t('admin.stats.unitsSoldTotal')}</p>
                   </div>
                 </div>
@@ -4932,6 +5066,17 @@ type Tab = 'orders' | 'products' | 'stats' | 'users' | 'admins' | 'site' | 'them
 export default function Admin() {
   const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>('orders');
+  const [store, setStore] = useState<Store | null>(null);
+  const [scope, setScopeState] = useState<StoreScope>(readScope);
+
+  useEffect(() => {
+    api.admin.store().then(r => setStore(r.store)).catch(console.error);
+  }, []);
+
+  function setScope(s: StoreScope) {
+    setScopeState(s);
+    try { localStorage.setItem(SCOPE_KEY, s); } catch { /* storage unavailable */ }
+  }
 
   const TABS: { key: Tab; label: string }[] = [
     { key: 'orders', label: t('admin.tabs.orders') },
@@ -4945,6 +5090,7 @@ export default function Admin() {
   ];
 
   return (
+    <AdminStoreContext.Provider value={{ store, scope, setScope }}>
     <div className="max-w-5xl mx-auto px-4 md:px-6 py-12">
       <h1 className="font-serif text-4xl font-light mb-2">{t('admin.title')}</h1>
       <p className="text-muted text-sm mb-10">{t('admin.subtitle')}</p>
@@ -4977,5 +5123,6 @@ export default function Admin() {
       )}
       {tab === 'settings' && <AdminSettings />}
     </div>
+    </AdminStoreContext.Provider>
   );
 }

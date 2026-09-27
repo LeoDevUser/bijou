@@ -1,11 +1,15 @@
 package com.bijou.backend.services;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.http.HttpStatus;
@@ -14,12 +18,14 @@ import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 
 import com.bijou.backend.entities.Category;
+import com.bijou.backend.entities.Client;
 import com.bijou.backend.entities.Item;
 import com.bijou.backend.entities.ItemAsset;
 import com.bijou.backend.entities.ItemSize;
 import com.bijou.backend.entities.JewelryMaterial;
 import com.bijou.backend.entities.Label;
 import com.bijou.backend.entities.PricingFormula;
+import com.bijou.backend.entities.Store;
 import com.bijou.backend.exception.AppException;
 import com.bijou.backend.repositories.CategoryRepository;
 import com.bijou.backend.repositories.ItemRepository;
@@ -174,11 +180,12 @@ public class ItemService {
                 item.getWeightGrams(),
                 item.getPricingFormula(),
                 item.getPricingWork(),
-                item.getPricingMargin()
+                item.getPricingMargin(),
+                item.getStore()
             );
     }
 
-    public ItemView createItem(ItemRequest req) {
+    public ItemView createItem(Client admin, ItemRequest req) {
         if (req.nameEn() != null && !req.nameEn().isBlank() &&
                 itemRepository.findByNameEnIgnoreCase(req.nameEn()).isPresent()) {
             log.warn("item with nameEn {} already exists", req.nameEn());
@@ -203,9 +210,10 @@ public class ItemService {
             .material(req.material())
             .usmcaQualified(req.usmcaQualified())
             .weightGrams(req.weightGrams())
+            .store(requireStore(admin))
             .build();
         itemRepository.save(item);
-        log.info("created item #{} ({})", item.getId(), displayName(item));
+        log.info("created item #{} ({}) for store {} by {}", item.getId(), displayName(item), item.getStore(), admin.getEmail());
         return toItemView(item);
     }
 
@@ -704,36 +712,83 @@ public class ItemService {
             .toList();
     }
 
-    public SalesStats getSalesStats() {
-        RevenueStats rev = itemRepository.getRevenueTotals();
+    /**
+     * The stores an admin's dashboard covers: just their own when {@code mine},
+     * otherwise every store.
+     */
+    private Set<Store> scopeStores(Client admin, boolean mine) {
+        if (!mine) return EnumSet.allOf(Store.class);
+        return EnumSet.of(requireStore(admin));
+    }
+
+    private Store requireStore(Client admin) {
+        if (admin.getStore() == null) {
+            log.warn("admin {} has no store assigned", admin.getEmail());
+            throw new AppException(HttpStatus.CONFLICT, "ADMIN_STORE_NOT_SET");
+        }
+        return admin.getStore();
+    }
+
+    public Store getStore(Client admin) {
+        return requireStore(admin);
+    }
+
+    /**
+     * Revenue comes from the per-item counters of the stores in scope. Order counts
+     * and tax are per order, so a mixed order is split by the share of its item
+     * subtotal each store sold: it counts as one order for every store it touches,
+     * and its tax is divided pro rata.
+     */
+    public SalesStats getSalesStats(Client admin, boolean mine) {
+        Set<Store> stores = scopeStores(admin, mine);
+        RevenueStats rev = itemRepository.getRevenueTotals(stores);
         LocalDateTime now = LocalDateTime.now();
+        LocalDateTime[] since = { now.minusWeeks(1), now.minusMonths(1), now.minusMonths(3), now.minusYears(1) };
+        long ordersTotal = 0;
+        long[] orders = new long[since.length];
+        BigDecimal taxTotal = BigDecimal.ZERO;
+        BigDecimal[] tax = { BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO };
+
+        Map<Long, List<Object[]>> byOrder = orderRepository.successfulOrderStoreSubtotals().stream()
+            .collect(Collectors.groupingBy(row -> (Long) row[0]));
+        for (List<Object[]> rows : byOrder.values()) {
+            LocalDateTime createdAt = (LocalDateTime) rows.get(0)[1];
+            BigDecimal orderTax = rows.get(0)[2] == null ? BigDecimal.ZERO : (BigDecimal) rows.get(0)[2];
+            BigDecimal orderSubtotal = BigDecimal.ZERO;
+            BigDecimal scopeSubtotal = BigDecimal.ZERO;
+            for (Object[] row : rows) {
+                BigDecimal subtotal = (BigDecimal) row[4];
+                orderSubtotal = orderSubtotal.add(subtotal);
+                if (stores.contains((Store) row[3])) scopeSubtotal = scopeSubtotal.add(subtotal);
+            }
+            if (scopeSubtotal.signum() == 0) continue;
+            BigDecimal scopeTax = scopeSubtotal.compareTo(orderSubtotal) == 0
+                ? orderTax
+                : orderTax.multiply(scopeSubtotal).divide(orderSubtotal, 2, RoundingMode.HALF_UP);
+            ordersTotal++;
+            taxTotal = taxTotal.add(scopeTax);
+            for (int i = 0; i < since.length; i++) {
+                if (!createdAt.isBefore(since[i])) {
+                    orders[i]++;
+                    tax[i] = tax[i].add(scopeTax);
+                }
+            }
+        }
         return new SalesStats(
-            rev.total(),
-            rev.week(),
-            rev.month(),
-            rev.quarter(),
-            rev.year(),
-            orderRepository.countSuccessful(),
-            orderRepository.countSuccessfulSince(now.minusWeeks(1)),
-            orderRepository.countSuccessfulSince(now.minusMonths(1)),
-            orderRepository.countSuccessfulSince(now.minusMonths(3)),
-            orderRepository.countSuccessfulSince(now.minusYears(1)),
-            orderRepository.sumTaxTotal(),
-            orderRepository.sumTaxSince(now.minusWeeks(1)),
-            orderRepository.sumTaxSince(now.minusMonths(1)),
-            orderRepository.sumTaxSince(now.minusMonths(3)),
-            orderRepository.sumTaxSince(now.minusYears(1))
+            rev.total(), rev.week(), rev.month(), rev.quarter(), rev.year(),
+            ordersTotal, orders[0], orders[1], orders[2], orders[3],
+            taxTotal, tax[0], tax[1], tax[2], tax[3]
         );
     }
 
-    public MaterialSalesStats getMaterialSalesStats() {
+    public MaterialSalesStats getMaterialSalesStats(Client admin, boolean mine) {
         MaterialBucket gold10k = MaterialBucket.zero();
         MaterialBucket gold14k = MaterialBucket.zero();
         MaterialBucket silver  = MaterialBucket.zero();
         MaterialBucket steel   = MaterialBucket.zero();
         MaterialBucket other   = MaterialBucket.zero();
 
-        for (Object[] row : orderRepository.materialSalesTotals()) {
+        for (Object[] row : orderRepository.materialSalesTotals(scopeStores(admin, mine))) {
             JewelryMaterial material = (JewelryMaterial) row[0];
             PricingFormula formula   = (PricingFormula) row[1];
             // SUM over a float column comes back as Double; money is BigDecimal.

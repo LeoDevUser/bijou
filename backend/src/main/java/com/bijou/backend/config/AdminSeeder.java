@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import com.bijou.backend.entities.Client;
 import com.bijou.backend.entities.Country;
 import com.bijou.backend.entities.Role;
+import com.bijou.backend.entities.Store;
 import com.bijou.backend.entities.Language;
 import com.bijou.backend.repositories.ClientRepository;
 
@@ -44,6 +45,7 @@ public class AdminSeeder implements ApplicationRunner {
             .country(Country.MEXICO)
             .phoneNumber("N/A")
             .role(Role.ADMIN)
+            .store(Store.K)
             .language(Language.ES)
             .build();
 
