@@ -491,7 +491,13 @@ export default function ProductDetail() {
               </p>
             </div>
 
-            <p className="text-[#555] text-sm leading-relaxed mt-8 whitespace-pre-line">{description}</p>
+            {/* Every line break starts a new paragraph: text pasted from a document keeps
+                its paragraphs on single line breaks, without the blank line between them. */}
+            {description && (
+              <div className="text-[#555] text-sm leading-relaxed mt-8 space-y-3">
+                {description.split(/\n\s*/).filter(Boolean).map((para, i) => <p key={i}>{para}</p>)}
+              </div>
+            )}
           </div>
         </div>
       </div>

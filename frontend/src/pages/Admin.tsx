@@ -977,7 +977,7 @@ function MediaThumb({ url, resourceType, badge, actions, dim }: {
         <span className="absolute bottom-0 inset-x-0 bg-gold/90 text-dark text-[9px] uppercase tracking-widest text-center py-px">{badge}</span>
       )}
       {actions && (
-        <div className={`absolute inset-x-0 ${badge ? 'top-0' : 'bottom-0'} flex justify-center gap-1 bg-dark/80 opacity-0 group-hover:opacity-100 transition-opacity`}>
+        <div className={`absolute inset-x-0 ${badge ? 'top-0' : 'bottom-0'} flex justify-center gap-1 bg-dark/80 pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 transition-opacity`}>
           {actions}
         </div>
       )}
@@ -1931,7 +1931,7 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
                       <button
                         type="button"
                         onClick={() => handleDeleteAsset(asset.id)}
-                        className="absolute top-0.5 right-0.5 bg-dark text-white text-xs w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                        className="absolute top-0.5 right-0.5 bg-dark text-white text-xs w-5 h-5 pointer-coarse:w-7 pointer-coarse:h-7 pointer-coarse:text-base flex items-center justify-center pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 transition-opacity cursor-pointer"
                       >×</button>
                     )}
                   </div>
@@ -1947,7 +1947,7 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
                     <button
                       type="button"
                       onClick={() => removePendingFile(idx)}
-                      className="absolute top-0.5 right-0.5 bg-dark text-white text-xs w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                      className="absolute top-0.5 right-0.5 bg-dark text-white text-xs w-5 h-5 pointer-coarse:w-7 pointer-coarse:h-7 pointer-coarse:text-base flex items-center justify-center pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 transition-opacity cursor-pointer"
                     >×</button>
                   </div>
                 ))}
@@ -1962,7 +1962,7 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
                     <button
                       type="button"
                       onClick={() => removePendingPick(idx)}
-                      className="absolute top-0.5 right-0.5 bg-dark text-white text-xs w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                      className="absolute top-0.5 right-0.5 bg-dark text-white text-xs w-5 h-5 pointer-coarse:w-7 pointer-coarse:h-7 pointer-coarse:text-base flex items-center justify-center pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 transition-opacity cursor-pointer"
                     >×</button>
                   </div>
                 ))}
