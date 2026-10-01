@@ -871,9 +871,9 @@ function SizeFields({ value, onChange, isStatic, priceIncludesTax, heading, hide
       <details>
         <summary className="text-[11px] uppercase tracking-widest text-muted cursor-pointer">{t('admin.sizes.descOverrides')}</summary>
         <div className="space-y-2 mt-2">
-          <textarea placeholder="ES" rows={2} value={value.descriptionEs} onChange={e => onChange({ ...value, descriptionEs: e.target.value })} className={inputClass} />
-          <textarea placeholder="EN" rows={2} value={value.descriptionEn} onChange={e => onChange({ ...value, descriptionEn: e.target.value })} className={inputClass} />
-          <textarea placeholder="FR" rows={2} value={value.descriptionFr} onChange={e => onChange({ ...value, descriptionFr: e.target.value })} className={inputClass} />
+          <textarea onPaste={pasteParagraphs} placeholder="ES" rows={2} value={value.descriptionEs} onChange={e => onChange({ ...value, descriptionEs: e.target.value })} className={inputClass} />
+          <textarea onPaste={pasteParagraphs} placeholder="EN" rows={2} value={value.descriptionEn} onChange={e => onChange({ ...value, descriptionEn: e.target.value })} className={inputClass} />
+          <textarea onPaste={pasteParagraphs} placeholder="FR" rows={2} value={value.descriptionFr} onChange={e => onChange({ ...value, descriptionFr: e.target.value })} className={inputClass} />
         </div>
       </details>
     </div>
@@ -956,6 +956,19 @@ async function flushPendingMedia(itemId: number, sizeId: number, media: PendingM
     view = await api.admin.items.pickSizeAsset(itemId, sizeId, pick);
   }
   return view;
+}
+
+/**
+ * Text copied from a formatted document (Google Docs, Word) arrives with its paragraphs
+ * on single line breaks, so a pasted description collapses into one block. Each break
+ * is widened to a blank line so the paragraphs stay apart in the box and on the page.
+ * insertText goes through the browser's own editing, so undo and onChange still work.
+ */
+function pasteParagraphs(e: React.ClipboardEvent<HTMLTextAreaElement>) {
+  const text = e.clipboardData.getData('text/plain');
+  if (!text.includes('\n')) return;
+  e.preventDefault();
+  document.execCommand('insertText', false, text.replace(/\r\n?/g, '\n').replace(/\n\s*/g, '\n\n'));
 }
 
 /**
@@ -1643,9 +1656,18 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-6" onClick={onClose}>
-      <div className="bg-cream w-full max-w-lg max-h-[90vh] overflow-y-auto p-8" onClick={e => e.stopPropagation()}>
-        <h2 className="font-serif text-2xl font-light mb-6">{item ? t('admin.modal.editTitle') : t('admin.modal.newTitle')}</h2>
+    // No click-outside close: a stray tap beside the panel used to throw away the whole
+    // form. The × sits outside the scrolling panel so it stays in reach on a long form.
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-6">
+      <div className="relative w-full max-w-lg">
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label={t('admin.modal.cancel')}
+        className="absolute top-3 right-5 z-10 w-8 h-8 flex items-center justify-center text-muted hover:text-dark text-lg leading-none cursor-pointer"
+      >✕</button>
+      <div className="bg-cream w-full max-h-[90vh] overflow-y-auto p-8">
+        <h2 className="font-serif text-2xl font-light mb-6 pr-8">{item ? t('admin.modal.editTitle') : t('admin.modal.newTitle')}</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.name')}</label>
@@ -1658,9 +1680,9 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
           <div>
             <label className="block text-xs uppercase tracking-widest mb-2">{t('admin.modal.description')}</label>
             <div className="space-y-2">
-              <textarea placeholder="ES" value={form.descriptionEs} onChange={e => setForm(f => ({ ...f, descriptionEs: e.target.value }))} rows={2} className={inputClass} />
-              <textarea placeholder="EN" value={form.descriptionEn} onChange={e => setForm(f => ({ ...f, descriptionEn: e.target.value }))} rows={2} className={inputClass} />
-              <textarea placeholder="FR" value={form.descriptionFr} onChange={e => setForm(f => ({ ...f, descriptionFr: e.target.value }))} rows={2} className={inputClass} />
+              <textarea onPaste={pasteParagraphs} placeholder="ES" value={form.descriptionEs} onChange={e => setForm(f => ({ ...f, descriptionEs: e.target.value }))} rows={2} className={inputClass} />
+              <textarea onPaste={pasteParagraphs} placeholder="EN" value={form.descriptionEn} onChange={e => setForm(f => ({ ...f, descriptionEn: e.target.value }))} rows={2} className={inputClass} />
+              <textarea onPaste={pasteParagraphs} placeholder="FR" value={form.descriptionFr} onChange={e => setForm(f => ({ ...f, descriptionFr: e.target.value }))} rows={2} className={inputClass} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -2022,6 +2044,7 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
             </button>
           </div>
         </form>
+      </div>
       </div>
       {browsingMedia && (
         <CloudinaryBrowserModal
