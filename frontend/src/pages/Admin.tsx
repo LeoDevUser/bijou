@@ -958,17 +958,64 @@ async function flushPendingMedia(itemId: number, sizeId: number, media: PendingM
   return view;
 }
 
+// Blocks that read as their own paragraph (a blank line around them) versus ones that
+// only start a new line, when rebuilding pasted HTML as plain text.
+const PARAGRAPH_TAGS = new Set(['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'BLOCKQUOTE', 'PRE', 'TABLE', 'HR']);
+const LINE_TAGS = new Set(['DIV', 'LI', 'TR', 'DT', 'DD', 'SECTION', 'ARTICLE']);
+const SKIP_TAGS = new Set(['HEAD', 'STYLE', 'SCRIPT', 'TITLE', 'META']);
+
 /**
- * Text copied from a formatted document (Google Docs, Word) arrives with its paragraphs
- * on single line breaks, so a pasted description collapses into one block. Each break
- * is widened to a blank line so the paragraphs stay apart in the box and on the page.
+ * Plain text that keeps the paragraph layout the copied HTML shows: a blank line
+ * between paragraphs, a single break between lines of one block. A <p> whose inline
+ * margins are zero (how Google Docs marks lines with no spacing) only breaks the line.
+ */
+function htmlToText(html: string): string {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  let out = '';
+  let pending = 0; // line breaks owed before the next text
+  const owe = (n: number) => { if (out) pending = Math.max(pending, n); };
+  const walk = (node: Node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      let text = (node.textContent ?? '').replace(/\s+/g, ' ');
+      if (pending) {
+        text = text.trimStart();
+        if (!text) return;
+        out = out.trimEnd() + '\n'.repeat(pending);
+        pending = 0;
+      } else if (!out) {
+        text = text.trimStart();
+      }
+      out += text;
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    const el = node as HTMLElement;
+    if (SKIP_TAGS.has(el.tagName)) return;
+    if (el.tagName === 'BR') { if (out) pending += 1; return; }
+    // A <p> inside a list item is still one line of the list.
+    const unspaced = el.tagName === 'P' && el.parentElement?.tagName === 'LI' || el.tagName === 'P' && parseFloat(el.style.marginTop || '1') === 0 && parseFloat(el.style.marginBottom || '1') === 0;
+    const level = PARAGRAPH_TAGS.has(el.tagName) && !unspaced ? 2 : LINE_TAGS.has(el.tagName) || unspaced ? 1 : 0;
+    owe(level);
+    el.childNodes.forEach(walk);
+    owe(level);
+  };
+  walk(doc.body);
+  return out.trim();
+}
+
+/**
+ * Text copied from a web page or a formatted document often loses its blank lines in
+ * the plain-text copy, so a pasted description would collapse into one block. The HTML
+ * copy still shows where paragraphs and lines break, so the text is rebuilt from that.
  * insertText goes through the browser's own editing, so undo and onChange still work.
  */
 function pasteParagraphs(e: React.ClipboardEvent<HTMLTextAreaElement>) {
-  const text = e.clipboardData.getData('text/plain');
-  if (!text.includes('\n')) return;
+  const html = e.clipboardData.getData('text/html');
+  if (!html) return;
+  const text = htmlToText(html);
+  if (!text) return;
   e.preventDefault();
-  document.execCommand('insertText', false, text.replace(/\r\n?/g, '\n').replace(/\n\s*/g, '\n\n'));
+  document.execCommand('insertText', false, text);
 }
 
 /**
@@ -1548,6 +1595,9 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
   const [stockView, setStockView] = useState({ stock: item?.stock ?? 0, version: item?.version ?? 0 });
   const [pendingFiles, setPendingFiles] = useState<{ file: File; name: string; url: string }[]>([]);
   const [pendingPicks, setPendingPicks] = useState<{ publicId: string; resourceType: string; secureUrl: string }[]>([]);
+  // Set once a new item has been created, so a retry after a failed media upload
+  // updates that item instead of creating it again (and tripping the name check).
+  const [createdId, setCreatedId] = useState<number | null>(null);
   const [currentAssets, setCurrentAssets] = useState(item?.assets ?? []);
   const [browsingMedia, setBrowsingMedia] = useState(false);
   const [metalPrices, setMetalPrices] = useState<{ goldMxnPerGram: number | null; silverMxnPerGram: number | null } | null>(null);
@@ -1634,22 +1684,30 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
         pricingMargin: form.pricingFormula !== 'NONE' && form.pricingMargin ? parseFloat(form.pricingMargin) : null,
       };
       let itemId: number;
-      if (item) {
-        await api.admin.items.update(item.id, payload);
-        itemId = item.id;
+      const existingId = item?.id ?? createdId;
+      if (existingId !== null) {
+        await api.admin.items.update(existingId, payload);
+        itemId = existingId;
       } else {
         const created = await api.admin.items.create(payload);
         itemId = created.id;
+        setCreatedId(itemId);
       }
-      for (const { file, name } of pendingFiles) {
-        await api.admin.items.addAsset(itemId, file, name);
+      // Each upload leaves the queue as soon as it lands, so a retry only sends the rest.
+      for (const pf of pendingFiles) {
+        await api.admin.items.addAsset(itemId, pf.file, pf.name);
+        setPendingFiles(prev => prev.filter(p => p !== pf));
       }
       for (const pick of pendingPicks) {
         await api.admin.items.pickAsset(itemId, pick);
+        setPendingPicks(prev => prev.filter(p => p !== pick));
       }
       onSaved();
-    } catch {
-      setError(t('admin.products.saveError'));
+    } catch (err: unknown) {
+      const e = err as { code?: string; detail?: string } | null;
+      setError(e?.code === 'ITEM_NAME_CONFLICT'
+        ? t('admin.products.nameConflict', { name: e.detail })
+        : t('admin.products.saveError'));
     } finally {
       setSaving(false);
     }

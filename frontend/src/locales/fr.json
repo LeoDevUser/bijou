@@ -283,7 +283,8 @@
       "delete": "Supprimer",
       "deleteConfirm": "Supprimer ce produit ? Cette action est irréversible.",
       "deleteHasOrders": "Ce produit a des commandes et ne peut pas être supprimé. Désactivez-le à la place.",
-      "saveError": "Échec de l'enregistrement. Veuillez réessayer."
+      "saveError": "Échec de l'enregistrement. Veuillez réessayer.",
+      "nameConflict": "Un produit avec le nom anglais « {{name}} » existe déjà. Cherchez-le dans la liste des produits ou utilisez un autre nom."
     },
     "sizes": {
       "title": "Styles et tailles",

@@ -283,7 +283,8 @@
       "delete": "Eliminar",
       "deleteConfirm": "¿Eliminar este producto? Esta acción no se puede deshacer.",
       "deleteHasOrders": "Este producto tiene pedidos y no puede eliminarse. Desactívalo en su lugar.",
-      "saveError": "Error al guardar. Por favor, intenta de nuevo."
+      "saveError": "Error al guardar. Por favor, intenta de nuevo.",
+      "nameConflict": "Ya existe un producto con el nombre en inglés \"{{name}}\". Búscalo en la lista de productos o usa otro nombre."
     },
     "sizes": {
       "title": "Estilos y tallas",
