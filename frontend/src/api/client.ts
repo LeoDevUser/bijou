@@ -12,19 +12,25 @@ function authHeaders(): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-async function tryRefresh(): Promise<boolean> {
-  try {
-    const res = await fetch(`${BASE_URL}/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include',
-    });
-    if (!res.ok) return false;
-    const body = await res.json();
-    setToken(body.token);
-    return true;
-  } catch {
-    return false;
-  }
+// Concurrent 401s share one refresh call instead of each firing their own.
+let refreshInFlight: Promise<boolean> | null = null;
+
+function tryRefresh(): Promise<boolean> {
+  refreshInFlight ??= (async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!res.ok) return false;
+      const body = await res.json();
+      setToken(body.token);
+      return true;
+    } catch {
+      return false;
+    }
+  })().finally(() => { refreshInFlight = null; });
+  return refreshInFlight;
 }
 
 async function request<T>(path: string, options: RequestInit = {}, retry = true): Promise<T> {
@@ -32,7 +38,8 @@ async function request<T>(path: string, options: RequestInit = {}, retry = true)
     ...options,
     credentials: 'include',
     headers: {
-      'Content-Type': 'application/json',
+      // FormData sets its own multipart Content-Type (with the boundary).
+      ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
       ...authHeaders(),
       ...(options.headers as Record<string, string> ?? {}),
     },
@@ -178,28 +185,14 @@ export const api = {
         const form = new FormData();
         form.append('file', file);
         if (name) form.append('name', name);
-        const res = await fetch(`${BASE_URL}/${ADMIN}/items/${itemId}/assets`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: authHeaders(),
-          body: form,
-        });
-        if (!res.ok) { const body = await res.json().catch(() => ({})); throw { status: res.status, ...body }; }
-        return res.json();
+        return request(`/${ADMIN}/items/${itemId}/assets`, { method: 'POST', body: form });
       },
       /** Upload scoped to one size — shown only while that size is selected. */
       addSizeAsset: async (itemId: number, sizeId: number, file: File, name?: string): Promise<ItemView> => {
         const form = new FormData();
         form.append('file', file);
         if (name) form.append('name', name);
-        const res = await fetch(`${BASE_URL}/${ADMIN}/items/${itemId}/sizes/${sizeId}/assets`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: authHeaders(),
-          body: form,
-        });
-        if (!res.ok) { const body = await res.json().catch(() => ({})); throw { status: res.status, ...body }; }
-        return res.json();
+        return request(`/${ADMIN}/items/${itemId}/sizes/${sizeId}/assets`, { method: 'POST', body: form });
       },
       deleteAsset: (itemId: number, assetId: number) =>
         request<ItemView>(`/${ADMIN}/items/${itemId}/assets/${assetId}`, { method: 'DELETE' }),
@@ -208,14 +201,7 @@ export const api = {
         const form = new FormData();
         form.append('file', file);
         if (name) form.append('name', name);
-        const res = await fetch(`${BASE_URL}/${ADMIN}/items/${itemId}/sizes/${sizeId}/swatch`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: authHeaders(),
-          body: form,
-        });
-        if (!res.ok) { const body = await res.json().catch(() => ({})); throw { status: res.status, ...body }; }
-        return res.json();
+        return request(`/${ADMIN}/items/${itemId}/sizes/${sizeId}/swatch`, { method: 'POST', body: form });
       },
 
       /** Give a size its own copy of an image the item already has; the source keeps it. */
@@ -253,28 +239,14 @@ export const api = {
         form.append('item', new Blob([JSON.stringify(data)], { type: 'application/json' }));
         form.append('file', file);
         if (name) form.append('name', name);
-        const res = await fetch(`${BASE_URL}/${ADMIN}/items`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: authHeaders(),
-          body: form,
-        });
-        if (!res.ok) { const body = await res.json().catch(() => ({})); throw { status: res.status, ...body }; }
-        return res.json();
+        return request(`/${ADMIN}/items`, { method: 'POST', body: form });
       },
       updateWithImage: async (id: number, data: ItemRequest, file: File, name?: string): Promise<ItemView> => {
         const form = new FormData();
         form.append('item', new Blob([JSON.stringify(data)], { type: 'application/json' }));
         form.append('file', file);
         if (name) form.append('name', name);
-        const res = await fetch(`${BASE_URL}/${ADMIN}/items/${id}`, {
-          method: 'PATCH',
-          credentials: 'include',
-          headers: authHeaders(),
-          body: form,
-        });
-        if (!res.ok) { const body = await res.json().catch(() => ({})); throw { status: res.status, ...body }; }
-        return res.json();
+        return request(`/${ADMIN}/items/${id}`, { method: 'PATCH', body: form });
       },
     },
     labels: {
@@ -319,14 +291,7 @@ export const api = {
         const form = new FormData();
         form.append('file', file);
         if (name) form.append('name', name);
-        const res = await fetch(`${BASE_URL}/${ADMIN}/collections/${id}/image`, {
-          method: 'PATCH',
-          credentials: 'include',
-          headers: authHeaders(),
-          body: form,
-        });
-        if (!res.ok) { const body = await res.json().catch(() => ({})); throw { status: res.status, ...body }; }
-        return res.json();
+        return request(`/${ADMIN}/collections/${id}/image`, { method: 'PATCH', body: form });
       },
       deleteImage: (id: number) =>
         request<CollectionView>(`/${ADMIN}/collections/${id}/image`, { method: 'DELETE' }),
@@ -340,14 +305,7 @@ export const api = {
         const form = new FormData();
         form.append('file', file);
         if (name) form.append('name', name);
-        const res = await fetch(`${BASE_URL}/${ADMIN}/collections/${id}/assets/${slot}/image?variant=${variant}`, {
-          method: 'PATCH',
-          credentials: 'include',
-          headers: authHeaders(),
-          body: form,
-        });
-        if (!res.ok) { const body = await res.json().catch(() => ({})); throw { status: res.status, ...body }; }
-        return res.json();
+        return request(`/${ADMIN}/collections/${id}/assets/${slot}/image?variant=${variant}`, { method: 'PATCH', body: form });
       },
       deleteAssetImage: (id: number, slot: string, variant: SlotMediaVariant = 'desktop') =>
         request<CollectionSiteAssetView>(`/${ADMIN}/collections/${id}/assets/${slot}/image?variant=${variant}`, { method: 'DELETE' }),
@@ -395,14 +353,7 @@ export const api = {
       uploadFactura: async (id: number, file: File): Promise<OrderView> => {
         const form = new FormData();
         form.append('file', file);
-        const res = await fetch(`${BASE_URL}/${ADMIN}/orders/${id}/factura`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: authHeaders(),
-          body: form,
-        });
-        if (!res.ok) { const body = await res.json().catch(() => ({})); throw { status: res.status, ...body }; }
-        return res.json();
+        return request(`/${ADMIN}/orders/${id}/factura`, { method: 'POST', body: form });
       },
     },
     settings: {

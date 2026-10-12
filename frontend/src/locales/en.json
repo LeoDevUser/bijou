@@ -615,6 +615,19 @@
         "deactivate": "deactivate",
         "delete": "permanently delete"
       }
+    },
+    "drafts": {
+      "title": "Drafts in this browser ({{count}}/{{max}})",
+      "hint": "Stored only on this computer, not in the store. Open one and press Save to upload it.",
+      "saveDraft": "Save draft",
+      "open": "Open",
+      "untitled": "(untitled)",
+      "media_one": "{{count}} file",
+      "media_other": "{{count}} files",
+      "deleteConfirm": "Delete this draft?",
+      "autoSaved": "A copy was saved as a draft in this browser. If you reload the page, you'll find it in the product list.",
+      "evicted": "Only {{max}} drafts are kept; the oldest one was removed.",
+      "storeError": "Couldn't save the draft in this browser."
     }
   },
   "account": {

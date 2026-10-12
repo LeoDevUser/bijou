@@ -615,6 +615,19 @@
         "deactivate": "desactivarlo",
         "delete": "eliminarlo permanentemente"
       }
+    },
+    "drafts": {
+      "title": "Borradores en este navegador ({{count}}/{{max}})",
+      "hint": "Se guardan solo en esta computadora, no en la tienda. Abre uno y presiona Guardar para subirlo.",
+      "saveDraft": "Guardar borrador",
+      "open": "Abrir",
+      "untitled": "(sin nombre)",
+      "media_one": "{{count}} archivo",
+      "media_other": "{{count}} archivos",
+      "deleteConfirm": "¿Eliminar este borrador?",
+      "autoSaved": "Se guardó una copia como borrador en este navegador. Si recargas la página, la encontrarás en la lista de productos.",
+      "evicted": "Solo se guardan {{max}} borradores; se eliminó el más antiguo.",
+      "storeError": "No se pudo guardar el borrador en este navegador."
     }
   },
   "account": {

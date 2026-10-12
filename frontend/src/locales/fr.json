@@ -615,6 +615,19 @@
         "deactivate": "le désactiver",
         "delete": "le supprimer définitivement"
       }
+    },
+    "drafts": {
+      "title": "Brouillons dans ce navigateur ({{count}}/{{max}})",
+      "hint": "Enregistrés uniquement sur cet ordinateur, pas dans la boutique. Ouvrez-en un et appuyez sur Enregistrer pour le publier.",
+      "saveDraft": "Enregistrer le brouillon",
+      "open": "Ouvrir",
+      "untitled": "(sans nom)",
+      "media_one": "{{count}} fichier",
+      "media_other": "{{count}} fichiers",
+      "deleteConfirm": "Supprimer ce brouillon ?",
+      "autoSaved": "Une copie a été enregistrée comme brouillon dans ce navigateur. Si vous rechargez la page, vous la retrouverez dans la liste des produits.",
+      "evicted": "Seuls {{max}} brouillons sont conservés ; le plus ancien a été supprimé.",
+      "storeError": "Impossible d'enregistrer le brouillon dans ce navigateur."
     }
   },
   "account": {

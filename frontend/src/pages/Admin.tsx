@@ -5,6 +5,7 @@ import type { ItemView, ItemViewVerbose, ItemRequest, ItemAssetView, ItemSizeVie
 import { pickLocale, variantLabel, isItemIncomplete, isLabelIncomplete, formatMoney } from '../types';
 import { useTheme, THEME_DEFAULTS, mergeCollectionTheme } from '../context/ThemeContext';
 import { invalidatePublicSettings } from '../hooks/usePublicSettings';
+import { listItemDrafts, saveItemDraft, deleteItemDraft, newDraftId, MAX_ITEM_DRAFTS, type ItemDraft } from '../utils/itemDrafts';
 
 // ── Media naming ──────────────────────────────────────────────────────────────
 
@@ -1565,12 +1566,15 @@ interface ItemModalProps {
   allCategories: CategoryView[];
   onClose: () => void;
   onSaved: () => void;
+  /** Browser-only draft to restore into the form. */
+  draft?: ItemDraft<ItemFormData>;
+  onDraftsChanged: () => void;
 }
 
-function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemModalProps) {
+function ItemModal({ item, allLabels, allCategories, onClose, onSaved, draft, onDraftsChanged }: ItemModalProps) {
   const { t, i18n } = useTranslation();
   const [form, setForm] = useState<ItemFormData>(
-    item
+    draft ? { ...emptyForm, ...draft.form } : item
       ? {
           nameEn: item.nameEn ?? '', nameFr: item.nameFr ?? '', nameEs: item.nameEs ?? '',
           descriptionEn: item.descriptionEn ?? '', descriptionFr: item.descriptionFr ?? '', descriptionEs: item.descriptionEs ?? '',
@@ -1593,11 +1597,16 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
   // Item-level stock is managed through its own endpoints (not the general save),
   // so it can't be clobbered by an unrelated edit. Tracked here for live display.
   const [stockView, setStockView] = useState({ stock: item?.stock ?? 0, version: item?.version ?? 0 });
-  const [pendingFiles, setPendingFiles] = useState<{ file: File; name: string; url: string }[]>([]);
-  const [pendingPicks, setPendingPicks] = useState<{ publicId: string; resourceType: string; secureUrl: string }[]>([]);
+  const [pendingFiles, setPendingFiles] = useState<{ file: File; name: string; url: string }[]>(
+    () => (draft?.files ?? []).map(f => ({ file: f.file, name: f.name, url: URL.createObjectURL(f.file) }))
+  );
+  const [pendingPicks, setPendingPicks] = useState<{ publicId: string; resourceType: string; secureUrl: string }[]>(draft?.picks ?? []);
   // Set once a new item has been created, so a retry after a failed media upload
   // updates that item instead of creating it again (and tripping the name check).
-  const [createdId, setCreatedId] = useState<number | null>(null);
+  // A draft saved after such a partial save carries that id along.
+  const [createdId, setCreatedId] = useState<number | null>(item ? null : draft?.itemId ?? null);
+  const [draftId, setDraftId] = useState<string | null>(draft?.id ?? null);
+  const [draftNotice, setDraftNotice] = useState<string | null>(null);
   const [currentAssets, setCurrentAssets] = useState(item?.assets ?? []);
   const [browsingMedia, setBrowsingMedia] = useState(false);
   const [metalPrices, setMetalPrices] = useState<{ goldMxnPerGram: number | null; silverMxnPerGram: number | null } | null>(null);
@@ -1605,7 +1614,7 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
   useEffect(() => {
     api.metalPrices().then(setMetalPrices).catch(() => setMetalPrices(null));
   }, []);
-  const [weightUnit, setWeightUnit] = useState<'g' | 'oz'>('g');
+  const [weightUnit, setWeightUnit] = useState<'g' | 'oz'>(draft?.weightUnit ?? 'g');
   const fileRef = useRef<HTMLInputElement>(null);
 
   const OZ_TO_G = 28.3495;
@@ -1660,10 +1669,39 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
     }
   }
 
+  /** Stores the form as it stands in this browser. Throws if the browser refuses. */
+  async function storeDraft(): Promise<number> {
+    const id = draftId ?? newDraftId();
+    const evicted = await saveItemDraft<ItemFormData>({
+      id,
+      savedAt: Date.now(),
+      itemId: item?.id ?? createdId,
+      form,
+      weightUnit,
+      files: pendingFiles.map(p => ({ file: p.file, name: p.name })),
+      picks: pendingPicks,
+    });
+    setDraftId(id);
+    onDraftsChanged();
+    return evicted;
+  }
+
+  async function handleSaveDraft() {
+    setError(null);
+    try {
+      const evicted = await storeDraft();
+      if (evicted > 0) alert(t('admin.drafts.evicted', { max: MAX_ITEM_DRAFTS }));
+      onClose();
+    } catch {
+      setError(t('admin.drafts.storeError'));
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     setError(null);
+    setDraftNotice(null);
     try {
       const payload: ItemRequest = {
         nameEn: form.nameEn, nameFr: form.nameFr, nameEs: form.nameEs,
@@ -1702,12 +1740,21 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
         await api.admin.items.pickAsset(itemId, pick);
         setPendingPicks(prev => prev.filter(p => p !== pick));
       }
+      if (draftId) {
+        await deleteItemDraft(draftId).catch(() => {});
+        onDraftsChanged();
+      }
       onSaved();
     } catch (err: unknown) {
       const e = err as { code?: string; detail?: string } | null;
       setError(e?.code === 'ITEM_NAME_CONFLICT'
         ? t('admin.products.nameConflict', { name: e.detail })
         : t('admin.products.saveError'));
+      // Back the form up so a page reload can't lose it.
+      try {
+        await storeDraft();
+        setDraftNotice(t('admin.drafts.autoSaved'));
+      } catch { /* storage unavailable — the form is still on screen */ }
     } finally {
       setSaving(false);
     }
@@ -2093,9 +2140,13 @@ function ItemModal({ item, allLabels, allCategories, onClose, onSaved }: ItemMod
           </div>
 
           {error && <p className="text-red-500 text-sm">{error}</p>}
+          {draftNotice && <p className="text-muted text-xs">{draftNotice}</p>}
           <div className="flex gap-3 pt-2">
             <button type="submit" disabled={saving} className="flex-1 bg-dark text-white text-xs uppercase tracking-widest py-3 hover:bg-gold transition-colors disabled:opacity-50">
               {saving ? '...' : t('admin.modal.save')}
+            </button>
+            <button type="button" disabled={saving} onClick={handleSaveDraft} className="flex-1 border border-border text-xs uppercase tracking-widest py-3 hover:border-dark transition-colors disabled:opacity-50">
+              {t('admin.drafts.saveDraft')}
             </button>
             <button type="button" onClick={onClose} className="flex-1 border border-border text-xs uppercase tracking-widest py-3 hover:border-dark transition-colors">
               {t('admin.modal.cancel')}
@@ -2292,6 +2343,29 @@ function AdminProducts() {
   const [sort, setSort] = useState<ProductSort>('default');
   const [search, setSearch] = useState('');
   const [modal, setModal] = useState<'new' | ItemViewVerbose | null>(null);
+  const [drafts, setDrafts] = useState<ItemDraft<ItemFormData>[]>([]);
+  const [modalDraft, setModalDraft] = useState<ItemDraft<ItemFormData> | undefined>(undefined);
+
+  function loadDrafts() {
+    listItemDrafts<ItemFormData>().then(setDrafts).catch(() => setDrafts([]));
+  }
+  useEffect(loadDrafts, []);
+
+  function openDraft(d: ItemDraft<ItemFormData>) {
+    setModalDraft(d);
+    setModal(items.find(i => i.id === d.itemId) ?? 'new');
+  }
+
+  async function removeDraft(d: ItemDraft<ItemFormData>) {
+    if (!confirm(t('admin.drafts.deleteConfirm'))) return;
+    await deleteItemDraft(d.id).catch(() => {});
+    loadDrafts();
+  }
+
+  function closeModal() {
+    setModal(null);
+    setModalDraft(undefined);
+  }
 
   useEffect(() => { load(); }, []);
 
@@ -2393,6 +2467,31 @@ function AdminProducts() {
             {t('admin.products.addProduct')}
           </button>
         </div>
+        {drafts.length > 0 && (
+          <div className="border border-border p-3 space-y-2">
+            <p className="text-xs uppercase tracking-widest">
+              {t('admin.drafts.title', { count: drafts.length, max: MAX_ITEM_DRAFTS })}
+            </p>
+            <p className="text-xs text-muted">{t('admin.drafts.hint')}</p>
+            {drafts.map(d => (
+              <div key={d.id} className="flex items-center gap-3 text-sm">
+                <span className="flex-1 truncate">
+                  {d.form.nameEs || d.form.nameEn || d.form.nameFr || t('admin.drafts.untitled')}
+                  <span className="text-xs text-muted ml-2">
+                    {new Date(d.savedAt).toLocaleString(i18n.language)}
+                    {d.files.length + d.picks.length > 0 && ` · ${t('admin.drafts.media', { count: d.files.length + d.picks.length })}`}
+                  </span>
+                </span>
+                <button onClick={() => openDraft(d)} className="text-xs uppercase tracking-widest border border-border px-3 py-1.5 hover:border-dark transition-colors">
+                  {t('admin.drafts.open')}
+                </button>
+                <button onClick={() => removeDraft(d)} className="text-xs uppercase tracking-widest text-red-500 hover:underline">
+                  {t('admin.products.delete')}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
@@ -2503,8 +2602,10 @@ function AdminProducts() {
           item={modal === 'new' ? undefined : modal}
           allLabels={labels}
           allCategories={categories}
-          onClose={() => setModal(null)}
-          onSaved={() => { setModal(null); load(); }}
+          draft={modalDraft}
+          onDraftsChanged={loadDrafts}
+          onClose={closeModal}
+          onSaved={() => { closeModal(); load(); }}
         />
       )}
 

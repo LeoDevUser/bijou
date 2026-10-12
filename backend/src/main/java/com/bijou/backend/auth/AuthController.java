@@ -13,10 +13,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthController {
     private final AuthService authService;
 
@@ -62,10 +64,15 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refresh(@CookieValue(name = "refreshToken", required = false) String refreshToken) {
         if (refreshToken == null) {
+            log.warn("refresh rejected — no refresh cookie sent");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        String accessToken = authService.refreshAccessToken(refreshToken);
-        return ResponseEntity.ok(new AuthResponse(accessToken));
+        // Re-issue the refresh cookie too, so the 7-day window slides with activity
+        // instead of logging out an admin who uses the panel every day.
+        AuthTokenPair tokens = authService.refresh(refreshToken);
+        return ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE, buildRefreshCookie(tokens.refreshToken()).toString())
+            .body(new AuthResponse(tokens.accessToken()));
     }
 
     @PostMapping("/logout")

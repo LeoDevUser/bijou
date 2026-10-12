@@ -119,22 +119,29 @@ public class AuthService {
         return new AuthTokenPair(jwtService.generateAccessToken(client), jwtService.generateRefreshToken(client));
     }
 
-    public String refreshAccessToken(String refreshToken) {
+    public AuthTokenPair refresh(String refreshToken) {
         try {
             String type = jwtService.extractType(refreshToken);
             if (!"refresh".equals(type)) {
+                log.warn("refresh rejected — token type is {}", type);
                 throw new AppException(HttpStatus.UNAUTHORIZED, "INVALID_TOKEN");
             }
             String email = jwtService.extractEmail(refreshToken);
             Client client = clientRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(HttpStatus.UNAUTHORIZED, "INVALID_TOKEN"));
+                .orElseThrow(() -> {
+                    log.warn("refresh rejected — no account for email {}", email);
+                    return new AppException(HttpStatus.UNAUTHORIZED, "INVALID_TOKEN");
+                });
             if (!jwtService.isTokenValid(refreshToken, client)) {
+                log.warn("refresh rejected — token invalid for email {}", email);
                 throw new AppException(HttpStatus.UNAUTHORIZED, "INVALID_TOKEN");
             }
-            return jwtService.generateAccessToken(client);
+            return new AuthTokenPair(jwtService.generateAccessToken(client), jwtService.generateRefreshToken(client));
         } catch (AppException e) {
             throw e;
         } catch (Exception e) {
+            // Includes expired/bad-signature tokens, but also DB errors — log which.
+            log.warn("refresh rejected — {}: {}", e.getClass().getSimpleName(), e.getMessage());
             throw new AppException(HttpStatus.UNAUTHORIZED, "INVALID_TOKEN");
         }
     }
